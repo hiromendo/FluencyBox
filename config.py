@@ -1,0 +1,7 @@
+DEBUG = 1
+MYSQL_DATABASE_USER = 'Sanjay'
+MYSQL_DATABASE_PASSWORD = 'sAnjAy'
+MYSQL_DATABASE_DB = 'fluencyboxdb'
+MYSQL_DATABASE_HOST = 'localhost'
+SECRET_KEY = '\x8a\x94R\x84\xf9\xb2\x91\x9d\x98w5&\x073\x8d\xb0\x92-\xb5U6\xb2\xf6\x84'
+TOKEN_EXPIRY =60
