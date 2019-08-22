@@ -33,28 +33,45 @@ def get_client():
                       aws_secret_access_key=S3_SECRET)
     return s3
 
-
-def save_avatar(my_avatar):
+def save_s3_object(object_dir, body, content_type):
     try:
         resp_dict = {}
         my_bucket = get_bucket()
         s3 = get_resource()
+        #set directory, object and content type of the object
+        my_bucket.Object(object_dir).put(Body = body, ContentType = content_type)
+        #set access permissions
+        object_acl = s3.ObjectAcl(app.config.get('S3_BUCKET'), object_dir)
+        response = object_acl.put(ACL='public-read')
+        #get full URL to the object
+        object_url = app.config.get('S3_URL') + object_dir
+        
+        resp_dict['status'] = 'success'
+        resp_dict['object_url'] = object_url
+        return resp_dict
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return resp_dict
+    
+def save_avatar(my_avatar):
+    try:
+        resp_dict = {}
         #Create random file name
-        hex_name = secrets.token_hex(8)
+        hex_name = secrets.token_hex(20)
         _, obj_ext = os.path.splitext(my_avatar.filename)
         obj_fn = hex_name + obj_ext
         mime_type = mimetypes.types_map[obj_ext]
 
-        #set directory, object and content type of the object
-        my_bucket.Object(app.config.get('S3_AVATAR_DIR') + '/' + obj_fn).put(Body=my_avatar, ContentType=mime_type)
-        #set access permissions
-        object_acl = s3.ObjectAcl(app.config.get('S3_BUCKET'), app.config.get('S3_AVATAR_DIR') + '/' + obj_fn)
-        response = object_acl.put(ACL='public-read')
-        #get full URL to the object
-        obj_url = app.config.get('S3_URL') + app.config.get('S3_AVATAR_DIR') + '/' + obj_fn
+        object_dir = app.config.get('S3_AVATAR_DIR') + '/' + obj_fn
+        object_url = save_s3_object(object_dir, my_avatar, mime_type)
 
-        resp_dict['status'] = 'success'
-        resp_dict['obj_url'] = obj_url
+        if object_url['status'] == 'success':
+            resp_dict['status'] = 'success'
+            avatar_url = object_url['object_url']
+            resp_dict['object_url'] = avatar_url
+
         return resp_dict
 
     except Exception as e:
@@ -65,15 +82,20 @@ def save_avatar(my_avatar):
 def save_story_object(my_object):
     try:
         resp_dict = {}
-        my_bucket = get_bucket()
-        s3 = get_resource()
         
-        my_bucket.Object(app.config.get('S3_CONTENT_DIR') + '/' + my_object.filename).put(Body=my_object)
-        obj_fn = my_object.filename
-        obj_url = app.config.get('S3_URL') + app.config.get('S3_CONTENT_DIR') + '/' + obj_fn
+        _, obj_ext = os.path.splitext(my_object.filename)
+        mime_type = mimetypes.types_map[obj_ext]
+
+        object_dir = app.config.get('S3_CONTENT_DIR') + '/' + my_object.filename
+        object_url = save_s3_object(object_dir, my_object, mime_type)
+
+        if object_url['status'] == 'success':
+            resp_dict['status'] = 'success'
+            story_object_url = object_url['object_url']
+            resp_dict['object_url'] = story_object_url
 
         resp_dict['status'] = 'success'
-        resp_dict['obj_url'] = obj_url
+        resp_dict['object_url'] = object_url
         return resp_dict
     except Exception as e:
         resp_dict['status'] = 'fail'

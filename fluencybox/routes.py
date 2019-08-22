@@ -2,6 +2,7 @@ from flask import request, jsonify, make_response, Response, send_file, url_for
 from sqlalchemy import or_
 import base64
 import os, io
+import re
 from PIL import Image
 from fluencybox import app, db
 import uuid
@@ -25,7 +26,7 @@ def token_required(f):
         resp_dict = {}
 
         if 'x-access-token' in request.headers:
-            access_token = request.headers['x-access-token']
+            access_token = request.headers['x-access-token'].strip()
 
         if not access_token:
             resp_dict['status'] = 'fail'
@@ -50,6 +51,20 @@ def token_required(f):
         return f(*args, **kwargs)
 
     return decorated
+
+def validate_email_address(email_address):
+    regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
+    if(re.search(regex,email_address)): 
+        return True
+    else:
+        return False
+
+def validate_user_name(user_name):
+    regex = '^[A-Za-z0-9_-]+$'
+    if(re.search(regex,user_name)): 
+        return True
+    else:
+        return False
 
 #Get all users
 @app.route('/users',methods=['GET'])
@@ -138,24 +153,38 @@ def create_user():
             return jsonify(resp_dict),400
 
         #check if password and confirm_password are same
-        if user_data['password'] != user_data['confirm_password']:
+        if user_data['password'].strip() != user_data['confirm_password'].strip():
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'password and confirm password do not match'
             return jsonify(resp_dict),400
 
         #checking password length
-        if len(user_data['password']) < 8:
+        if len(user_data['password'].strip()) < 8:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'password length must be at least 8 characters long'
             return jsonify(resp_dict),400
+        
+        #email validation
+        is_valid_email_address = validate_email_address(user_data['email_address'].strip())
+        if not is_valid_email_address:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'invalid email address'
+            return jsonify(resp_dict),400
 
-        hashed_password = generate_password_hash(user_data['password'], method='sha256')
+        #username validation
+        is_valid_user_name = validate_user_name(user_data['user_name'].strip())
+        if not is_valid_user_name:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'invalid user name'
+            return jsonify(resp_dict),400
+
+        hashed_password = generate_password_hash(user_data['password'].strip(), method='sha256')
         uid = str(uuid.uuid4())
-        first_name = user_data['first_name'] 
-        last_name = user_data['last_name'] 
-        email_address = user_data['email_address'] 
-        user_name = user_data['user_name'] 
-        phone_number = user_data['phone_number'] 
+        first_name = user_data['first_name'].strip() 
+        last_name = user_data['last_name'].strip() 
+        email_address = user_data['email_address'].strip() 
+        user_name = user_data['user_name'].strip() 
+        phone_number = user_data['phone_number'].strip() 
         access_token = jwt.encode({'uid' : uid, 'token_type' : 'access_token' , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
         refresh_token = jwt.encode({'uid' : uid, 'token_type' : 'refresh_token' , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['REFRESH_TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
 		
@@ -222,7 +251,21 @@ def update_user(uid):
             resp_dict['message'] = 'No phone number in request'
             return jsonify(resp_dict),400
 
-        user = User.query.filter_by(uid = id).first()
+        #email validation
+        is_valid_email_address = validate_email_address(user_data['email_address'].strip())
+        if not is_valid_email_address:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'invalid email address'
+            return jsonify(resp_dict),400
+
+        #username validation
+        is_valid_user_name = validate_user_name(user_data['user_name'].strip())
+        if not is_valid_user_name:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'invalid user name'
+            return jsonify(resp_dict),400
+
+        user = User.query.filter_by(uid = uid.strip()).first()
 
         if not user:
             resp_dict['status'] = 'fail'
@@ -230,23 +273,23 @@ def update_user(uid):
             return jsonify(resp_dict),404
 
         #Check if the username or email is shared with a different user
-        check_user_email = User.query.filter(User.email_address == user_data['email_address']).filter(User.uid != uid).first()
+        check_user_email = User.query.filter(User.email_address == user_data['email_address'].strip()).filter(User.uid != uid.strip()).first()
         if check_user_email:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'Email already registered'
             return jsonify(resp_dict),400
 
-        check_user_name = User.query.filter(User.user_name == user_data['user_name']).filter(User.uid != uid).first()
+        check_user_name = User.query.filter(User.user_name == user_data['user_name'].strip()).filter(User.uid != uid.strip()).first()
         if check_user_name:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'User name already registered'
             return jsonify(resp_dict),400
 
-        user.first_name = user_data['first_name'] 
-        user.last_name = user_data['last_name'] 
-        user.email_address = user_data['email_address'] 
-        user.user_name =  user_data['user_name'] 
-        user.phone_number = user_data['phone_number']
+        user.first_name = user_data['first_name'].strip() 
+        user.last_name = user_data['last_name'].strip() 
+        user.email_address = user_data['email_address'].strip() 
+        user.user_name =  user_data['user_name'].strip() 
+        user.phone_number = user_data['phone_number'].strip()
 
         db.session.commit()
         resp_dict['status'] = 'success'
@@ -278,25 +321,26 @@ def update_password(uid):
             return jsonify(resp_dict),400
         
         #check if password and confirm_password are same
-        if user_data['password'] != user_data['confirm_password']:
+        if user_data['password'].strip() != user_data['confirm_password'].strip():
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'password and confirm password do not match'
             return jsonify(resp_dict),400
 
         #checking password length
-        if len(user_data['password']) < 8:
+        if len(user_data['password'].strip()) < 8:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'password length must be at least 8 characters long'
             return jsonify(resp_dict),400
 
-        user = User.query.filter_by(uid = uid).first()
+        user = User.query.filter_by(uid = uid.strip()).first()
         if not user:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No user found'
             return jsonify(resp_dict),404
 
-        hashed_password = generate_password_hash(user_data['password'], method='sha256')
+        hashed_password = generate_password_hash(user_data['password'].strip(), method='sha256')
         user.password = hashed_password
+        user.refresh_token = null
         db.session.commit()
         resp_dict['status'] = 'success'
         resp_dict['message'] = 'Password Updated Successfully'
@@ -313,7 +357,7 @@ def update_password(uid):
 def update_profile_picture(uid):
     try:
         resp_dict = {}
-        user = User.query.filter_by(uid = uid).first()
+        user = User.query.filter_by(uid = uid.strip()).first()
         if not user:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No user found'
@@ -330,7 +374,7 @@ def update_profile_picture(uid):
         save_object_response = save_avatar(file)
         
         if save_object_response['status'] == 'success':
-            profile_picture = save_object_response['obj_url']
+            profile_picture = save_object_response['object_url']
             user.profile_picture = profile_picture
             db.session.commit()
             
@@ -338,6 +382,7 @@ def update_profile_picture(uid):
 
             resp_dict['status'] = 'success'
             resp_dict['message'] = 'successfully updated'
+            resp_dict['profile_picture'] = profile_picture
             return jsonify(resp_dict),200
         elif save_object_response['status'] == 'fail':
             resp_dict['status'] = 'fail'
@@ -360,14 +405,14 @@ def login():
             return make_response('Invalid Credentials', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
         
         #Allow user to log in with username or email address
-        user = User.query.filter(or_ (User.email_address == auth.username, User.user_name == auth.username)).first()
+        user = User.query.filter(or_ (User.email_address == auth.username.strip(), User.user_name == auth.username.strip())).first()
         if not user:
             return make_response('Invalid Credentials', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
         
         if user.is_locked == 1:
             return make_response('Invalid Credentials', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
-        if check_password_hash(user.password, auth.password):
+        if check_password_hash(user.password, auth.password.strip()):
             access_token = jwt.encode({'uid' : user.uid, 'token_type' : 'access_token' , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
             refresh_token = jwt.encode({'uid' : user.uid, 'token_type' : 'refresh_token' , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['REFRESH_TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
             
@@ -384,8 +429,14 @@ def login():
         else:
             #If password is wrong, update failed counter in DB
             user.failed_login_attempts = user.failed_login_attempts + 1
+            try:
+                failed_login_attempts_lockout = int(app.config['FAILED_LOGIN_ATTEMPTS_LOCKOUT'])
+                if failed_login_attempts_lockout == 0:
+                    failed_login_attempts_lockout = 5
+            except Exception as e:
+                failed_login_attempts_lockout = 5
 
-            if user.failed_login_attempts >= app.config['FAILED_LOGIN_ATTEMPTS_LOCKOUT']:
+            if user.failed_login_attempts >= failed_login_attempts_lockout:
                 user.is_locked = 1
             db.session.commit()
 
@@ -397,14 +448,14 @@ def login():
 
 #Changed after PR1 - uid/'token_type' : 'access_token'
 #Refresh Token Request
-@app.route("/refresh_token", methods=['POST'])
+@app.route("/access_tokens", methods=['POST'])
 def refresh_token():
     try:
         x_refresh_token = None
         resp_dict = {}
         
         if 'x-refresh-token' in request.headers:
-            x_refresh_token = request.headers['x-refresh-token']
+            x_refresh_token = request.headers['x-refresh-token'].strip()
 
         if not x_refresh_token:
             resp_dict['status'] = 'fail'
@@ -461,7 +512,7 @@ def reset_request():
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No email in request'
             return jsonify(resp_dict),400
-        user = User.query.filter_by(email_address=user_data['email_address']).first()
+        user = User.query.filter_by(email_address=user_data['email_address'].strip()).first()
         
         if not user:
             resp_dict['status'] = 'fail'
@@ -517,13 +568,13 @@ def reset_password():
             return jsonify(resp_dict),400
 
         #check if password and confirm_password are same
-        if user_data['password'] != user_data['confirm_password']:
+        if user_data['password'].strip() != user_data['confirm_password'].strip():
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'password and confirm password do not match'
             return jsonify(resp_dict),400
 
         #checking password length
-        if len(user_data['password']) < 8:
+        if len(user_data['password'].strip()) < 8:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'password length must be at least 8 characters long'
             return jsonify(resp_dict),400
@@ -533,15 +584,19 @@ def reset_password():
             resp_dict['message'] = 'No email address in request'
             return jsonify(resp_dict),400
 
-        user = User.query.filter_by(email_address = user_data['email_address']).first()
+        user = User.query.filter_by(email_address = user_data['email_address'].strip()).first()
         
         if not user:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No user found'
             return jsonify(resp_dict),404
 
-        hashed_password = generate_password_hash(user_data['password'], method='sha256')
+        hashed_password = generate_password_hash(user_data['password'].strip(), method='sha256')
         user.password = hashed_password
+        user.is_locked = 0
+        user.failed_login_attempts = 0
+        user.refresh_token = null
+
         db.session.commit()
         resp_dict['status'] = 'success'
         resp_dict['message'] = 'Password Updated Successfully'
@@ -550,17 +605,3 @@ def reset_password():
         resp_dict['status'] = 'fail'
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
-
-#Work in progress
-@app.route('/download')
-def download():
-    resp_dict = {}
-    my_object_key = '53380007f90e62eb.png'
-    my_bucket = get_bucket()
-    file_obj = my_bucket.Object('avatars/' + my_object_key).get()
-
-    return Response(
-        file_obj['Body'].read(),
-        mimetype='image/png',
-        headers={"Content-Disposition": "inline:filename={}".format(my_object_key)}
-     )
