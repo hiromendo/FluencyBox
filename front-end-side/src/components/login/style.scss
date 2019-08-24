@@ -16,7 +16,6 @@
     .image {
       width: 21em;
       img {
-        width: 100%;
         height: 128px;
       }
     }
@@ -64,4 +63,8 @@
   .footer {
     margin-top: 1em;
   }
+}
+
+@media (max-width:768px) { 
+
 }
