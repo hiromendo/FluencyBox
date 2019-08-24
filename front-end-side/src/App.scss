@@ -17,7 +17,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 5px;
   position: relative;
   .container {
     display: flex;
@@ -29,7 +28,7 @@
     border-radius: 4px;
     position: relative;
     width: 100%;
-    padding: 17px 10px;
+    padding-bottom: 17px;
   }
 }
 

@@ -4,6 +4,8 @@ import { connect } from 'react-redux';
 import Login from '../login/login';
 import Register from '../login/register';
 
+import { AlertMessage } from '../alertMessage/alertMessage';
+
 class LoginPage extends React.Component {
   constructor(props) {
     super(props);
@@ -27,6 +29,7 @@ class LoginPage extends React.Component {
         ) : (
           <div className="login">
             <div className="container">
+              <AlertMessage typeAlert="error" message="this is error message" />
               {isLogginActive && <Login containerRef={ (ref) => this.current = ref}/>}
               {!isLogginActive && <Register containerRef={ (ref) => this.current = ref}/>}
               <LoginOrRegistration
