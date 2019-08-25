@@ -61,6 +61,18 @@ export const registerUserAPI = request => {
 
   return fetch(REGISTER_API_ENDPOINT, parameters)
     .then(response => {
-      return response.json()
+      switch (response.status) {
+        case 400: {
+          return response.json().then(data => {
+            return Promise.reject(data.message);
+          })
+        }
+        default: 
+          return response.json()
+      }
+      
+    })
+    .catch(error => {
+      throw Error(error)
     })
 }

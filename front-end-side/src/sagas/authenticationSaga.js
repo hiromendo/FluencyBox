@@ -53,7 +53,8 @@ export function* sendRegisterAsync (payload) {
     yield settingUserInfo(userInfoResponse, history);
 
   } catch(error) {
-    console.log(error)
+    console.error(error.message)
+    yield put({ type: DISPLAY_ALERT, payload: { errorMessage: error.message, status: 'error' } })
     yield put({ type: END_LOADING });
   }
 }
