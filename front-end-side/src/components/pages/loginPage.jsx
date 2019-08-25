@@ -5,6 +5,7 @@ import Login from '../login/login';
 import Register from '../login/register';
 
 import { AlertMessage } from '../alertMessage/alertMessage';
+import { displayAlert } from '../../actions';
 
 class LoginPage extends React.Component {
   constructor(props) {
@@ -15,6 +16,7 @@ class LoginPage extends React.Component {
   }
 
   changeState() {
+    this.props.displayAlert(null, null)
     this.setState(prevState => ({ isLogginActive: !prevState.isLogginActive }))
   }
 
@@ -60,4 +62,8 @@ const mapStateToProps = ({ loading, authInfo }) => ({
   authInfo
 })
 
-export default connect(mapStateToProps)(LoginPage);
+const mapDispatchToProps = {
+  displayAlert
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(LoginPage);

@@ -45,8 +45,10 @@ export const removeCurrentUser = () => ({
   type: REMOVE_CURRENT_USER
 })
 
-export const displayAlert = (typeAlert, messageAlert) => ({
+export const displayAlert = (status, errorMessage) => ({
   type: DISPLAY_ALERT,
-  typeAlert,
-  messageAlert
+  payload: {
+    status,
+    errorMessage
+  }
 })
