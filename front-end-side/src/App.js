@@ -3,8 +3,9 @@ import { connect } from 'react-redux';
 
 import { Switch, Route } from 'react-router-dom';
 
-import { HomePage, LoginPage , AppLayOut } from './components/pages';
-import ProtectedRoute from './util/protected_route';
+import { HomePage, LoginPage , AppLayOut, UserProfilePage } from './components/pages';
+
+import PrivateRoute from './util/PrivateRoute';
 import { endLoading, getCurrentUser } from './actions';
 
 import "./App.scss";
@@ -27,13 +28,8 @@ class App extends React.Component {
         <Switch>
           <Route exact path="/" component={HomePage}/>
           <Route exact path="/login" component={LoginPage}/>
-          <ProtectedRoute
-            routeConfig = {{
-              'exact': true,
-              'path': "/app"}
-            }
-            Component={AppLayOut}
-          />
+          <PrivateRoute path='/app' component={AppLayOut} />
+          <PrivateRoute path='/userprofile' component={UserProfilePage} />
           <Route path="*" component={() => "404 not found" } />
         </Switch>
       </div>
