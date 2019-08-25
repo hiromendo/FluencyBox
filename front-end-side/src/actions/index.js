@@ -9,6 +9,7 @@ export const GET_CURRENT_USER = 'GET_CURRENT_USER';
 export const SET_CURRENT_USER = 'SET_CURRENT_USER';
 export const REMOVE_CURRENT_USER = 'REMOVE_CURRENT_USER';
 
+export const DISPLAY_ALERT = 'DISPLAY_ALERT';
 
 export const startLoading = () => ({
   type: START_LOADING
@@ -42,4 +43,10 @@ export const setCurrentUser = data => ({
 
 export const removeCurrentUser = () => ({
   type: REMOVE_CURRENT_USER
+})
+
+export const displayAlert = (typeAlert, messageAlert) => ({
+  type: DISPLAY_ALERT,
+  typeAlert,
+  messageAlert
 })

@@ -32,7 +32,17 @@ export const loginUserAPI = request => {
 
   return fetch(LOGIN_API_ENDPOINT, parameters)
     .then(response => {
-      return response.json()
+      switch (response.status) {
+        case 401: {
+          return Promise.reject('Invalid Credentials -- Please Try Again');
+        }
+        default:
+          return response.json()
+      }
+      
+    })
+    .catch(error => {
+      throw Error(error)
     })
 }
 

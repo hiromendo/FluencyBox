@@ -18,6 +18,10 @@ class LoginPage extends React.Component {
     this.setState(prevState => ({ isLogginActive: !prevState.isLogginActive }))
   }
 
+  renderAlertMessage() {
+    const { serverResponse } = this.props.authInfo;
+    return serverResponse.status === 'error' ? <AlertMessage typeAlert={serverResponse.status} message={serverResponse.errorMessage} /> : null;
+  }
 
   render() {
     const { isLogginActive } = this.state;
@@ -29,7 +33,7 @@ class LoginPage extends React.Component {
         ) : (
           <div className="login">
             <div className="container">
-              <AlertMessage typeAlert="error" message="this is error message" />
+              {this.renderAlertMessage()}
               {isLogginActive && <Login containerRef={ (ref) => this.current = ref}/>}
               {!isLogginActive && <Register containerRef={ (ref) => this.current = ref}/>}
               <LoginOrRegistration
@@ -51,8 +55,9 @@ const LoginOrRegistration = props => {
     </div>
   )
 }
-const mapStateToProps = ({ loading }) => ({
-  loading
+const mapStateToProps = ({ loading, authInfo }) => ({
+  loading,
+  authInfo
 })
 
 export default connect(mapStateToProps)(LoginPage);

@@ -5,7 +5,8 @@ import { loginUserAPI, getUserInfoAPI, registerUserAPI } from './../util/api'
 import {
   START_LOADING,
   END_LOADING,
-  SET_CURRENT_USER
+  SET_CURRENT_USER,
+  DISPLAY_ALERT
  } from '../actions'
 
 
@@ -33,7 +34,8 @@ export function* getLoginAsync (payload) {
     const userInfoResponse = yield call(getUserInfoAPI, loginResponse);
     yield settingUserInfo(userInfoResponse, history)
   } catch(error) {
-    console.log(error)
+    console.error(error)
+    yield put({ type: DISPLAY_ALERT, payload: { errorMessage: error.message, status: 'error' } })
     yield put({ type: END_LOADING });
   }
 }
