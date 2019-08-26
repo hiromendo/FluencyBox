@@ -18,7 +18,7 @@ class AppLayOut extends React.Component {
         <h2>App Layout</h2>
         <Link to="/userprofile">Click here to update your profile</Link>
         <div onClick={this.logOffUser.bind(this)}>
-          <a href="#">Click here to log off</a>
+          <a href="#/">Click here to log off</a>
         </div>
       </div>
     )

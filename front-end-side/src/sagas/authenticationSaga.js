@@ -1,6 +1,5 @@
 import { put, call } from 'redux-saga/effects';
-import jwt from "jwt-decode";
-import { loginUserAPI, getUserInfoAPI, registerUserAPI } from './../util/api'
+import { loginUserAPI, getUserInfoAPI, registerUserAPI, acquireJWTToken } from './../util/api'
 
 import {
   START_LOADING,
@@ -48,11 +47,32 @@ export function* sendRegisterAsync (payload) {
     if (registerResponse.access_token && registerResponse.refresh_token) {
       localStorage.setItem('access_token', registerResponse.access_token);
       localStorage.setItem('refresh_token', registerResponse.refresh_token);
+      localStorage.setItem('uid', registerResponse.uid);
     }
     const userInfoResponse = yield call(getUserInfoAPI, registerResponse);
     yield settingUserInfo(userInfoResponse, history);
 
   } catch(error) {
+    console.error(error.message)
+    yield put({ type: DISPLAY_ALERT, payload: { errorMessage: error.message, status: 'error' } })
+    yield put({ type: END_LOADING });
+  }
+}
+
+export function* getAccessToken (request) {
+  const { refresh_token } = request
+  try {
+    const refreshTokenResponse = yield call(acquireJWTToken, refresh_token);
+    if (refreshTokenResponse.access_token && refreshTokenResponse.refresh_token) {
+      localStorage.setItem('access_token', refreshTokenResponse.access_token);
+      localStorage.setItem('refresh_token', refreshTokenResponse.refresh_token);
+      localStorage.setItem('uid', refreshTokenResponse.uid);
+    }
+
+    const userInfoResponse = yield call(getUserInfoAPI, refreshTokenResponse);
+    yield settingUserInfo(userInfoResponse)
+  }
+  catch (error) {
     console.error(error.message)
     yield put({ type: DISPLAY_ALERT, payload: { errorMessage: error.message, status: 'error' } })
     yield put({ type: END_LOADING });

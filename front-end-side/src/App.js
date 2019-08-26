@@ -1,12 +1,10 @@
 import React from 'react';
 import { connect } from 'react-redux';
-
 import { Switch, Route } from 'react-router-dom';
 
 import { HomePage, LoginPage , AppLayOut, UserProfilePage } from './components/pages';
-
 import PrivateRoute from './util/PrivateRoute';
-import { endLoading, getCurrentUser } from './actions';
+import { endLoading, getCurrentUser, getAccessToken } from './actions';
 
 import "./App.scss";
 
@@ -16,6 +14,8 @@ class App extends React.Component {
       const infoObj = {};
       infoObj.uid = localStorage.uid;
       this.props.getCurrentUser(infoObj)
+    } else if (localStorage.refresh_token) {
+      this.props.getAccessToken(localStorage.refresh_token)
     } else {
       this.props.endLoading()
     }
@@ -39,7 +39,8 @@ class App extends React.Component {
 
 const mapDispatchToProps = {
   endLoading,
-  getCurrentUser
+  getCurrentUser,
+  getAccessToken
 }
 
 export default connect(null, mapDispatchToProps)(App);

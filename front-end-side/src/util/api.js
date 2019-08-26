@@ -1,27 +1,39 @@
 import base64 from 'base-64';
 
+const BASE_URL = 'http://127.0.0.1:5000'
+
 export const getUserInfoAPI = request => {
-  const { uid } = request;
-  const GET_USER_ENDPOINT = `http://127.0.0.1:5000/users/${uid}`;
-  let headers = new Headers();
-  const jwtToken = localStorage.getItem('access_token')
-  headers.set('x-access-token', jwtToken);
+  try {
+    const { uid } = request;
+    const GET_USER_ENDPOINT = `${BASE_URL}/users/${uid}`;
+    let headers = new Headers();
+    const jwtToken = localStorage.getItem('access_token')
+    headers.set('x-access-token', jwtToken);
+  
+    const parameters = {
+      method: 'GET',
+      headers
+    }
+  
+    return fetch(GET_USER_ENDPOINT, parameters)
+      .then(response => {
+        return response.json()
+      })
+      .catch(error => {
+        throw Error(error)
+      }) 
 
-  const parameters = {
-    method: 'GET',
-    headers
   }
-
-  return fetch(GET_USER_ENDPOINT, parameters)
-    .then(response => {
-      return response.json()
-    })
+  catch (error) {
+    console.error(error)
+    throw Error (error)
+  }
 }
 
 export const loginUserAPI = request => {
   const { userInfo } = request;
 
-  const LOGIN_API_ENDPOINT = 'http://127.0.0.1:5000/login';
+  const LOGIN_API_ENDPOINT = `${BASE_URL}/login`;
   let headers = new Headers();
   headers.set('Authorization', 'Basic ' + base64.encode(userInfo.userName + ":" + userInfo.password));
 
@@ -49,7 +61,7 @@ export const loginUserAPI = request => {
 export const registerUserAPI = request => {
   const { userInfo } = request;
 
-  const REGISTER_API_ENDPOINT = 'http://127.0.0.1:5000/users';
+  const REGISTER_API_ENDPOINT = `${BASE_URL}/users`;
   const parameters = {
     method: 'POST',
     headers: {
@@ -71,6 +83,32 @@ export const registerUserAPI = request => {
           return response.json()
       }
       
+    })
+    .catch(error => {
+      throw Error(error)
+    })
+}
+
+export const acquireJWTToken = refresh_token  => {
+  const REFRESH_TOKEN_ENDPOINT = `${BASE_URL}/access_tokens`;
+  let headers = new Headers();
+  headers.set('x-refresh-token', refresh_token );
+  const parameters = {
+    method: 'POST',
+    headers
+  }
+
+  return fetch(REFRESH_TOKEN_ENDPOINT, parameters)
+    .then(response => {
+      switch (response.status) {
+        case 401: {
+          return response.json().then(data => {
+            return Promise.reject(`${data.message} -- Please try logging in again`)
+          })
+        }
+        default:
+          return response.json()
+      }
     })
     .catch(error => {
       throw Error(error)

@@ -10,6 +10,7 @@ import App from './App';
 import reducers from './reducers';
 import rootSaga from './sagas';
 import './index.css';
+import { removeExpiredJWTAccessToken } from './util/jwtHandler'
 
 const sagaMiddleware = createSagaMiddleware()
 
@@ -20,6 +21,8 @@ const store = createStore(
   reducers, 
   composeEnhancers(applyMiddleware(sagaMiddleware))
 );
+
+removeExpiredJWTAccessToken()
 
 sagaMiddleware.run(rootSaga)
 

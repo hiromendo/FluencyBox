@@ -9,6 +9,8 @@ export const GET_CURRENT_USER = 'GET_CURRENT_USER';
 export const SET_CURRENT_USER = 'SET_CURRENT_USER';
 export const REMOVE_CURRENT_USER = 'REMOVE_CURRENT_USER';
 
+export const GET_ACCESS_TOKEN = 'GET_ACCESS_TOKEN';
+
 export const DISPLAY_ALERT = 'DISPLAY_ALERT';
 
 export const startLoading = () => ({
@@ -51,4 +53,9 @@ export const displayAlert = (status, errorMessage) => ({
     status,
     errorMessage
   }
+})
+
+export const getAccessToken = refresh_token => ({
+  type: GET_ACCESS_TOKEN,
+  refresh_token
 })
