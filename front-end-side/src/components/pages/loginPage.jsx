@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import ReactLoading from 'react-loading';
 
 import Login from '../login/login';
 import Register from '../login/register';
@@ -32,7 +33,7 @@ class LoginPage extends React.Component {
     return (
       <div>
         {this.props.loading ? (
-          <h2>Loading....</h2>
+          <ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105} />
         ) : (
           <div className="login">
             <div className="container">
