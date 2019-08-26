@@ -52,6 +52,17 @@ def token_required(f):
 
     return decorated
 
+#common method to generate tokens
+def generate_tokens(uid):
+    tokens = {}
+    access_token = jwt.encode({'uid' : uid, 'token_type' : 'access_token' , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
+    refresh_token = jwt.encode({'uid' : uid, 'token_type' : 'refresh_token' , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['REFRESH_TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
+	
+    tokens['access_token'] = access_token.decode('UTF-8')
+    tokens['refresh_token'] = refresh_token.decode('UTF-8')
+
+    return tokens
+
 def validate_email_address(email_address):
     regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
     if(re.search(regex,email_address)): 
@@ -66,20 +77,66 @@ def validate_user_name(user_name):
     else:
         return False
 
-#Get all users
+def get_paginated_list(page_object, object_type):
+    try:
+        resp_dict = {}
+        output = []
+        pagination = {}
+        
+        if object_type == 'user':
+            for user in page_object.items:
+                output.append({
+                'uid' : user.uid, 
+                'first_name' : user.first_name, 
+                'last_name' : user.last_name, 
+                'user_name' : user.user_name,
+                'email_address' : user.email_address,
+                'phone_number' : user.phone_number,
+                'profile_picture' : user.profile_picture
+                })
+
+        pagination['has_next'] = page_object.has_next
+        pagination['has_prev'] = page_object.has_prev
+        pagination['next_num'] = page_object.next_num
+        pagination['page'] = page_object.page
+        pagination['pages'] = page_object.pages
+        pagination['per_page'] = page_object.per_page
+        pagination['prev_num'] = page_object.prev_num
+        pagination['total'] = page_object.total
+
+        resp_dict['status'] = 'success'
+        resp_dict['paginated_list'] = output
+        resp_dict['pagination'] = pagination  
+        return resp_dict
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+#Get all users paginate using page = 1 and per_page = 10 args in the URL
 @app.route('/users',methods=['GET'])
 @token_required
 def get_all_users():
     try:
         resp_dict = {}
-        users = User.query.all()
-        users_schema = user_schema(many=True)
-        output = users_schema.dump(users).data
+        
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        user_list = User.query.paginate(page = page, per_page = per_page)
 
-        resp_dict['status'] = 'success'
-        resp_dict['users'] = output
+        paginated_list = get_paginated_list(user_list, 'user')
 
-        return jsonify(resp_dict)
+        if paginated_list['status'] == 'success':
+            resp_dict['status'] = 'success'
+            resp_dict['users'] = paginated_list['paginated_list']
+            resp_dict['pagination'] = paginated_list['pagination']
+            return jsonify(resp_dict), 200
+        else:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = paginated_list['message']
+            return jsonify(resp_dict), 500
+
     except Exception as e:
         resp_dict['status'] = 'fail'
         resp_dict['message'] = str(e)
@@ -182,12 +239,10 @@ def create_user():
         uid = str(uuid.uuid4())
         first_name = user_data['first_name'].strip() 
         last_name = user_data['last_name'].strip() 
-        email_address = user_data['email_address'].strip() 
+        email_address = user_data['email_address'].strip().lower() 
         user_name = user_data['user_name'].strip() 
         phone_number = user_data['phone_number'].strip() 
-        access_token = jwt.encode({'uid' : uid, 'token_type' : 'access_token' , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
-        refresh_token = jwt.encode({'uid' : uid, 'token_type' : 'refresh_token' , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['REFRESH_TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
-		
+
         check_user_email = User.query.filter_by(email_address = email_address).first()
         if check_user_email:
             resp_dict['status'] = 'fail'
@@ -199,15 +254,19 @@ def create_user():
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'User name already registered'
             return jsonify(resp_dict),400
-        
-        new_user = User(uid = uid, first_name = first_name, last_name = last_name, email_address = email_address, user_name = user_name, password = hashed_password, phone_number = phone_number, refresh_token = refresh_token.decode('UTF-8'))
+
+        tokens = generate_tokens(uid)
+        access_token = tokens['access_token']
+        refresh_token = tokens['refresh_token']
+
+        new_user = User(uid = uid, first_name = first_name, last_name = last_name, email_address = email_address, user_name = user_name, password = hashed_password, phone_number = phone_number, refresh_token = refresh_token)
         db.session.add(new_user)
         db.session.commit()
 
         resp_dict['status'] = 'success'
         resp_dict['message'] = 'New User Created'
-        resp_dict['access_token'] = access_token.decode('UTF-8')
-        resp_dict['refresh_token'] = refresh_token.decode('UTF-8')
+        resp_dict['access_token'] = access_token
+        resp_dict['refresh_token'] = refresh_token
         resp_dict['uid'] = uid
 
         return jsonify(resp_dict),201
@@ -273,7 +332,7 @@ def update_user(uid):
             return jsonify(resp_dict),404
 
         #Check if the username or email is shared with a different user
-        check_user_email = User.query.filter(User.email_address == user_data['email_address'].strip()).filter(User.uid != uid.strip()).first()
+        check_user_email = User.query.filter(User.email_address == user_data['email_address'].strip().lower()).filter(User.uid != uid.strip()).first()
         if check_user_email:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'Email already registered'
@@ -287,7 +346,7 @@ def update_user(uid):
 
         user.first_name = user_data['first_name'].strip() 
         user.last_name = user_data['last_name'].strip() 
-        user.email_address = user_data['email_address'].strip() 
+        user.email_address = user_data['email_address'].strip().lower() 
         user.user_name =  user_data['user_name'].strip() 
         user.phone_number = user_data['phone_number'].strip()
 
@@ -413,17 +472,18 @@ def login():
             return make_response('Invalid Credentials', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
         if check_password_hash(user.password, auth.password.strip()):
-            access_token = jwt.encode({'uid' : user.uid, 'token_type' : 'access_token' , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
-            refresh_token = jwt.encode({'uid' : user.uid, 'token_type' : 'refresh_token' , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['REFRESH_TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
-            
+            tokens = generate_tokens(user.uid)
+            access_token = tokens['access_token']
+            refresh_token = tokens['refresh_token']
+
             user.failed_login_attempts = 0
-            user.refresh_token = refresh_token.decode('UTF-8')
+            user.refresh_token = refresh_token
 
             db.session.commit()
 
             resp_dict['status'] = 'success'
-            resp_dict['access_token'] = access_token.decode('UTF-8')
-            resp_dict['refresh_token'] = refresh_token.decode('UTF-8')
+            resp_dict['access_token'] = access_token
+            resp_dict['refresh_token'] = refresh_token
             resp_dict['uid'] = user.uid
             return jsonify(resp_dict),200
         else:
@@ -481,16 +541,17 @@ def refresh_token():
             return jsonify(resp_dict), 401
 
         #if a valid refresh_token is found in the DB, create a new access & refresh token, update in DB and return to front end
-        new_access_token = jwt.encode({'uid' : payload['uid'], 'token_type' : 'access_token' ,  'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
-        new_refresh_token = jwt.encode({'uid' : payload['uid'], 'token_type' : 'refresh_token' ,  'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['REFRESH_TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
-
+        tokens = generate_tokens(payload['uid'])
+        new_access_token = tokens['access_token']
+        new_refresh_token = tokens['refresh_token']
+        
         #update new tokens in DB
-        user.refresh_token = new_refresh_token.decode('UTF-8')
+        user.refresh_token = new_refresh_token
         db.session.commit()
 
         resp_dict['status'] = 'success'
-        resp_dict['access_token'] = new_access_token.decode('UTF-8')
-        resp_dict['refresh_token'] = new_refresh_token.decode('UTF-8')
+        resp_dict['access_token'] = new_access_token
+        resp_dict['refresh_token'] = new_refresh_token
         resp_dict['uid'] = payload['uid']
         return jsonify(resp_dict),200
         
@@ -512,7 +573,7 @@ def reset_request():
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No email in request'
             return jsonify(resp_dict),400
-        user = User.query.filter_by(email_address=user_data['email_address'].strip()).first()
+        user = User.query.filter_by(email_address=user_data['email_address'].strip().lower()).first()
         
         if not user:
             resp_dict['status'] = 'fail'
@@ -584,7 +645,7 @@ def reset_password():
             resp_dict['message'] = 'No email address in request'
             return jsonify(resp_dict),400
 
-        user = User.query.filter_by(email_address = user_data['email_address'].strip()).first()
+        user = User.query.filter_by(email_address = user_data['email_address'].strip().lower()).first()
         
         if not user:
             resp_dict['status'] = 'fail'
