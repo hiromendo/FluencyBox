@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { sendRegister } from '../../actions';
+import { sendRegister, cacheRegisterInfo } from '../../actions';
 import "./style.scss";
 
 class Register extends React.Component {
@@ -9,18 +9,22 @@ class Register extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      firstname: 'Anthony',
-      lastname: 'M',
+      firstname: '',
+      lastname: '',
       userName: '',
       email: '',
-      phone: '2132132131',
-      password: '12345678',
-      confirmPassword: '12345678'
+      phone: '',
+      password: '',
+      confirmPassword: ''
     }
   }
 
   componentDidMount() {
-    this.generateRandomID()
+    // this.generateRandomID()
+    const { registerCache } = this.props
+    this.setState(prevState => {
+      return registerCache
+    })
   }
 
   /* Dev purpose only */
@@ -48,6 +52,7 @@ class Register extends React.Component {
         "password" : password,
         "confirm_password": confirmPassword
       }
+      this.props.cacheRegisterInfo(this.state)
       this.props.sendRegister(userInfo, history);
     } 
   }
@@ -137,7 +142,7 @@ class Register extends React.Component {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="password">Password</label>
+                <label htmlFor="password">Password <span>8 minimum characters</span></label>
                 <input 
                   type="password" 
                   name="password"
@@ -173,12 +178,14 @@ class Register extends React.Component {
   }
 }
 
-const mapStateToProps = ({ loading }) => ({
-  loading
+const mapStateToProps = ({ loading, registerCache }) => ({
+  loading,
+  registerCache
 })
 
 const mapDispatchToProps = {
-  sendRegister
+  sendRegister,
+  cacheRegisterInfo
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Register))

@@ -34,6 +34,9 @@
         width: fit-content;
         label {
           font-size: 20px;
+          span {
+            font-size: 0.85rem;
+          }
         }
         input {
           margin-top: 6px;

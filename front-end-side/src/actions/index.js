@@ -13,6 +13,8 @@ export const GET_ACCESS_TOKEN = 'GET_ACCESS_TOKEN';
 
 export const DISPLAY_ALERT = 'DISPLAY_ALERT';
 
+export const REGISTER_CACHE = 'REGISTER_CACHE';
+
 export const startLoading = () => ({
   type: START_LOADING
 })
@@ -58,4 +60,9 @@ export const displayAlert = (status, errorMessage) => ({
 export const getAccessToken = refresh_token => ({
   type: GET_ACCESS_TOKEN,
   refresh_token
+})
+
+export const cacheRegisterInfo = infoObj => ({
+  type: REGISTER_CACHE,
+  infoObj
 })
