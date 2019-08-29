@@ -1,0 +1,64 @@
+//Login Main Container
+.login {
+  margin: 50px auto;
+  text-align: center;
+  flex-direction: column;
+  width: 27em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  .container {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fff;
+    box-shadow: 0px 0px 12px 2px rgba(15, 15, 15, 0.2);
+    border-radius: 4px;
+    position: relative;
+    width: 100%;
+    padding-bottom: 17px;
+  }
+}
+
+//Button
+.btn {
+  font-size: 21px;
+  padding: 5px 20px;
+  border: 0;
+  background-color: #3498db;
+  color: #fff;
+  border-radius: 3px;
+  transition: all 250ms ease-in-out;
+  cursor: pointer;
+  &:hover {
+    background-color: #2386c8;
+  }
+  &:focus {
+    outline: none;
+  }
+}
+
+.toggle-register-login {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+}
+
+
+@media (max-width:768px) { 
+
+  .login {
+    margin: 35px auto;
+    width: initial;
+    .container {
+      box-shadow: 0px 0px 0px 0px rgba(15, 15, 15, 0.2);
+    }
+  }
+
+  .toggle-register-login { 
+    position: initial;
+    margin-top: 15px;
+  }
+}
