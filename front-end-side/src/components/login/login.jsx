@@ -30,6 +30,7 @@ class Login extends React.Component {
       [targetName]: event.target.value
     })
   }
+
   render() {
     const { userName, password } = this.state;
     return (
