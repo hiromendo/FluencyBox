@@ -8,6 +8,8 @@ import Register from '../login/register';
 import { AlertMessage } from '../alertMessage/alertMessage';
 import { displayAlert } from '../../actions';
 
+import './loginPage.scss'
+
 class LoginPage extends React.Component {
   constructor(props) {
     super(props);
@@ -31,7 +33,7 @@ class LoginPage extends React.Component {
     const { isLogginActive } = this.state;
     const current = isLogginActive ? "Register" : "Login";
     return (
-      <div>
+      <>
         {this.props.loading ? (
           <ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105} />
         ) : (
@@ -47,7 +49,7 @@ class LoginPage extends React.Component {
             </div>
           </div>
         )}
-      </div>
+      </>
     )
   }
 }
