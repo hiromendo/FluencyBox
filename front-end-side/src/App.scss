@@ -8,3 +8,18 @@
 h1, h2, h3 {
   text-align: center
 }
+
+main {
+  margin: auto 118px;
+}
+
+@media (max-width:768px) { 
+  main {
+    margin: auto 25px;
+  }
+}
+
+.react-spinner-container {
+  display: flex;
+  justify-content: center;
+}

@@ -35,7 +35,7 @@ class LoginPage extends React.Component {
     return (
       <>
         {this.props.loading ? (
-          <ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105} />
+          <div className="react-spinner-container"><ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105} /></div>
         ) : (
           <div className="login">
             <div className="container">
