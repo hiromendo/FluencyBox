@@ -5,21 +5,53 @@
   font-family: "Open Sans", sans-serif;
 }
 
-h1, h2, h3 {
+nav {
+  margin: auto 210px;
+  ul {
+    display: flex;
+    justify-content: flex-end;
+    list-style: none;
+    li {
+      padding-right: 12px;
+      cursor: pointer;
+      &:last-child {
+        padding-right: 0px;
+      }
+    }
+  }
+}
+
+h1 {
   text-align: center
 }
 
 main {
-  margin: auto 118px;
-}
-
-@media (max-width:768px) { 
-  main {
-    margin: auto 25px;
-  }
+  margin: auto 318px;
 }
 
 .react-spinner-container {
   display: flex;
   justify-content: center;
+}
+
+@media (max-width:768px) { 
+  nav {
+    margin: 0 0;
+    ul {
+      padding: 0px;
+      display: flex;
+      justify-content: center;
+      list-style: none;
+      li {
+        padding-right: 12px;
+        &:last-child {
+          padding-right: 0px;
+        }
+      }
+    }
+  }
+
+  main {
+    margin: auto 25px;
+  }
 }
