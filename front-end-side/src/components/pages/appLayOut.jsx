@@ -4,17 +4,18 @@ import { connect } from 'react-redux';
 class AppLayOut extends React.Component {
 
   render() {
+    const { first_name } = this.props.userInfo
     return (
-      <div>
+      <>
         <main>
-          <h2>App Dashboard</h2>
+          <h2>Welcome {first_name}!</h2>
         </main>
-      </div>
+      </>
     )
   }
 }
 
-const mapStateToProps = ({authInfo}) => ({
+const mapStateToProps = ({ authInfo }) => ({
   userInfo: authInfo.serverResponse.user
 })
 

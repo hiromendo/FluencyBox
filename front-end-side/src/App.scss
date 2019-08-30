@@ -26,7 +26,25 @@ h1 {
 }
 
 main {
-  margin: auto 318px;
+  margin: auto 205px;
+}
+
+//Button
+.btn {
+  font-size: 1.1rem;
+  padding: 5px 20px;
+  border: 0;
+  background-color: #3498db;
+  color: #fff;
+  border-radius: 3px;
+  transition: all 250ms ease-in-out;
+  cursor: pointer;
+  &:hover {
+    background-color: #2386c8;
+  }
+  &:focus {
+    outline: none;
+  }
 }
 
 .react-spinner-container {
