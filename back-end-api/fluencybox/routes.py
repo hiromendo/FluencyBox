@@ -3,6 +3,9 @@ from sqlalchemy import or_
 import base64
 import os, io
 import re
+import csv
+import json
+from io import StringIO
 from PIL import Image
 from fluencybox import app, db
 import uuid
@@ -10,9 +13,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
 from functools import wraps
-from fluencybox.models import User, user_schema
+from fluencybox.models import User, User_Schema, Story, Story_Schema, Story_Scene, Story_Scene_Schema, Scene_Media, Scene_Media_Schema, Scene_Master_Response, Scene_Master_Response_Schema
 from fluencybox.S3AssetManager import get_bucket, get_resource, save_avatar, save_story_object, delete_avatar, delete_story_object
 from fluencybox.mailer import send_reset_email
+from io import BytesIO
+from zipfile import ZipFile
+from urllib.request import urlopen
 
 @app.route('/')
 def index():
@@ -94,6 +100,17 @@ def get_paginated_list(page_object, object_type):
                 'phone_number' : user.phone_number,
                 'profile_picture' : user.profile_picture
                 })
+        elif object_type == 'story':
+            for story in page_object.items:
+                output.append({
+                'uid' : story.uid, 
+                'story_name' : story.story_name,
+                'story_desc' : story.story_desc,
+                'story_length' : story.story_length,
+                'story_image' : story.story_image,
+                'difficulty_level' : story.difficulty_level,
+                'genre' : story.genre,
+                })
 
         pagination['has_next'] = page_object.has_next
         pagination['has_prev'] = page_object.has_prev
@@ -114,7 +131,7 @@ def get_paginated_list(page_object, object_type):
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
 
-#Get all users paginate using page = 1 and per_page = 10 args in the URL
+#Get all users - paginate using page = 1 and per_page = 10 args in the URL
 @app.route('/users',methods=['GET'])
 @token_required
 def get_all_users():
@@ -155,7 +172,7 @@ def get_single_user(uid):
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No user found'
             return jsonify(resp_dict),404
-        users_schema = user_schema()
+        users_schema = User_Schema()
         user_data = users_schema.dump(user).data
 
         resp_dict['status'] = 'success'
@@ -449,7 +466,7 @@ def update_profile_picture(uid):
             return jsonify(resp_dict),500
 
     except Exception as e:
-        resp_dict['status'] = 'updatefail'
+        resp_dict['status'] = 'fail'
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
 
@@ -662,6 +679,300 @@ def reset_password():
         resp_dict['status'] = 'success'
         resp_dict['message'] = 'Password Updated Successfully'
         return jsonify(resp_dict),200
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+#Story Routes
+#Get all stories - paginate using page = 1 and per_page = 10 args in the URL
+@app.route('/story',methods=['GET'])
+@token_required
+def get_all_story():
+    try:
+        resp_dict = {}
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        story_list = Story.query.paginate(page = page, per_page = per_page)
+        
+        paginated_list = get_paginated_list(story_list, 'story')
+
+        if paginated_list['status'] == 'success':
+            resp_dict['status'] = 'success'
+            resp_dict['story'] = paginated_list['paginated_list']
+            resp_dict['pagination'] = paginated_list['pagination']
+            return jsonify(resp_dict), 200
+        else:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = paginated_list['message']
+            return jsonify(resp_dict), 500
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+#Get a specific story
+@app.route('/story/<uid>',methods=['GET'])
+@token_required
+def get_single_story(uid):
+    try:
+        resp_dict = {}
+        story = Story.query.filter_by(uid = uid).first()
+        
+        if not story:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No story found'
+            return jsonify(resp_dict),404
+        story_schema = Story_Schema()
+        story_data = story_schema.dump(story).data
+
+        resp_dict['status'] = 'success'
+        resp_dict['story'] = story_data
+        
+        return jsonify(resp_dict)
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+#Get story by filters
+@app.route('/story_filter/',methods=['GET'])
+@token_required
+def get_filtered_story():
+    try:
+        resp_dict = {}
+        difficulty_level  = request.args.get('difficulty_level', None)
+        genre  = request.args.get('genre', None)
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+
+        if difficulty_level and genre:
+            story_list = Story.query.filter(Story.difficulty_level == difficulty_level, Story.genre == genre).paginate(page = page, per_page = per_page)
+        elif difficulty_level:
+            story_list = Story.query.filter(Story.difficulty_level == difficulty_level).paginate(page = page, per_page = per_page)
+        elif genre:
+            story_list = Story.query.filter(Story.genre == genre).paginate(page = page, per_page = per_page)
+        else:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No parameters for query'
+            return jsonify(resp_dict), 400
+        
+        if story_list.total < 1:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No story found'
+            return jsonify(resp_dict),404
+
+        paginated_list = get_paginated_list(story_list, 'story')
+
+        if paginated_list['status'] == 'success':
+            resp_dict['status'] = 'success'
+            resp_dict['story'] = paginated_list['paginated_list']
+            resp_dict['pagination'] = paginated_list['pagination']
+            return jsonify(resp_dict), 200
+        else:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = paginated_list['message']
+            return jsonify(resp_dict), 500
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+def insert_story(story_uid, story_name, story_desc, story_length, story_image, difficulty_level, genre):
+    try:
+        resp_dict = {}
+        new_story = Story(uid = story_uid, story_name = story_name, story_desc = story_desc, story_length = story_length, story_image = story_image, difficulty_level = difficulty_level, genre = genre)
+        db.session.add(new_story)
+
+        resp_dict['status'] = 'success'
+        resp_dict['new_story'] = new_story
+
+        return resp_dict
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return resp_dict
+
+def insert_scene(new_story, scene_order, scene_type, scene_keywords):
+    try:
+        resp_dict = {}
+        if scene_type != 'FALSE' and scene_keywords != '':
+            scene_uid = str(uuid.uuid4())
+            new_scene = Story_Scene(uid = scene_uid, story = new_story, scene_order = scene_order, scene_type = scene_type, scene_keywords = scene_keywords)
+            db.session.add(new_scene)
+            
+            resp_dict['status'] = 'success'
+            resp_dict['new_scene'] = new_scene
+        else:
+            resp_dict['status'] = 'no insert'
+        return resp_dict
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return resp_dict
+
+def insert_media(story, scene_order, media_order, scene_image, scene_audio, scene_text, scene_hint, show_single):
+    try:
+        resp_dict = {}
+        scene_media_uid = str(uuid.uuid4())
+
+        #Get the scene that this media relates to
+        story_scene = Story_Scene.query.filter(Story_Scene.story_id == story.id, Story_Scene.scene_order == scene_order).first()
+
+        new_scene_media = Scene_Media(uid = scene_media_uid, story_scene = story_scene, media_order = media_order, scene_image = scene_image, scene_audio = scene_audio, scene_text = scene_text, scene_hint = scene_hint, show_single = show_single)
+        db.session.add(new_scene_media)
+        db.session.commit()
+
+        resp_dict['status'] = 'success'
+        resp_dict['message'] = 'success'
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return resp_dict
+
+def insert_master_response(master_audio_response, master_text_response, new_scene):
+    try:
+        resp_dict = {}
+        if master_audio_response != '' and master_text_response != '':
+            master_response_uid = str(uuid.uuid4())
+            new_master_response = Scene_Master_Response(uid = master_response_uid, story_scene = new_scene, master_audio_response = master_audio_response, master_text_response = master_text_response)
+            db.session.add(new_master_response)
+
+            resp_dict['status'] = 'success'
+            resp_dict['message'] = 'success'
+            return resp_dict
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return resp_dict
+        
+def upload_story_csv(story_csv):
+    try:
+        resp_dict = {}
+        
+        story_string = story_csv.read().decode('utf-8')
+        story_csv = StringIO(story_string)
+        reader = csv.DictReader(story_csv, delimiter=',')
+        story_uid = str(uuid.uuid4()) #Create this outside the loop to use in the 2nd loop
+        i = 0
+        #Insert Story, Scene & Master Responses in this loop
+        for row in reader:
+            #if this is the first row, lets insert the main story data in the story table
+            if i == 0:
+                insert_story_response = insert_story(story_uid, row['story_name'].strip(), row['story_desc'].strip(), row['story_length'].strip(), row['story_image'].strip(), row['difficulty_level'].strip(), row['genre'].strip())
+                if insert_story_response['status'] == 'success':
+                    new_story = insert_story_response['new_story'] 
+
+                #Insert the scene record & master response held in the first row
+                insert_scene_response = insert_scene(new_story, row['scene_order'].strip(), row['scene_type'].strip(), row['scene_keywords'].strip())
+                if insert_scene_response['status'] == 'success':
+                    new_scene = insert_scene_response['new_scene'] 
+                    insert_master_response(row['master_audio_response_1'].strip(), row['master_text_response_1'].strip(), new_scene)
+                    insert_master_response(row['master_audio_response_2'].strip(), row['master_text_response_2'].strip(), new_scene)
+                    insert_master_response(row['master_audio_response_3'].strip(), row['master_text_response_3'].strip(), new_scene)
+                    insert_master_response(row['master_audio_response_4'].strip(), row['master_text_response_4'].strip(), new_scene)
+
+            else:
+                #Insert the scene and master response held after the first row
+                insert_scene_response = insert_scene(new_story, row['scene_order'].strip(), row['scene_type'].strip(), row['scene_keywords'].strip())
+                if insert_scene_response['status'] == 'success':
+                    new_scene = insert_scene_response['new_scene']
+                    insert_master_response(row['master_audio_response_1'].strip(), row['master_text_response_1'].strip(), new_scene)
+                    insert_master_response(row['master_audio_response_2'].strip(), row['master_text_response_2'].strip(), new_scene)
+                    insert_master_response(row['master_audio_response_3'].strip(), row['master_text_response_3'].strip(), new_scene)
+                    insert_master_response(row['master_audio_response_4'].strip(), row['master_text_response_4'].strip(), new_scene)
+
+            i = i + 1
+        db.session.commit()
+
+        #Re-initialize reader
+        story_csv.seek(0)
+        reader.__init__(story_csv, delimiter=",")
+
+        #Get the id of the story inserted
+        story = Story.query.filter_by(uid = story_uid).first()
+
+        #Insert Scene Media and link with Story Id & Scene Order in this loop
+        for row in reader:
+            insert_media(story, row['scene_order'].strip(), row['media_order'].strip(), row['scene_image'].strip(), row['scene_audio'].strip(), row['scene_text'].strip(), row['scene_hint'].strip(), row['show_single'].strip())
+
+        resp_dict['status'] = 'success'
+        resp_dict['message'] = 'successfully uploaded'
+        return resp_dict
+      
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return resp_dict
+
+def upload_story_zip(story_zip):
+    try:
+        resp_dict = {}
+        #Temporarily save zip the file to the bucket
+        zip_upload_response = save_story_object(story_zip, story_zip.filename)
+        if zip_upload_response['status'] == 'success':
+            zip_url = zip_upload_response['object_url']
+            #Open the URL pointing to the zip file
+            zip_response = urlopen(zip_url)
+            #Read the content to memory
+            zip_file_content = ZipFile(BytesIO(zip_response.read()))
+            #Loop through each file and save it to the bucket
+            for file_name in zip_file_content.namelist():
+                story_object = zip_file_content.open(file_name).read()
+                upload_resp = save_story_object(story_object, file_name)
+                if upload_resp['status'] != 'success':
+                    resp_dict['status'] = 'fail'
+                    resp_dict['message'] = upload_resp['message']
+                    return resp_dict
+
+        #Delete the zip file uploaded to the bucket
+        delete_story_object(zip_url)
+        resp_dict['status'] = 'success'
+        resp_dict['message'] = 'success'
+        return resp_dict
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return resp_dict
+
+@app.route('/upload_story', methods=['POST'])
+@token_required
+def upload_story():
+    try:
+        resp_dict = {}
+        
+        if 'story_zip' not in request.files:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No zip file found'
+            return jsonify(resp_dict), 400
+
+        if 'story_csv' not in request.files:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No csv file found'
+            return jsonify(resp_dict), 400
+        
+        upload_zip_response = upload_story_zip(request.files['story_zip'])
+        if upload_zip_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = upload_zip_response['message']
+            return jsonify(resp_dict), 500
+
+        upload_csv_response = upload_story_csv(request.files['story_csv'])
+        if upload_csv_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = upload_csv_response['message']
+            return jsonify(resp_dict), 500
+        
+        resp_dict['status'] = 'success'
+        resp_dict['message'] = 'story content uploaded successfully'
+        return jsonify(resp_dict), 201
+
     except Exception as e:
         resp_dict['status'] = 'fail'
         resp_dict['message'] = str(e)

@@ -71,6 +71,10 @@ def save_avatar(my_avatar):
             resp_dict['status'] = 'success'
             avatar_url = object_url['object_url']
             resp_dict['object_url'] = avatar_url
+        else:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = object_url['message']
+            return resp_dict
 
         return resp_dict
 
@@ -79,24 +83,26 @@ def save_avatar(my_avatar):
         resp_dict['message'] = str(e)
         return resp_dict
 
-def save_story_object(my_object):
+def save_story_object(my_object, object_filename):
     try:
         resp_dict = {}
         
-        _, obj_ext = os.path.splitext(my_object.filename)
+        _, obj_ext = os.path.splitext(object_filename)
         mime_type = mimetypes.types_map[obj_ext]
 
-        object_dir = app.config.get('S3_CONTENT_DIR') + '/' + my_object.filename
+        object_dir = app.config.get('S3_CONTENT_DIR') + '/' + object_filename
         object_url = save_s3_object(object_dir, my_object, mime_type)
 
         if object_url['status'] == 'success':
             resp_dict['status'] = 'success'
             story_object_url = object_url['object_url']
             resp_dict['object_url'] = story_object_url
-
-        resp_dict['status'] = 'success'
-        resp_dict['object_url'] = object_url
-        return resp_dict
+            return resp_dict
+        else:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = object_url['message']
+            return resp_dict
+        
     except Exception as e:
         resp_dict['status'] = 'fail'
         resp_dict['message'] = str(e)
