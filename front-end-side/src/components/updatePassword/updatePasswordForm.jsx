@@ -1,5 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
+
 import { resetAlert, updatePassword } from '../../actions';
 
 class UpdatePassWordForm extends React.Component {
@@ -89,6 +91,7 @@ class UpdatePassWordForm extends React.Component {
             </div>
             <div className="footer">
               <button type="submit" className="btn">Update</button>
+              <Link className="cancel" to="/userprofile">Cancel</Link>
             </div>
           </form>
         </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { withRouter } from 'react-router-dom';
+import { withRouter, Link } from 'react-router-dom';
 import { sendRegister, cacheRegisterInfo, updateUserInfo } from '../../actions';
 import "./style.scss";
 
@@ -212,6 +212,7 @@ class Register extends React.Component {
               {this.renderPassWordInputs()}
               <div className="footer">
                 <button type="submit" className="btn">{reUpdateInfoProfile ? 'Update' : 'Register'}</button>
+                {reUpdateInfoProfile ? <Link className="cancel" to="/userprofile">Cancel</Link> : null }
               </div>
             </form>
           </div>
