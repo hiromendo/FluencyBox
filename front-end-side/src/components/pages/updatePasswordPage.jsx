@@ -2,12 +2,19 @@ import React from 'react';
 import { connect } from 'react-redux';
 import ReactLoading from 'react-loading';
 
-import Register from '../login/register';
+import UpdatePassWordForm from '../updatePassword/updatePasswordForm';
 
 import { AlertMessage } from '../alertMessage/alertMessage';
 import { displayAlert, resetAlert } from '../../actions';
 
-class updateProfileInfo extends React.Component {
+class updatePasswordPage extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      password: '',
+      confirmPassword: ''
+    }
+  }
 
   componentDidMount() {
     this.props.history.listen(() => {
@@ -31,10 +38,10 @@ class updateProfileInfo extends React.Component {
         {this.props.loading ? (
           <div className="react-spinner-container"><ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105} /></div>
         ) : (
-          <div id="update-user "className="login">
+          <div id="update-password" className="login">
             <div className="container">
               {this.renderAlertMessage()}
-              <Register containerRef={ (ref) => this.current = ref} reUpdateInfoProfile={true}/>
+              <UpdatePassWordForm />
             </div>
           </div>
         )}
@@ -53,4 +60,4 @@ const mapDispatchToProps = {
   resetAlert
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(updateProfileInfo);
+export default connect(mapStateToProps, mapDispatchToProps)(updatePasswordPage)

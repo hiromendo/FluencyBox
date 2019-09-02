@@ -1,5 +1,5 @@
 import { put, call } from 'redux-saga/effects';
-import { loginUserAPI, getUserInfoAPI, registerUserAPI, acquireJWTToken, updateUserInfo } from './../util/api'
+import { loginUserAPI, getUserInfoAPI, registerUserAPI, acquireJWTToken, updateUserInfo, updatePassWordAPI } from './../util/api'
 
 import {
   START_LOADING,
@@ -92,6 +92,21 @@ export function* getAccessToken (request) {
   catch (error) {
     console.error(error.message)
     yield put({ type: DISPLAY_ERROR_LOGIN, payload: { errorMessage: error.message, status: 'error' } })
+    yield put({ type: END_LOADING });
+  }
+}
+
+export function* updatePasswordAsync (request) {
+  const { payload } = request
+  yield put({ type: START_LOADING });
+  try {
+    yield call(updatePassWordAPI, payload)
+    yield put({ type: DISPLAY_SUCCESS });
+    yield put({ type: END_LOADING });
+  }
+  catch (error) {
+    console.error(error)
+    yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
     yield put({ type: END_LOADING });
   }
 }

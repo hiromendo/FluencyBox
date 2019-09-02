@@ -159,3 +159,41 @@ export const acquireJWTToken = refresh_token  => {
       throw Error(error)
     })
 }
+
+export const updatePassWordAPI = request => {
+  const { uid, password } = request;
+  try {
+    const UPDATE_PASSWORD_ENDPOINT = `${BASE_URL}/users/${uid}/password`;
+    const jwtToken = localStorage.getItem('access_token');
+
+    const obj = { password }
+  
+    let headers = new Headers();
+    headers.set('x-access-token', jwtToken);
+    headers.set('Accept', 'application/json');
+    headers.set('Content-Type', 'application/json; charset=UTF-8');
+  
+    const parameters = {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(obj)
+    }
+
+    return fetch(UPDATE_PASSWORD_ENDPOINT, parameters)
+    .then(response => {
+      switch (response.status) {
+        case 400: {
+          return response.json().then(data => {
+            return Promise.reject(`${data.message}`)
+          })
+        }
+        default: 
+          return response.json();
+      }
+    })
+  }
+  catch (error) {
+    console.error(error);
+    throw Error(error)
+  }
+}

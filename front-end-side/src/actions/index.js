@@ -5,6 +5,7 @@ export const END_LOADING = 'END_LOADING';
 export const GET_LOGIN = 'GET_LOGIN';
 export const SEND_REGISTER = 'SEND_REGISTER';
 export const UPDATE_USER_INFO = 'UPDATE_USER_INFO';
+export const UPDATE_PASSWORD = 'UPDATE_PASSWORD';
 
 export const GET_CURRENT_USER = 'GET_CURRENT_USER';
 export const SET_CURRENT_USER = 'SET_CURRENT_USER';
@@ -49,6 +50,11 @@ export const updateUserInfo = (userInfo, uid, history) => ({
   userInfo,
   uid,
   history
+})
+
+export const updatePassword = payload => ({
+  type: UPDATE_PASSWORD,
+  payload
 })
 
 export const setCurrentUser = data => ({

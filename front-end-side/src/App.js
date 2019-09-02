@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Switch, Route, Link, withRouter } from 'react-router-dom';
 
-import { HomePage, LoginPage , AppLayOut, UserProfilePage, updateProfileInfoPage } from './components/pages';
+import { HomePage, LoginPage , AppLayOut, UserProfilePage, updateProfileInfoPage, updatePasswordPage } from './components/pages';
 import PrivateRoute from './util/PrivateRoute';
 import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert } from './actions';
 
@@ -62,6 +62,7 @@ class App extends React.Component {
           <PrivateRoute path='/app' component={AppLayOut} />
           <PrivateRoute path='/userprofile' component={UserProfilePage} />
           <PrivateRoute path='/updateprofileinfo' component={updateProfileInfoPage} />
+          <PrivateRoute path='/updatePassword' component={updatePasswordPage} />
           <Route path="*" component={() => "404 not found" } />
         </Switch>
       </div>

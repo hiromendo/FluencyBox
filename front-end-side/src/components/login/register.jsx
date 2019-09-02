@@ -118,32 +118,32 @@ class Register extends React.Component {
     if (!reUpdateInfoProfile) {
       return (
         <>
-        <div className="form-group">
-                <label htmlFor="password">Password <span>8 minimum characters</span></label>
-                <input 
-                  type="password" 
-                  name="password"
-                  ref="passwordNode"
-                  value={password}
-                  title="8 characters minimum"
-                  pattern=".{8,}"
-                  onChange={this.handleInputChange} 
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <input 
-                  type="password" 
-                  name="confirmPassword"
-                  ref="confirmPasswordNode"
-                  value={confirmPassword}
-                  title="8 characters minimum"
-                  pattern=".{8,}"
-                  onChange={this.handleInputChange} 
-                  required
-                />
-            </div>
+          <div className="form-group">
+            <label htmlFor="password">Password <span>8 minimum characters</span></label>
+            <input 
+              type="password" 
+              name="password"
+              ref="passwordNode"
+              value={password}
+              title="8 characters minimum"
+              pattern=".{8,}"
+              onChange={this.handleInputChange} 
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input 
+              type="password" 
+              name="confirmPassword"
+              ref="confirmPasswordNode"
+              value={confirmPassword}
+              title="8 characters minimum"
+              pattern=".{8,}"
+              onChange={this.handleInputChange} 
+              required
+            />
+          </div>
         </>
       )
     }

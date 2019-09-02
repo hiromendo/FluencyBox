@@ -27,11 +27,11 @@ class UserProfilePage extends React.Component {
           </ul>
         </div>
         <div>
-          <a href="#">Update Profile Picture</a>
+          <Link to="/updatePassword">Update Password</Link>
           <br/>
           <Link to="/updateprofileinfo">Update Profile Info</Link>
           <br/>
-          <a href="#">Update Password</a>
+          <a href="#">Update Profile Picture</a>
         </div>
       </main>
     )
