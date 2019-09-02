@@ -1,6 +1,51 @@
 import base64 from 'base-64';
 
-const BASE_URL = 'http://127.0.0.1:5000'
+const BASE_URL = 'http://127.0.0.1:5000';
+
+export const updateUserInfo = (request, uid) => {
+
+  const { userInfo } = request
+  try {
+    const UPDATE_USER_INFO_ENDPOINT = `${BASE_URL}/users/${uid}`;
+    const jwtToken = localStorage.getItem('access_token');
+
+    let headers = new Headers();
+    headers.set('x-access-token', jwtToken);
+    headers.set('Accept', 'application/json');
+    headers.set('Content-Type', 'application/json; charset=UTF-8');
+    
+    const parameters = {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(userInfo)
+    }
+
+    return fetch(UPDATE_USER_INFO_ENDPOINT, parameters)
+    .then(response => {
+      switch (response.status) {
+        case 400: {
+          return response.json().then(data => {
+            return Promise.reject(`${data.message}`)
+          })
+        }
+        case 404: {
+          return response.json().then(data => {
+            return Promise.reject(`${data.message}`)
+          })
+        }
+        default: 
+          return response.json()
+      }
+      
+    })
+    .catch(error => {
+      throw Error(error)
+    })
+  } catch (error) {
+    console.error(error);
+    throw Error(error)
+  }
+}
 
 export const getUserInfoAPI = request => {
   try {

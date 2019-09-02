@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import { Route, Link } from 'react-router-dom';
 import './userProfilePage.scss';
 
 class UserProfilePage extends React.Component {
@@ -25,12 +26,12 @@ class UserProfilePage extends React.Component {
             <li>Email: {email_address}</li>
           </ul>
         </div>
-        <div className="update-container">
-          <div className="btn">Update Profile Picture</div>
-          <div className="btn">Update Info</div>
-        </div>
-        <div className="update-container">
-          <div className="btn">Update Password</div>
+        <div>
+          <a href="#">Update Profile Picture</a>
+          <br/>
+          <Link to="/updateprofileinfo">Update Profile Info</Link>
+          <br/>
+          <a href="#">Update Password</a>
         </div>
       </main>
     )

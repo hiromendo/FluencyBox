@@ -2,9 +2,9 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Switch, Route, Link, withRouter } from 'react-router-dom';
 
-import { HomePage, LoginPage , AppLayOut, UserProfilePage } from './components/pages';
+import { HomePage, LoginPage , AppLayOut, UserProfilePage, updateProfileInfoPage } from './components/pages';
 import PrivateRoute from './util/PrivateRoute';
-import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser } from './actions';
+import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert } from './actions';
 
 import "./App.scss";
 
@@ -20,9 +20,9 @@ class App extends React.Component {
     if (localStorage.access_token && localStorage.uid) {
       const infoObj = {};
       infoObj.uid = localStorage.uid;
-      this.props.getCurrentUser(infoObj)
+      this.props.getCurrentUser(infoObj);
     } else if (localStorage.refresh_token) {
-      this.props.getAccessToken(localStorage.refresh_token)
+      this.props.getAccessToken(localStorage.refresh_token);
     } else {
       this.props.endLoading()
     }
@@ -49,6 +49,7 @@ class App extends React.Component {
 
   render() {
     const { location } = this.props;
+    
     return (
       <div className="App">
       <header>
@@ -60,6 +61,7 @@ class App extends React.Component {
           <Route exact path="/login" component={LoginPage}/>
           <PrivateRoute path='/app' component={AppLayOut} />
           <PrivateRoute path='/userprofile' component={UserProfilePage} />
+          <PrivateRoute path='/updateprofileinfo' component={updateProfileInfoPage} />
           <Route path="*" component={() => "404 not found" } />
         </Switch>
       </div>
@@ -71,7 +73,8 @@ const mapDispatchToProps = {
   endLoading,
   getCurrentUser,
   getAccessToken,
-  removeCurrentUser
+  removeCurrentUser,
+  resetAlert
 }
 
 export default withRouter(connect(null, mapDispatchToProps)(App));
