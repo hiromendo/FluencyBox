@@ -1,6 +1,13 @@
 import { all, takeLatest } from 'redux-saga/effects'
 
-import { getLoginAsync, sendRegisterAsync, gettingUserInfo, getAccessToken, updateUserInfoAsync, updatePasswordAsync } from './authenticationSaga';
+import { getLoginAsync, 
+  sendRegisterAsync, 
+  gettingUserInfo, 
+  getAccessToken, 
+  updateUserInfoAsync, 
+  updatePasswordAsync,
+  updateProfilePictureAsync
+} from './authenticationSaga';
 import * as types from './../actions';
 
 function* actionWatcher() {
@@ -10,6 +17,7 @@ function* actionWatcher() {
   yield takeLatest(types.GET_ACCESS_TOKEN, getAccessToken);
   yield takeLatest(types.UPDATE_USER_INFO, updateUserInfoAsync);
   yield takeLatest(types.UPDATE_PASSWORD, updatePasswordAsync);
+  yield takeLatest(types.UPDATE_PROFILE_PICTURE, updateProfilePictureAsync);
 }
 
 export default function* rootSaga() {

@@ -1,5 +1,5 @@
 import { put, call } from 'redux-saga/effects';
-import { loginUserAPI, getUserInfoAPI, registerUserAPI, acquireJWTToken, updateUserInfo, updatePassWordAPI } from './../util/api'
+import { loginUserAPI, getUserInfoAPI, registerUserAPI, acquireJWTToken, updateUserInfo, updatePassWordAPI, updateProfilePictureAPI } from './../util/api'
 
 import {
   START_LOADING,
@@ -105,6 +105,20 @@ export function* updatePasswordAsync (request) {
     yield put({ type: END_LOADING });
   }
   catch (error) {
+    console.error(error)
+    yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
+    yield put({ type: END_LOADING });
+  }
+}
+
+export function* updateProfilePictureAsync(request) {
+  yield put({ type: START_LOADING });
+  try {
+    yield call(updateProfilePictureAPI, request.payload);
+    yield put({ type: DISPLAY_SUCCESS });
+    yield put({ type: END_LOADING });
+
+  } catch (error) {
     console.error(error)
     yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
     yield put({ type: END_LOADING });

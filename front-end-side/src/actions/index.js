@@ -6,6 +6,7 @@ export const GET_LOGIN = 'GET_LOGIN';
 export const SEND_REGISTER = 'SEND_REGISTER';
 export const UPDATE_USER_INFO = 'UPDATE_USER_INFO';
 export const UPDATE_PASSWORD = 'UPDATE_PASSWORD';
+export const UPDATE_PROFILE_PICTURE = 'UPDATE_PROFILE_PICTURE';
 
 export const GET_CURRENT_USER = 'GET_CURRENT_USER';
 export const SET_CURRENT_USER = 'SET_CURRENT_USER';
@@ -62,6 +63,11 @@ export const setCurrentUser = data => ({
   data
 })
 
+export const updateProfilePicture = payload => ({
+  type: UPDATE_PROFILE_PICTURE,
+  payload
+})
+
 export const removeCurrentUser = () => ({
   type: REMOVE_CURRENT_USER
 })
@@ -77,6 +83,12 @@ export const displayAlert = (status, errorMessage) => ({
     errorMessage
   }
 })
+
+export const displayErrorUpdate = payload => ({
+  type: DISPLAY_ERROR_UPDATE,
+  payload
+})
+
 export const displaySuccess = (status, errorMessage) => ({
   type: DISPLAY_SUCCESS,
   payload: {

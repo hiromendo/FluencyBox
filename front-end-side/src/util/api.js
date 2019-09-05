@@ -3,7 +3,6 @@ import base64 from 'base-64';
 const BASE_URL = 'http://127.0.0.1:5000';
 
 export const updateUserInfo = (request, uid) => {
-
   const { userInfo } = request
   try {
     const UPDATE_USER_INFO_ENDPOINT = `${BASE_URL}/users/${uid}`;
@@ -180,6 +179,45 @@ export const updatePassWordAPI = request => {
     }
 
     return fetch(UPDATE_PASSWORD_ENDPOINT, parameters)
+    .then(response => {
+      switch (response.status) {
+        case 400: {
+          return response.json().then(data => {
+            return Promise.reject(`${data.message}`)
+          })
+        }
+        default: 
+          return response.json();
+      }
+    })
+  }
+  catch (error) {
+    console.error(error);
+    throw Error(error)
+  }
+}
+
+export const updateProfilePictureAPI = request => {
+  const { uid, data } = request;
+  try {
+    const UPDATE_PROFILE_PIC_ENDPOINT = `${BASE_URL}/users/${uid}/profile_picture`;
+    const jwtToken = localStorage.getItem('access_token');
+
+    let headers = new Headers();
+    headers.set('x-access-token', jwtToken);
+    headers.set('Accept', 'x-www-form-urlencoded');
+    /* it seems when uploading a file through fetch, you must omit this part 
+    https://stackoverflow.com/questions/36067767/how-do-i-upload-a-file-with-the-js-fetch-api#answer-49510941
+    */
+    // headers.set('Content-Type', 'x-www-form-urlencoded; charset=UTF-8'); 
+    const parameters = {
+      method: 'PUT',
+      headers,
+      body: data
+    }
+
+
+    return fetch(UPDATE_PROFILE_PIC_ENDPOINT, parameters)
     .then(response => {
       switch (response.status) {
         case 400: {

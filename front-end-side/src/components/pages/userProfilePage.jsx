@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Route, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+
 import './userProfilePage.scss';
 
 class UserProfilePage extends React.Component {
@@ -31,7 +32,7 @@ class UserProfilePage extends React.Component {
           <br/>
           <Link to="/updateprofileinfo">Update Profile Info</Link>
           <br/>
-          <a href="#">Update Profile Picture</a>
+          <Link to="/updatePicture">Update Profile Picture</Link>
         </div>
       </main>
     )
