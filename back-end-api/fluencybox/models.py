@@ -1,6 +1,94 @@
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from datetime import datetime
 from fluencybox import db, app, ma
+from marshmallow import fields
+
+class Report_Images(db.Model):
+    __tablename__ = "report_images"
+    id = db.Column(db.Integer, primary_key=True)
+    report_id = db.Column(db.Integer, db.ForeignKey('report.id'), nullable=False)
+    filename = db.Column(db.String(255))
+    scene_user_response_id = db.Column(db.Integer, db.ForeignKey('story_scene_user_response.id'), nullable=False)
+    image_type = db.Column(db.String(50))
+
+    def __repr__(self):
+        return f"Report_Images('{self.report_id}', '{self.filename}', '{self.scene_user_response_id}', '{self.image_type}')"
+
+class Report_Images_Schema(ma.ModelSchema):
+    class Meta:
+        fields = ("report_id", "filename", "scene_user_response_id", "image_type")
+        model = Report_Images
+
+class Story_Scene_User_Response(db.Model):
+    __tablename__ = "story_scene_user_response"
+    id = db.Column(db.Integer, primary_key=True)
+    user_story_id = db.Column(db.Integer, db.ForeignKey('user_story.id'), nullable=False)
+    story_scene_speaker_id =  db.Column(db.Integer, db.ForeignKey('story_scene_speaker.id'), nullable=False)
+    audio_filename = db.Column(db.String(255))
+    audio_text = db.Column(db.Text)
+    report_images = db.relationship('Report_Images', backref='story_scene_user_response', lazy=True)
+
+    def __repr__(self):
+        return f"Story_Scene_User_Response('{self.user_story_id}', '{self.story_scene_speaker_id}', '{self.audio_filename}', '{self.audio_text}')"
+
+class Story_Scene_User_Response_Schema(ma.ModelSchema):
+    class Meta:
+        fields = ("user_story_id", "story_scene_speaker_id", "audio_filename", "audio_text")
+        model = Story_Scene_User_Response
+
+class Report(db.Model):
+    __tablename__ = "report"
+    id = db.Column(db.Integer, primary_key=True)
+    uid = db.Column(db.String(50), unique=True)
+    user_story_id = db.Column(db.Integer, db.ForeignKey('user_story.id'), nullable=False)
+    next_scene_order = db.Column(db.Integer, nullable=True)
+    score = db.Column(db.Integer)
+    uploaded_at = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    report_images = db.relationship('Report_Images', backref='report', lazy=True)
+
+    def __repr__(self):
+        return f"Report('{self.uid}', '{self.user_story_id}', '{self.next_scene_order}', '{self.score}', '{self.uploaded_at}')"
+
+class Report_Schema(ma.ModelSchema):
+    class Meta:
+        fields = ("uid", "user_story_id", "next_scene_order", "score", "uploaded_at")
+        model = Report
+
+class User_Story(db.Model):
+    __tablename__ = 'user_story'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id =  db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    story_id =  db.Column(db.Integer, db.ForeignKey('story.id'), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    story_scene_user_response = db.relationship('Story_Scene_User_Response', backref='user_story', lazy=True)
+    report = db.relationship('Report', backref='user_story', lazy=True)
+
+    def __repr__(self):
+        return f"User_Story('{self.user_id}', '{self.story_id}', '{self.created_at}')"
+
+class User_Story_Schema(ma.ModelSchema):
+    class Meta:
+        fields = ("user_id", "story_id", "created_at")
+        model = User_Story
+
+
+class User_Purchase(db.Model):
+    __tablename__ = "user_purchase"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    amount = db.Column(db.Float)
+    stripe_charge_id = db.Column(db.String(100))
+    brand = db.Column(db.String(100))
+    last_four = db.Column(db.String(25))
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"User_Purchase('{self.user_id}', '{self.amount}', '{self.stripe_charge_id}', '{self.brand}', '{self.last_four}', '{self.created_at}')"
+
+class User_Purchase_Schema(ma.ModelSchema):
+    class Meta:
+        fields = ("user_id", "amount", "stripe_charge_id", "brand", "last_four", "created_at")
+        model = User_Purchase
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -18,6 +106,8 @@ class User(db.Model):
     created_on = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.utcnow)
     refresh_token = db.Column(db.String(500))
     is_admin = db.Column(db.Boolean, default=0)
+    user_story = db.relationship('User_Story', backref='user', lazy=True)
+    user_purchase = db.relationship('User_Purchase', backref='user', lazy=True)
 
     def get_reset_token(self):
         expires_sec = app.config['PASSWORD_RESET_TOKEN_EXPIRY']
@@ -41,80 +131,114 @@ class User_Schema(ma.ModelSchema):
         fields = ("uid", "first_name", "last_name", "email_address", "user_name", "phone_number", "profile_picture")
         model = User
 
-
-class Scene_Master_Response(db.Model):
-    __tablename__ = 'scene_master_response'
+class Story_Purchase(db.Model):
+    __tablename__ = "story_purchase"
     id = db.Column(db.Integer, primary_key=True)
-    uid = db.Column(db.String(50), unique=True)
-    story_scene_id =  db.Column(db.Integer, db.ForeignKey('story_scene.id'), nullable=False)
-    master_audio_response = db.Column(db.String(255))
-    master_text_response = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    story_id = db.Column(db.Integer, db.ForeignKey('story.id'), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"Scene_Master_Response('{self.uid}', '{self.story_scene_id}', '{self.master_audio_response}', '{self.master_text_response}')"
+        return f"Story_Purchase('{self.user_id}', '{self.story_id}', '{self.created_at}')"
 
-class Scene_Master_Response_Schema(ma.ModelSchema):
+class Story_Purchase_Schema(ma.ModelSchema):
     class Meta:
-        fields = ("uid", "story_scene_id", "master_audio_response", "master_text_response")
-        model = Scene_Master_Response
+        fields = ("user_id", "story_id", "created_at")
+        model = Story_Purchase
 
-class Scene_Media(db.Model):
-    __tablename__ = 'scene_media'
+class Story_Scene_Master_Response(db.Model):
+    __tablename__ = 'story_scene_master_response'
     id = db.Column(db.Integer, primary_key=True)
-    uid = db.Column(db.String(50), unique=True)
-    story_scene_id =  db.Column(db.Integer, db.ForeignKey('story_scene.id'), nullable=False)
-    media_order = db.Column(db.Integer)
-    scene_image = db.Column(db.String(255))
-    scene_audio = db.Column(db.String(255))
-    scene_text = db.Column(db.Text)
-    scene_hint = db.Column(db.String(255))
-    show_single = db.Column(db.String(15), default=0)
+    story_scene_speaker_id =  db.Column(db.Integer, db.ForeignKey('story_scene_speaker.id'), nullable=False)
+    audio_filename = db.Column(db.String(255))
+    audio_text = db.Column(db.Text)
 
     def __repr__(self):
-        return f"Scene_Media('{self.uid}', '{self.story_scene_id}', '{self.media_order}', '{self.scene_image}', '{self.scene_audio}', '{self.scene_text}', '{self.scene_hint}')"
+        return f"Story_Scene_Master_Response('{self.story_scene_speaker_id}', '{self.audio_filename}', '{self.audio_text}')"
 
-class Scene_Media_Schema(ma.ModelSchema):
+class Story_Scene_Master_Response_Schema(ma.ModelSchema):
     class Meta:
-        fields = ("uid", "story_scene_id", "media_order", "scene_image", "scene_audio", "scene_text", "scene_hint")
-        model = Scene_Media
+        fields = ("story_scene_speaker_id", "audio_filename", "audio_text")
+        model = Story_Scene_Master_Response
 
+class Story_Scene_Speaker(db.Model):
+    __tablename__ = 'story_scene_speaker'
+    id = db.Column(db.Integer, primary_key=True)
+    story_scene_id =  db.Column(db.Integer, db.ForeignKey('story_scene.id'), nullable=False)
+    order = db.Column(db.Integer)
+    image_filename = db.Column(db.String(255))
+    audio_filename = db.Column(db.String(255))
+    audio_text = db.Column(db.Text)
+    prompt = db.Column(db.String(255))
+    story_scene_master_responses = db.relationship('Story_Scene_Master_Response', backref='story_scene_speaker', lazy=True)
+    story_scene_user_responses = db.relationship('Story_Scene_User_Response', backref='story_scene_speaker', lazy=True)
+
+    def __repr__(self):
+        return f"Story_Scene_Speaker('{self.story_scene_id}', '{self.order}', '{self.image_filename}', '{self.audio_filename}', '{self.audio_text}', '{self.prompt}')"
+
+class Story_Scene_Speaker_Schema(ma.ModelSchema):
+    class Meta:
+        fields = ("story_scene_id", "order", "image_filename", "audio_filename", "audio_text", "prompt")
+        model = Story_Scene_Speaker
+
+class Scene_Keyword(db.Model):
+    __tablename__ = 'scene_keyword'
+    id = db.Column(db.Integer, primary_key=True)
+    story_scene_id =  db.Column(db.Integer, db.ForeignKey('story_scene.id'), nullable=False)
+    keyword = db.Column(db.String(50))
+    next_scene_order =  db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f"Scene_Keyword('{self.story_scene_id}', '{self.keyword}', '{self.next_scene_order}')"
+
+class Scene_Keyword_Schema(ma.ModelSchema):
+    class Meta:
+        fields = ("story_scene_id", "keyword", "next_scene_order")
+        model = Scene_Keyword
 
 class Story_Scene(db.Model):
     __tablename__ = 'story_scene'
     id = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.String(50), unique=True)
     story_id =  db.Column(db.Integer, db.ForeignKey('story.id'), nullable=False)
-    scene_order = db.Column(db.Integer)
-    scene_keywords = db.Column(db.String(255))
-    scene_type = db.Column(db.String(25))
-    scene_medias = db.relationship('Scene_Media', backref='story_scene', lazy=True)
-    scene_master_responses = db.relationship('Scene_Master_Response', backref='story_scene', lazy=True)
+    order = db.Column(db.Integer)
+    type = db.Column(db.String(25))
+    next_scene_order = db.Column(db.Integer, nullable=True)
+    story_scene_speakers = db.relationship('Story_Scene_Speaker', backref='story_scene', lazy=True)
+    scene_keywords = db.relationship('Scene_Keyword', backref='story_scene', lazy=True)
 
     def __repr__(self):
-        return f"Story_Scene('{self.uid}', '{self.story_id}', '{self.scene_order}', '{self.scene_keywords}', '{self.scene_type}')"
+        return f"Story_Scene('{self.uid}', '{self.story_id}', '{self.order}', '{self.type}', '{self.next_scene_order}')"
 
 class Story_Scene_Schema(ma.ModelSchema):
+    story_scene_speakers = fields.Nested(Story_Scene_Speaker_Schema, many=True)
+    scene_keywords = fields.Nested(Scene_Keyword_Schema, many=True)
     class Meta:
-        fields = ("uid", "story_id", "scene_order", "scene_keywords", "scene_type")
+        fields = ("uid", "story_id", "order", "type", "next_scene_order", "story_scene_speakers", "scene_keywords")
         model = Story_Scene
-
 
 class Story(db.Model):
     __tablename__ = 'story'
     id = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.String(50), unique=True)
-    story_name = db.Column(db.String(75))
-    story_desc = db.Column(db.Text)
-    story_length = db.Column(db.String(15))
-    story_image = db.Column(db.String(255))
-    difficulty_level = db.Column(db.String(25))
+    name = db.Column(db.String(75))
+    description = db.Column(db.Text)
+    length = db.Column(db.String(15))
+    image_filename = db.Column(db.String(255))
+    difficulty = db.Column(db.String(25))
     genre = db.Column(db.String(25))
+    is_demo = db.Column(db.Boolean, default=0)
+
     story_scenes = db.relationship('Story_Scene', backref='story', lazy=True)
+    user_story = db.relationship('User_Story', backref='story', lazy=True)
     
     def __repr__(self):
-        return f"Story('{self.uid}', '{self.story_name}', '{self.story_desc}', '{self.story_length}', '{self.story_image}', '{self.difficulty_level}', '{self.genre}')"
+        return f"Story('{self.uid}', '{self.name}', '{self.description}', '{self.length}', '{self.image_filename}', '{self.difficulty}', '{self.genre}, '{self.is_demo} ')"
 
 class Story_Schema(ma.ModelSchema):
     class Meta:
-        fields = ("uid", "story_name", "story_desc", "story_length", "story_image", "difficulty_level", "genre")
+        fields = ("uid", "name", "description", "length", "image_filename", "difficulty", "genre", "is_demo")
         model = Story
+        
+
+db.create_all()
