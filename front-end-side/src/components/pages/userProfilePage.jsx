@@ -5,20 +5,14 @@ import { Link } from 'react-router-dom';
 import './userProfilePage.scss';
 
 class UserProfilePage extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      isProfileFormEditable : false,
-      isPassWordFormEditable: false
-    }
-  }
+  
   render() {
-    const { first_name, last_name, phone_number, user_name, email_address } = this.props.userInfo;
+    const { first_name, last_name, phone_number, user_name, email_address, profile_picture } = this.props.userInfo;
     return (
       <main>
         <div className="profile-container">
           <h2>User Profile</h2>
-          <img id="profile-image" src="http://placekitten.com/300/300" alt="profile"/>
+          <img id="profile-image" src={profile_picture} alt="profile"/>
           <ul id="profile-info">
             <li>First Name: {first_name}</li>
             <li>Last Name: {last_name}</li>

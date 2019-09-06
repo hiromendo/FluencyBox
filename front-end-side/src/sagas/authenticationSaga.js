@@ -121,10 +121,13 @@ export function* updatePasswordAsync (request) {
 }
 
 export function* updateProfilePictureAsync(request) {
+  const { payload } = request;
   yield put({ type: START_LOADING });
   try {
     const serverResponse = yield call(updateProfilePictureAPI, request.payload);
     const { message } = serverResponse
+    const obj = { userInfo: { uid: payload.uid } }
+    yield gettingUserInfo(obj)
     yield put({ type: DISPLAY_SUCCESS, payload: { successMessage: message, status: 'success'} });
     yield put({ type: END_LOADING });
 
