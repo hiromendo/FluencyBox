@@ -26,7 +26,12 @@ class LoginPage extends React.Component {
 
   renderAlertMessage() {
     const { serverResponse } = this.props.authInfo;
-    return serverResponse.status === 'error' ? <AlertMessage typeAlert={serverResponse.status} message={serverResponse.errorMessage} /> : null;
+    if (serverResponse.status === 'error') {
+      return <AlertMessage typeAlert={serverResponse.status} message={serverResponse.errorMessage} />
+
+    } else if (serverResponse.status === 'success') {
+      return <AlertMessage typeAlert={serverResponse.status} message={serverResponse.successMessage} />
+    }
   }
 
   render() {

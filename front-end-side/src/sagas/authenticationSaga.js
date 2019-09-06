@@ -1,5 +1,13 @@
 import { put, call } from 'redux-saga/effects';
-import { loginUserAPI, getUserInfoAPI, registerUserAPI, acquireJWTToken, updateUserInfo, updatePassWordAPI, updateProfilePictureAPI } from './../util/api'
+import { loginUserAPI, 
+  getUserInfoAPI, 
+  registerUserAPI, 
+  acquireJWTToken, 
+  updateUserInfo, 
+  updatePassWordAPI, 
+  updateProfilePictureAPI, 
+  resetPasswordAPI
+} from './../util/api'
 
 import {
   START_LOADING,
@@ -65,9 +73,9 @@ export function* updateUserInfoAsync (payload) {
   yield put({ type: START_LOADING });
   try {
     yield call(updateUserInfo, payload, payload.uid);
-    const obj = { userInfo: {uid: payload.uid} }
+    const obj = { userInfo: { uid: payload.uid } }
     yield gettingUserInfo(obj)
-    yield put({ type: DISPLAY_SUCCESS });
+    yield put({ type: DISPLAY_SUCCESS, payload: { successMessage: 'Profile Updated!', status: 'success'} });
     yield put({ type: END_LOADING });
   } catch(error) {
     console.error(error.message)
@@ -100,8 +108,9 @@ export function* updatePasswordAsync (request) {
   const { payload } = request
   yield put({ type: START_LOADING });
   try {
-    yield call(updatePassWordAPI, payload)
-    yield put({ type: DISPLAY_SUCCESS });
+    const serverResponse = yield call(updatePassWordAPI, payload);
+    const { message } = serverResponse;
+    yield put({ type: DISPLAY_SUCCESS, payload: { successMessage: message, status: 'success'} });
     yield put({ type: END_LOADING });
   }
   catch (error) {
@@ -114,8 +123,26 @@ export function* updatePasswordAsync (request) {
 export function* updateProfilePictureAsync(request) {
   yield put({ type: START_LOADING });
   try {
-    yield call(updateProfilePictureAPI, request.payload);
-    yield put({ type: DISPLAY_SUCCESS });
+    const serverResponse = yield call(updateProfilePictureAPI, request.payload);
+    const { message } = serverResponse
+    yield put({ type: DISPLAY_SUCCESS, payload: { successMessage: message, status: 'success'} });
+    yield put({ type: END_LOADING });
+
+  } catch (error) {
+    console.error(error)
+    yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
+    yield put({ type: END_LOADING });
+  }
+}
+
+export function* resetPasswordAsync (request) {
+  const { payload } = request;
+  yield put({ type: START_LOADING });
+  try {
+    const serverResponse = yield call(resetPasswordAPI, payload);
+    const { message } = serverResponse;
+    yield payload.history.push('/login');
+    yield put({ type: DISPLAY_SUCCESS, payload: { successMessage: message, status: 'success'} });
     yield put({ type: END_LOADING });
 
   } catch (error) {

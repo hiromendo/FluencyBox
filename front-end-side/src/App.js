@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Switch, Route, Link, withRouter } from 'react-router-dom';
 
-import { HomePage, LoginPage , AppLayOut, UserProfilePage, updateProfileInfoPage, updatePasswordPage, UpdatePicturePage } from './components/pages';
+import { HomePage, LoginPage , AppLayOut, UserProfilePage, updateProfileInfoPage, updatePasswordPage, UpdatePicturePage, resetPasswordPage } from './components/pages';
 import PrivateRoute from './util/PrivateRoute';
 import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert } from './actions';
 
@@ -59,6 +59,7 @@ class App extends React.Component {
         <Switch>
           <Route exact path="/" component={HomePage}/>
           <Route exact path="/login" component={LoginPage}/>
+          <Route exact path="/resetpassword" component={resetPasswordPage}/>
           <PrivateRoute path='/app' component={AppLayOut} />
           <PrivateRoute path='/userprofile' component={UserProfilePage} />
           <PrivateRoute path='/updateprofileinfo' component={updateProfileInfoPage} />

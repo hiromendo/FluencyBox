@@ -216,7 +216,6 @@ export const updateProfilePictureAPI = request => {
       body: data
     }
 
-
     return fetch(UPDATE_PROFILE_PIC_ENDPOINT, parameters)
     .then(response => {
       switch (response.status) {
@@ -234,4 +233,45 @@ export const updateProfilePictureAPI = request => {
     console.error(error);
     throw Error(error)
   }
+}
+
+export const resetPasswordAPI = request => {
+  const { email_address } = request;
+  try {
+    const RESET_PASSWORD_ENDPOINT = `${BASE_URL}/reset_password`;;
+    let headers = new Headers();
+    headers.set('Accept', 'application/json');
+    headers.set('Content-Type', 'application/json; charset=UTF-8');
+
+    const obj = { email_address }
+
+    const parameters = {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(obj)
+    }
+
+    return fetch(RESET_PASSWORD_ENDPOINT, parameters)
+    .then(response => {
+      switch (response.status) {
+        case 400: {
+          return response.json().then(data => {
+            return Promise.reject(`${data.message}`)
+          })
+        }
+        case 404: {
+          return response.json().then(data => {
+            return Promise.reject(`${data.message}`)
+          })
+        }
+        default: 
+          return response.json();
+      }
+    })
+
+  } catch (error) {
+    console.error(error);
+    throw Error(error)
+  }
+
 }

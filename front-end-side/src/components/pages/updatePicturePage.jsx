@@ -28,7 +28,7 @@ class UpdatePicturePage extends React.Component {
       return <AlertMessage typeAlert={serverResponse.status} message={serverResponse.errorMessage} />
 
     } else if (serverResponse.status === 'success') {
-      return <AlertMessage typeAlert={serverResponse.status} message={'Profile Updated!'} />
+      return <AlertMessage typeAlert={serverResponse.status} message={serverResponse.successMessage} />
     }
   }
 

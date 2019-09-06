@@ -7,14 +7,7 @@ import UpdatePassWordForm from '../updatePassword/updatePasswordForm';
 import { AlertMessage } from '../alertMessage/alertMessage';
 import { displayAlert, resetAlert } from '../../actions';
 
-class updatePasswordPage extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      password: '',
-      confirmPassword: ''
-    }
-  }
+class UpdatePasswordPage extends React.Component {
 
   componentDidMount() {
     this.props.history.listen(() => {
@@ -60,4 +53,4 @@ const mapDispatchToProps = {
   resetAlert
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(updatePasswordPage)
+export default connect(mapStateToProps, mapDispatchToProps)(UpdatePasswordPage)

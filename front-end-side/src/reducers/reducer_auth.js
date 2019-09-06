@@ -39,7 +39,8 @@ export default ( state = INITIAL_STATE, action = {} ) => {
       return { ...state, 
         serverResponse: {
           ...state.serverResponse,
-          status: 'success'
+          status: payload.status,
+          successMessage: payload.successMessage
         }
       }
     case DISPLAY_ERROR_UPDATE: 
