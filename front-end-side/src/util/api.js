@@ -92,6 +92,9 @@ export const loginUserAPI = request => {
         case 401: {
           return Promise.reject('Invalid Credentials -- Please Try Again');
         }
+        case 500: {
+          return Promise.reject('Server is down at the moment -- Please Try Again');
+        }
         default:
           return response.json()
       }
@@ -122,6 +125,9 @@ export const registerUserAPI = request => {
           return response.json().then(data => {
             return Promise.reject(data.message);
           })
+        }
+        case 500: {
+          return Promise.reject('Server is down at the moment -- Please Try Again');
         }
         default: 
           return response.json()
