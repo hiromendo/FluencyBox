@@ -38,6 +38,7 @@ class App extends React.Component {
     return (
     <nav id="top-nav">
       <ul>
+        <li><h1 className="brand-text"><Link to="/app">FluencyBox</Link></h1></li>
         <li><Link to="/app">Dashboard</Link></li>
         <li><Link to="/userprofile">UserProfile</Link></li>
         <li><Link to="/aboutus">About Us</Link></li>
@@ -53,7 +54,6 @@ class App extends React.Component {
     return (
       <div className="App">
       <header>
-        <h1>Fluency Box</h1>
         {location.pathname !== "/login" ? this.renderNavBar() : null}
       </header>
         <Switch>

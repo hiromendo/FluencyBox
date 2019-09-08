@@ -1,8 +1,5 @@
-//Custom Fonts
-@import url("https://fonts.googleapis.com/css?family=Open+Sans&display=swap");
-
 .App {
-  font-family: "Open Sans", sans-serif;
+  font-family: Montserrat, sans-serif;
 }
 
 nav {
@@ -10,10 +7,31 @@ nav {
   ul {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     list-style: none;
     li {
+      .brand-text {
+        font-size: 33px;
+        font-weight: 400;
+      }
       padding-right: 12px;
       cursor: pointer;
+      a {
+        color: #333;
+        text-decoration: none;
+        &:visited {
+          text-decoration: none;
+          color: #333;
+        }
+        &:hover {
+          text-decoration: none;
+          font-weight: bold;
+          color: rgba(27, 30, 26, 0.954);
+        }
+      }
+      &:first-child {
+        margin-right: auto;
+      }
       &:last-child {
         padding-right: 0px;
       }
