@@ -279,6 +279,11 @@ export const resetPasswordAPI = request => {
             return Promise.reject(`${data.message}`)
           })
         }
+        case 500: {
+          return response.json().then(data => {
+            return Promise.reject('Server is down at the moment -- Please Try Again')
+          })
+        }
         default: 
           return response.json();
       }
