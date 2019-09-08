@@ -293,5 +293,30 @@ export const resetPasswordAPI = request => {
     console.error(error);
     throw Error(error)
   }
+}
 
+export const getAllStoriesAPI = () => {
+  try {
+    const GET_ALL_STORIES_ENDPOINT = `${BASE_URL}/story?page=1&per_page=10`; /* we can custome the query params later... */
+    const jwtToken = localStorage.getItem('access_token');
+    let headers = new Headers();
+    headers.set('x-access-token', jwtToken);
+  
+    const parameters = {
+      method: 'GET',
+      headers
+    }
+
+    return fetch(GET_ALL_STORIES_ENDPOINT, parameters)
+      .then(response => {
+        return response.json()
+      })
+      .catch(error => {
+        throw Error(error)
+      })
+  }
+  catch (error) {
+    console.error(error);
+    throw Error(error);
+  }
 }

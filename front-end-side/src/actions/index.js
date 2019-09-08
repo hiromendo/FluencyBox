@@ -23,6 +23,9 @@ export const DISPLAY_SUCCESS = 'DISPLAY_SUCCESS';
 export const REGISTER_CACHE = 'REGISTER_CACHE';
 export const REGISTER_CLEAR = 'REGISTER_CLEAR';
 
+export const GET_ALL_STORIES = 'GET_ALL_STORIES';
+export const SET_ALL_STORIES = 'SET_ALL_STORIES';
+
 export const startLoading = () => ({
   type: START_LOADING
 })
@@ -112,4 +115,12 @@ export const getAccessToken = refresh_token => ({
 export const cacheRegisterInfo = infoObj => ({
   type: REGISTER_CACHE,
   infoObj
+})
+
+export const getAllStories = () => ({
+  type: GET_ALL_STORIES
+})
+export const setAllStories = payload => ({
+  type: SET_ALL_STORIES,
+  payload
 })

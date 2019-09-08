@@ -2,9 +2,18 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Switch, Route, Link, withRouter } from 'react-router-dom';
 
-import { HomePage, LoginPage , AppLayOut, UserProfilePage, updateProfileInfoPage, updatePasswordPage, UpdatePicturePage, resetPasswordPage } from './components/pages';
+import { HomePage, 
+  LoginPage, 
+  AppLayOut, 
+  UserProfilePage, 
+  updateProfileInfoPage, 
+  updatePasswordPage, 
+  UpdatePicturePage, 
+  resetPasswordPage 
+} from './components/pages';
+
 import PrivateRoute from './util/PrivateRoute';
-import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert } from './actions';
+import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert, setAllStories } from './actions';
 
 import "./App.scss";
 
@@ -21,6 +30,7 @@ class App extends React.Component {
       const infoObj = {};
       infoObj.uid = localStorage.uid;
       this.props.getCurrentUser(infoObj);
+      this.props.setAllStories();
     } else if (localStorage.refresh_token) {
       this.props.getAccessToken(localStorage.refresh_token);
     } else {
@@ -31,6 +41,7 @@ class App extends React.Component {
   logOffUser() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('uid');
     this.props.removeCurrentUser();
   }
 
@@ -77,7 +88,8 @@ const mapDispatchToProps = {
   getCurrentUser,
   getAccessToken,
   removeCurrentUser,
-  resetAlert
+  resetAlert,
+  setAllStories
 }
 
 export default withRouter(connect(null, mapDispatchToProps)(App));

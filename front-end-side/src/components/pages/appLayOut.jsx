@@ -8,7 +8,7 @@ class AppLayOut extends React.Component {
     return (
       <>
         <main>
-          <h2>Welcome {first_name}!</h2>
+          <div>Insert stories here...</div>
         </main>
       </>
     )

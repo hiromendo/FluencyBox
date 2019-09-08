@@ -6,7 +6,8 @@ import { loginUserAPI,
   updateUserInfo, 
   updatePassWordAPI, 
   updateProfilePictureAPI, 
-  resetPasswordAPI
+  resetPasswordAPI,
+  getAllStoriesAPI
 } from './../util/api'
 
 import {
@@ -16,9 +17,14 @@ import {
   REGISTER_CLEAR,
   DISPLAY_ERROR_LOGIN,
   DISPLAY_SUCCESS,
-  DISPLAY_ERROR_UPDATE
+  DISPLAY_ERROR_UPDATE,
+  SET_ALL_STORIES
  } from '../actions'
 
+export function* getAllStoriesAsync() {
+  const serverResponseAllStories = yield call(getAllStoriesAPI);
+  yield put( {type: SET_ALL_STORIES, payload: serverResponseAllStories })
+}
 
  export function* gettingUserInfo({ userInfo }) {
    const userInfoResponse = yield call(getUserInfoAPI, userInfo);
@@ -27,8 +33,8 @@ import {
 
  export function* settingUserInfo(response, history = null) {
   yield put({ type: SET_CURRENT_USER, payload: { user: response.user }})
-  yield put({ type: END_LOADING });
   if (history) { yield history.push('/app') }
+  yield put({ type: END_LOADING });
 }
 
 export function* getLoginAsync (payload) {
@@ -42,7 +48,8 @@ export function* getLoginAsync (payload) {
       localStorage.setItem('uid', loginResponse.uid);
     }
     const userInfoResponse = yield call(getUserInfoAPI, loginResponse);
-    yield settingUserInfo(userInfoResponse, history)
+    yield getAllStoriesAsync(getAllStoriesAPI);
+    yield settingUserInfo(userInfoResponse, history);
   } catch(error) {
     console.error(error)
     yield put({ type: DISPLAY_ERROR_LOGIN, payload: { errorMessage: error.message, status: 'error' } })
@@ -61,6 +68,7 @@ export function* sendRegisterAsync (payload) {
       localStorage.setItem('uid', registerResponse.uid);
     }
     yield put({ type: REGISTER_CLEAR })
+    yield getAllStoriesAsync(getAllStoriesAPI);
     const userInfoResponse = yield call(getUserInfoAPI, registerResponse);
     yield settingUserInfo(userInfoResponse, history);
 
