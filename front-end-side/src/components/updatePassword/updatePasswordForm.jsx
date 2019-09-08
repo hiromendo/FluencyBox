@@ -8,6 +8,7 @@ class UpdatePassWordForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      currentPassword: '',
       password: '',
       confirmPassword: ''
     }
@@ -15,13 +16,15 @@ class UpdatePassWordForm extends React.Component {
 
   handleSubmit = event => {
     event.preventDefault();
-    const { password } = this.state;
+    const { password, confirmPassword, currentPassword } = this.state;
     const { serverResponse: { user } } = this.props.authInfo;
     const isPasswordMatched = this.validatePassword();
 
     if (isPasswordMatched) {
       const payload = {
+        currentPassword,
         password,
+        confirmPassword,
         uid: user.uid
       }
       this.props.updatePassword(payload)
@@ -56,13 +59,25 @@ class UpdatePassWordForm extends React.Component {
   }
 
   render() {
-    const { password, confirmPassword } = this.state;
+    const { currentPassword, password, confirmPassword } = this.state;
     return (
       <div className="base-container" ref={this.props.containerRef}>
         <div className="header">Update Password</div> 
         <div className="content">
 
           <form onSubmit={this.handleSubmit} className="form">
+            <div className="form-group">
+              <label htmlFor="currentPassword">Current Password</label>
+              <input 
+                type="password" 
+                name="currentPassword"
+                ref="currentPasswordNode"
+                value={currentPassword}
+                pattern=".{8,}"
+                onChange={this.handleInputChange} 
+                required
+              />
+            </div>
             <div className="form-group">
               <label htmlFor="password">Password <span>8 minimum characters</span></label>
               <input 

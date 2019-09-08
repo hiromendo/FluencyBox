@@ -160,12 +160,16 @@ export const acquireJWTToken = refresh_token  => {
 }
 
 export const updatePassWordAPI = request => {
-  const { uid, password } = request;
+  const { uid, currentPassword, password, confirmPassword } = request;
   try {
     const UPDATE_PASSWORD_ENDPOINT = `${BASE_URL}/users/${uid}/password`;
     const jwtToken = localStorage.getItem('access_token');
 
-    const obj = { password }
+    const obj = {
+      'current_password': currentPassword,
+      password,
+      'confirm_password': confirmPassword
+    }
   
     let headers = new Headers();
     headers.set('x-access-token', jwtToken);
@@ -182,6 +186,11 @@ export const updatePassWordAPI = request => {
     .then(response => {
       switch (response.status) {
         case 400: {
+          return response.json().then(data => {
+            return Promise.reject(`${data.message}`)
+          })
+        }
+        case 500: {
           return response.json().then(data => {
             return Promise.reject(`${data.message}`)
           })
