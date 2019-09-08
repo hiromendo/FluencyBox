@@ -45,8 +45,8 @@ class LoginPage extends React.Component {
           <div className="login">
             <div className="container">
               {this.renderAlertMessage()}
-              {isLogginActive && <Login containerRef={ (ref) => this.current = ref}/>}
-              {!isLogginActive && <Register containerRef={ (ref) => this.current = ref}/>}
+              {isLogginActive && <Login />}
+              {!isLogginActive && <Register />}
               <LoginOrRegistration
                 current={current} 
                 onClick={this.changeState.bind(this)}

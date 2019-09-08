@@ -1,0 +1,78 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Login component should match snapshot 1`] = `
+<div
+  className="base-container"
+>
+  <div
+    className="header"
+  >
+    Login
+  </div>
+  <div
+    className="content"
+  >
+    <div
+      className="image"
+    >
+      <img
+        alt="login"
+        src="login.svg"
+      />
+      <form
+        className="form"
+        onSubmit={[Function]}
+      >
+        <div
+          className="form-group"
+        >
+          <label
+            htmlFor="userName"
+          >
+            User Name
+          </label>
+          <input
+            name="userName"
+            onChange={[Function]}
+            required={true}
+            type="text"
+            value="kenzom123@msn.com"
+          />
+        </div>
+        <div
+          className="form-group"
+        >
+          <label
+            htmlFor="password"
+          >
+            Password
+          </label>
+          <input
+            name="password"
+            onChange={[Function]}
+            required={true}
+            type="password"
+            value="12345678"
+          />
+        </div>
+        <a
+          href="/resetpassword"
+          onClick={[Function]}
+        >
+          Forgot Password?
+        </a>
+        <div
+          className="footer"
+        >
+          <button
+            className="btn"
+            type="submit"
+          >
+            Login
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;

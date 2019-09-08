@@ -6,7 +6,7 @@ import loginImg from '../../login.svg';
 import { getLogin } from '../../actions';
 import "./style.scss";
 
-class Login extends React.Component {
+export class Login extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -20,6 +20,7 @@ class Login extends React.Component {
     const { userName, password } = this.state;
     const userInfo = { userName, password };
     const { history } = this.props;
+    console.log(history)
 
     this.props.getLogin(userInfo, history);
   }
