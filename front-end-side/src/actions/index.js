@@ -21,6 +21,7 @@ export const DISPLAY_ERROR_UPDATE = 'DISPLAY_ERROR_UPDATE';
 export const DISPLAY_SUCCESS = 'DISPLAY_SUCCESS';
 
 export const REGISTER_CACHE = 'REGISTER_CACHE';
+export const REGISTER_CLEAR = 'REGISTER_CLEAR';
 
 export const startLoading = () => ({
   type: START_LOADING

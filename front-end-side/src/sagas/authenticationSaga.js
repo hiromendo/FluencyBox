@@ -13,6 +13,7 @@ import {
   START_LOADING,
   END_LOADING,
   SET_CURRENT_USER,
+  REGISTER_CLEAR,
   DISPLAY_ERROR_LOGIN,
   DISPLAY_SUCCESS,
   DISPLAY_ERROR_UPDATE
@@ -59,6 +60,7 @@ export function* sendRegisterAsync (payload) {
       localStorage.setItem('refresh_token', registerResponse.refresh_token);
       localStorage.setItem('uid', registerResponse.uid);
     }
+    yield put({ type: REGISTER_CLEAR })
     const userInfoResponse = yield call(getUserInfoAPI, registerResponse);
     yield settingUserInfo(userInfoResponse, history);
 
