@@ -36,7 +36,7 @@ exports[`Login component should match snapshot 1`] = `
             onChange={[Function]}
             required={true}
             type="text"
-            value="kenzom123@msn.com"
+            value=""
           />
         </div>
         <div
@@ -52,7 +52,7 @@ exports[`Login component should match snapshot 1`] = `
             onChange={[Function]}
             required={true}
             type="password"
-            value="12345678"
+            value=""
           />
         </div>
         <a

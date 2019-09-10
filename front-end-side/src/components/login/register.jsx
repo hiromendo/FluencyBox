@@ -20,7 +20,6 @@ class Register extends React.Component {
   }
 
   componentDidMount() {
-    // this.generateRandomID()
     const { registerCache, reUpdateInfoProfile, authInfo: { serverResponse : { user } } } = this.props;
     if (reUpdateInfoProfile) {
       const obj = {
@@ -40,16 +39,6 @@ class Register extends React.Component {
       })
 
     }
-  }
-
-  /* Dev purpose only */
-  generateRandomID = () => {
-    const c = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-    const randomID = Array.from({length:4}, _ => c[Math.floor(Math.random()*c.length)]).join('')
-    this.setState({
-      userName: randomID,
-      email: `${randomID}@gmail.com`
-    })
   }
 
   handleSubmit = event => {

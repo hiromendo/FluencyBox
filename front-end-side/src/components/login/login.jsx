@@ -10,8 +10,8 @@ export class Login extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      userName : 'kenzom123@msn.com',
-      password: '12345678'
+      userName : '',
+      password: ''
     }
   }
 
