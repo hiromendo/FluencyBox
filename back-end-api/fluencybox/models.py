@@ -178,7 +178,7 @@ class Story_Scene_Speaker(db.Model):
 
 class Story_Scene_Speaker_Schema(ma.ModelSchema):
     class Meta:
-        fields = ("story_scene_id", "order", "image_filename", "audio_filename", "audio_text", "prompt")
+        fields = ("id", "order", "image_filename", "audio_filename", "audio_text", "prompt")
         model = Story_Scene_Speaker
 
 class Scene_Keyword(db.Model):
@@ -193,7 +193,7 @@ class Scene_Keyword(db.Model):
 
 class Scene_Keyword_Schema(ma.ModelSchema):
     class Meta:
-        fields = ("story_scene_id", "keyword", "next_scene_order")
+        fields = ("keyword", "next_scene_order")
         model = Scene_Keyword
 
 class Story_Scene(db.Model):
@@ -214,7 +214,7 @@ class Story_Scene_Schema(ma.ModelSchema):
     story_scene_speakers = fields.Nested(Story_Scene_Speaker_Schema, many=True)
     scene_keywords = fields.Nested(Scene_Keyword_Schema, many=True)
     class Meta:
-        fields = ("uid", "story_id", "order", "type", "next_scene_order", "story_scene_speakers", "scene_keywords")
+        fields = ("uid", "order", "type", "next_scene_order", "story_scene_speakers", "scene_keywords")
         model = Story_Scene
 
 class Story(db.Model):

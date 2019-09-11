@@ -17,7 +17,7 @@ Scene_Keyword, Scene_Keyword_Schema, Story_Scene_Speaker, Story_Scene_Speaker_Sc
 Story_Scene_Master_Response, Story_Scene_Master_Response_Schema, User_Story, User_Story_Schema, \
 Story_Scene_User_Response, Story_Scene_User_Response_Schema, Report, Report_Schema, \
 Report_Images, Report_Images_Schema, Story_Purchase, Story_Purchase_Schema, User_Purchase, User_Purchase_Schema
-from fluencybox.S3AssetManager import get_bucket, get_resource, save_avatar, save_story_object, delete_avatar, delete_story_object, get_client
+from fluencybox.S3AssetManager import get_bucket, get_resource, save_avatar, save_story_object, delete_avatar, delete_story_object, generate_presigned_url
 from fluencybox.mailer import send_reset_email
 from io import BytesIO
 from zipfile import ZipFile
@@ -106,12 +106,13 @@ def get_paginated_list(page_object, object_type):
                 })
         elif object_type == 'story':
             for story in page_object.items:
+                image_filename = generate_presigned_url(app.config.get('S3_BUCKET'), app.config.get('S3_CONTENT_DIR')+'/'+story.image_filename)
                 output.append({
                 'uid' : story.uid, 
                 'name' : story.name,
                 'description' : story.description,
                 'length' : story.length,
-                'image_filename' : story.image_filename,
+                'image_filename' : image_filename,
                 'difficulty' : story.difficulty,
                 'genre' : story.genre,
                 'is_demo': story.is_demo
@@ -743,9 +744,11 @@ def get_single_story(uid):
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No story found'
             return jsonify(resp_dict),404
+        
         story_schema = Story_Schema()
         story_data = story_schema.dump(story).data
 
+        story_data['image_filename'] = generate_presigned_url(app.config.get('S3_BUCKET'), app.config.get('S3_CONTENT_DIR')+'/'+story_data['image_filename'])
         resp_dict['status'] = 'success'
         resp_dict['story'] = story_data
         
@@ -874,7 +877,7 @@ def upload_story_zip(story_zip):
     try:
         resp_dict = {}
         #Temporarily save zip the file to the bucket
-        zip_upload_response = save_story_object(story_zip, story_zip.filename)
+        zip_upload_response = save_story_object(story_zip, story_zip.filename, True)
         if zip_upload_response['status'] == 'success':
             zip_url = zip_upload_response['object_url']
             #Open the URL pointing to the zip file
@@ -884,7 +887,7 @@ def upload_story_zip(story_zip):
             #Loop through each file and save it to the bucket
             for file_name in zip_file_content.namelist():
                 story_object = zip_file_content.open(file_name).read()
-                upload_resp = save_story_object(story_object, file_name)
+                upload_resp = save_story_object(story_object, file_name, False)
                 if upload_resp['status'] != 'success':
                     resp_dict['status'] = 'fail'
                     resp_dict['message'] = upload_resp['message']
@@ -975,6 +978,34 @@ def upload_story():
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
 
+def get_scene(uid, scene_order):
+    try:
+        resp_dict = {}
+        story = Story.query.filter_by(uid = uid).first()
+        
+        if not story:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No story found'
+            return resp_dict
+        
+        scene = Story_Scene.query.filter(Story_Scene.story_id == story.id, Story_Scene.order == scene_order).first()
+
+        scene_schema = Story_Scene_Schema()
+        scene_data = scene_schema.dump(scene).data
+
+        for speaker in scene_data['story_scene_speakers']:
+            speaker['audio_filename'] = generate_presigned_url(app.config.get('S3_BUCKET'), app.config.get('S3_CONTENT_DIR')+'/'+speaker['audio_filename'])
+            speaker['image_filename'] = generate_presigned_url(app.config.get('S3_BUCKET'), app.config.get('S3_CONTENT_DIR')+'/'+speaker['image_filename'])
+
+        resp_dict['status'] = 'success'
+        resp_dict['scene_data'] = scene_data
+        
+        return resp_dict
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return resp_dict
+
 #Get the scene based on the story uid & order
 @app.route('/get_story_scene',methods=['GET'])
 @token_required
@@ -984,29 +1015,60 @@ def get_story_scene():
         uid = request.args.get('uid', type=str)
         scene_order = request.args.get('order', 1, type=int)
 
+        get_scene_response = get_scene(uid, scene_order)
+        if get_scene_response['status'] == 'success':
+            scene_data = get_scene_response['scene_data']
+            resp_dict['status'] = 'success'
+            resp_dict['scene'] = scene_data
+            return jsonify(resp_dict), 200
+        else:
+            resp_dict['status'] = get_scene_response['status']
+            resp_dict['message'] = get_scene_response['message']
+            return jsonify(resp_dict)
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+#Receive the story uid + user response + next scene order & return next scene
+@app.route('/user_response', methods=['POST'])
+@token_required
+def user_response():
+    try:
+        resp_dict = {}
+     
+        if 'user_audio' not in request.files:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No audio file found'
+            return jsonify(resp_dict), 400
+
+        uid = request.form['uid']
+        story_scene_speaker_id = request.form['story_scene_speaker_id']
+        audio_text = request.form['audio_text']
+        next_scene_order = request.form['next_scene_order']
+
         story = Story.query.filter_by(uid = uid).first()
-        
         if not story:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No story found'
             return jsonify(resp_dict),404
-        
-        story_schema = Story_Schema()
-        story_data = story_schema.dump(story).data
-        
-        scene = Story_Scene.query.filter(Story_Scene.story_id == story.id, Story_Scene.order == scene_order).first()
-        s3_client = get_client()
-        for speaker in scene.story_scene_speakers:
-            speaker.audio_filename = s3_client.generate_presigned_url(ClientMethod = 'get_object', Params = {'Bucket': app.config.get('S3_BUCKET'), 'Key': app.config.get('S3_CONTENT_DIR')+'/'+speaker.audio_filename}, ExpiresIn = 300)
-            speaker.image_filename = s3_client.generate_presigned_url(ClientMethod = 'get_object', Params = {'Bucket': app.config.get('S3_BUCKET'), 'Key': app.config.get('S3_CONTENT_DIR')+'/'+speaker.image_filename}, ExpiresIn = 300)
 
-        scene_schema = Story_Scene_Schema()
-        scene_data = scene_schema.dump(scene).data
+        audio_upload_response = save_story_object(request.files['user_audio'], request.files['user_audio'].filename, False)
+        if audio_upload_response['status'] == 'success':
+            new_user_response = Story_Scene_User_Response(user_story_id = story.id, story_scene_speaker_id = story_scene_speaker_id, audio_filename = request.files['user_audio'].name, audio_text = audio_text)
+            db.session.add(new_user_response)
+            db.session.commit()
 
-        resp_dict['status'] = 'success'
-        resp_dict['scene'] = scene_data
-        
-        return jsonify(resp_dict)
+        get_scene_response = get_scene(uid, next_scene_order)
+        if get_scene_response['status'] == 'success':
+            scene_data = get_scene_response['scene_data']
+            resp_dict['status'] = 'success'
+            resp_dict['scene'] = scene_data
+            return jsonify(resp_dict), 200
+        else:
+            resp_dict['status'] = get_scene_response['status']
+            resp_dict['message'] = get_scene_response['message']
+            return jsonify(resp_dict)
     except Exception as e:
         resp_dict['status'] = 'fail'
         resp_dict['message'] = str(e)
