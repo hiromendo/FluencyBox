@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { withRouter } from 'react-router-dom';
-import { sendRegister } from '../../actions';
+import { withRouter, Link } from 'react-router-dom';
+import { sendRegister, cacheRegisterInfo, updateUserInfo } from '../../actions';
 import "./style.scss";
 
 class Register extends React.Component {
@@ -9,47 +9,71 @@ class Register extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      firstname: 'Anthony',
-      lastname: 'M',
+      firstname: '',
+      lastname: '',
       userName: '',
       email: '',
-      phone: '2132132131',
-      password: '12345678',
-      confirmPassword: '12345678'
+      phone: '',
+      password: '',
+      confirmPassword: ''
     }
   }
 
   componentDidMount() {
-    this.generateRandomID()
-  }
+    const { registerCache, reUpdateInfoProfile, authInfo: { serverResponse : { user } } } = this.props;
+    if (reUpdateInfoProfile) {
+      const obj = {
+        firstname: user.first_name,
+        lastname: user.last_name,
+        userName: user.user_name,
+        email: user.email_address,
+        phone: user.phone_number,
+      };
+      this.setState(() => {
+        return obj
+      })
 
-  /* Dev purpose only */
-  generateRandomID = () => {
-    const c = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-    const randomID = Array.from({length:4}, _ => c[Math.floor(Math.random()*c.length)]).join('')
-    this.setState({
-      userName: randomID,
-      email: `${randomID}@gmail.com`
-    })
+    } else {
+      this.setState(prevState => {
+        return registerCache
+      })
+
+    }
   }
 
   handleSubmit = event => {
     event.preventDefault();
     const { firstname, lastname, userName, password, phone, email, confirmPassword } = this.state;
-    const { history } = this.props;
-    const isPasswordMatched = this.validatePassword()
-    if (isPasswordMatched) {
+    const { history, reUpdateInfoProfile, authInfo: { serverResponse: { user } } } = this.props;
+    this.props.cacheRegisterInfo(this.state)
+    if (reUpdateInfoProfile) {
+
       const userInfo = {
         "first_name" : firstname,
         "last_name" : lastname,
         "user_name" : userName,
         "email_address" : email,
         "phone_number" : phone,
-        "password" : password,
-        "confirm_password": confirmPassword
       }
-      this.props.sendRegister(userInfo, history);
-    } 
+
+      this.props.updateUserInfo(userInfo, user.uid, history)
+  
+    } else {
+      const isPasswordMatched = this.validatePassword()
+      if (isPasswordMatched) {
+        const userInfo = {
+          "first_name" : firstname,
+          "last_name" : lastname,
+          "user_name" : userName,
+          "email_address" : email,
+          "phone_number" : phone,
+          "password" : password,
+          "confirm_password": confirmPassword
+        }
+        this.props.sendRegister(userInfo, history);
+
+      }
+    }
   }
 
   handleInputChange = event => {
@@ -77,12 +101,50 @@ class Register extends React.Component {
     }
   }
 
+  renderPassWordInputs() {
+    const { reUpdateInfoProfile } = this.props;
+    const { password, confirmPassword } = this.state;
+    if (!reUpdateInfoProfile) {
+      return (
+        <>
+          <div className="form-group">
+            <label htmlFor="password">Password <span>8 minimum characters</span></label>
+            <input 
+              type="password" 
+              name="password"
+              ref="passwordNode"
+              value={password}
+              title="8 characters minimum"
+              pattern=".{8,}"
+              onChange={this.handleInputChange} 
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input 
+              type="password" 
+              name="confirmPassword"
+              ref="confirmPasswordNode"
+              value={confirmPassword}
+              title="8 characters minimum"
+              pattern=".{8,}"
+              onChange={this.handleInputChange} 
+              required
+            />
+          </div>
+        </>
+      )
+    }
+  }
+
   render() {
-    const { firstname, lastname, userName, password, phone, email, confirmPassword } = this.state;
+    const { firstname, lastname, userName, phone, email } = this.state;
+    const { reUpdateInfoProfile } = this.props;
 
     return (
       <div className="base-container" ref={this.props.containerRef}>
-        <div className="header">Register</div> 
+        <div className="header">{reUpdateInfoProfile ? 'Update Profile Info' : 'Register'}</div> 
         <div className="content">
           <div className="image">
             <form onSubmit={this.handleSubmit} className="form">
@@ -136,35 +198,11 @@ class Register extends React.Component {
                   placeholder='Optional'
                 />
               </div>
-              <div className="form-group">
-                <label htmlFor="password">Password</label>
-                <input 
-                  type="password" 
-                  name="password"
-                  ref="passwordNode"
-                  value={password}
-                  title="8 characters minimum"
-                  pattern=".{8,}"
-                  onChange={this.handleInputChange} 
-                  required
-                />
+              {this.renderPassWordInputs()}
+              <div className="footer">
+                <button type="submit" className="btn">{reUpdateInfoProfile ? 'Update' : 'Register'}</button>
+                {reUpdateInfoProfile ? <Link className="cancel" to="/userprofile">Cancel</Link> : null }
               </div>
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <input 
-                  type="password" 
-                  name="confirmPassword"
-                  ref="confirmPasswordNode"
-                  value={confirmPassword}
-                  title="8 characters minimum"
-                  pattern=".{8,}"
-                  onChange={this.handleInputChange} 
-                  required
-                />
-              </div>
-            <div className="footer">
-              <button type="submit" className="btn">Register</button>
-            </div>
             </form>
           </div>
         </div>
@@ -173,12 +211,16 @@ class Register extends React.Component {
   }
 }
 
-const mapStateToProps = ({ loading }) => ({
-  loading
+const mapStateToProps = ({ loading, registerCache, authInfo }) => ({
+  loading,
+  registerCache,
+  authInfo
 })
 
 const mapDispatchToProps = {
-  sendRegister
+  sendRegister,
+  cacheRegisterInfo,
+  updateUserInfo
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Register))

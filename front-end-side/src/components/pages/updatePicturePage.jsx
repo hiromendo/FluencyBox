@@ -2,26 +2,24 @@ import React from 'react';
 import { connect } from 'react-redux';
 import ReactLoading from 'react-loading';
 
-import Login from '../login/login';
-import Register from '../login/register';
+import UpdatePictureForm from '../updatePicture/updatePictureForm';
 
 import { AlertMessage } from '../alertMessage/alertMessage';
-import { displayAlert } from '../../actions';
+import { displayAlert, resetAlert } from '../../actions';
 
-import './loginPage.scss'
-
-class LoginPage extends React.Component {
+class UpdatePicturePage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isLogginActive: true,
-      redirectToReferrer: false
+      password: '',
+      confirmPassword: ''
     }
   }
 
-  changeState() {
-    this.props.displayAlert(null, null)
-    this.setState(prevState => ({ isLogginActive: !prevState.isLogginActive }))
+  componentDidMount() {
+    this.props.history.listen(() => {
+      this.props.resetAlert()
+    })
   }
 
   renderAlertMessage() {
@@ -35,22 +33,15 @@ class LoginPage extends React.Component {
   }
 
   render() {
-    const { isLogginActive } = this.state;
-    const current = isLogginActive ? "Register" : "Login";
     return (
       <>
         {this.props.loading ? (
           <div className="react-spinner-container"><ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105} /></div>
         ) : (
-          <div className="login">
+          <div id="update-picture" className="login">
             <div className="container">
               {this.renderAlertMessage()}
-              {isLogginActive && <Login />}
-              {!isLogginActive && <Register />}
-              <LoginOrRegistration
-                current={current} 
-                onClick={this.changeState.bind(this)}
-              />
+              <UpdatePictureForm />
             </div>
           </div>
         )}
@@ -59,20 +50,14 @@ class LoginPage extends React.Component {
   }
 }
 
-const LoginOrRegistration = props => {
-  return (
-    <div className="toggle-register-login" onClick={props.onClick}>
-        <a className="cancel" href="#/">{props.current}</a>
-    </div>
-  )
-}
 const mapStateToProps = ({ loading, authInfo }) => ({
   loading,
   authInfo
 })
 
 const mapDispatchToProps = {
-  displayAlert
+  displayAlert,
+  resetAlert
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(LoginPage);
+export default connect(mapStateToProps, mapDispatchToProps)(UpdatePicturePage)

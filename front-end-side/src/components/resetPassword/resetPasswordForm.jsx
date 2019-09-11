@@ -3,25 +3,27 @@ import { connect } from 'react-redux';
 import { withRouter, Link } from 'react-router-dom';
 
 import loginImg from '../../login.svg';
-import { getLogin } from '../../actions';
-import "./style.scss";
+import { resetPassword } from '../../actions';
 
-export class Login extends React.Component {
+
+class ResetPasswordForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      userName : '',
-      password: ''
+      email_address: ''
     }
   }
 
   handleSubmit = event => {
     event.preventDefault();
-    const { userName, password } = this.state;
-    const userInfo = { userName, password };
+    const { email_address } = this.state;
     const { history } = this.props;
-
-    this.props.getLogin(userInfo, history);
+    console.log('submitted!');
+    const objPayload = {
+      email_address,
+      history
+    }
+    this.props.resetPassword(objPayload)
   }
 
   handleInputChange = event => {
@@ -32,37 +34,27 @@ export class Login extends React.Component {
   }
 
   render() {
-    const { userName, password } = this.state;
+    const { email_address } = this.state;
     return (
       <div className="base-container" ref={this.props.containerRef}>
-        <div className="header">Login</div> 
+        <div className="header">Reset Password</div> 
         <div className="content">
           <div className="image">
             <img src={loginImg} alt="login" />
             <form onSubmit={this.handleSubmit} className="form">
               <div className="form-group">
-                <label htmlFor="userName">User Name</label>
+                <label htmlFor="email">Email</label>
                 <input 
-                  type="text" 
-                  name="userName" 
-                  value={userName} 
+                  type="email" 
+                  name="email_address" 
+                  value={email_address}
                   onChange={this.handleInputChange} 
                   required
                 />
               </div>
-              <div className="form-group">
-                <label htmlFor="password">Password</label>
-                <input 
-                  type="password" 
-                  name="password" 
-                  value={password} 
-                  onChange={this.handleInputChange} 
-                  required
-                />
-              </div>
-              <Link to="/resetpassword">Forgot Password?</Link>
             <div className="footer">
-              <button type="submit" className="btn">Login</button>
+              <button type="submit" className="btn">Submit</button>
+              <Link to="/login">Cancel</Link>
             </div>
             </form>
           </div>
@@ -77,7 +69,7 @@ const mapStateToProps = ({ loading }) => ({
 })
 
 const mapDispatchToProps = {
-  getLogin
+  resetPassword
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Login))
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ResetPasswordForm))

@@ -4,11 +4,27 @@ export const END_LOADING = 'END_LOADING';
 
 export const GET_LOGIN = 'GET_LOGIN';
 export const SEND_REGISTER = 'SEND_REGISTER';
+export const UPDATE_USER_INFO = 'UPDATE_USER_INFO';
+export const UPDATE_PASSWORD = 'UPDATE_PASSWORD';
+export const UPDATE_PROFILE_PICTURE = 'UPDATE_PROFILE_PICTURE';
+export const RESET_PASSWORD = 'RESET_PASSWORD';
 
 export const GET_CURRENT_USER = 'GET_CURRENT_USER';
 export const SET_CURRENT_USER = 'SET_CURRENT_USER';
 export const REMOVE_CURRENT_USER = 'REMOVE_CURRENT_USER';
 
+export const GET_ACCESS_TOKEN = 'GET_ACCESS_TOKEN';
+
+export const RESET_ALERT_MESSAGE = 'RESET_ALERT_MESSAGE';
+export const DISPLAY_ERROR_LOGIN = 'DISPLAY_ERROR_LOGIN';
+export const DISPLAY_ERROR_UPDATE = 'DISPLAY_ERROR_UPDATE';
+export const DISPLAY_SUCCESS = 'DISPLAY_SUCCESS';
+
+export const REGISTER_CACHE = 'REGISTER_CACHE';
+export const REGISTER_CLEAR = 'REGISTER_CLEAR';
+
+export const GET_ALL_STORIES = 'GET_ALL_STORIES';
+export const SET_ALL_STORIES = 'SET_ALL_STORIES';
 
 export const startLoading = () => ({
   type: START_LOADING
@@ -35,11 +51,76 @@ export const sendRegister = (userInfo, history) => ({
   history
 })
 
+export const updateUserInfo = (userInfo, uid, history) => ({
+  type: UPDATE_USER_INFO,
+  userInfo,
+  uid,
+  history
+})
+
+export const updatePassword = payload => ({
+  type: UPDATE_PASSWORD,
+  payload
+})
+
+export const resetPassword = payload => ({
+  type: RESET_PASSWORD,
+  payload
+})
+
 export const setCurrentUser = data => ({
   type: SET_CURRENT_USER,
   data
 })
 
+export const updateProfilePicture = payload => ({
+  type: UPDATE_PROFILE_PICTURE,
+  payload
+})
+
 export const removeCurrentUser = () => ({
   type: REMOVE_CURRENT_USER
+})
+
+export const resetAlert = () => ({
+  type: RESET_ALERT_MESSAGE
+})
+
+export const displayAlert = (status, errorMessage) => ({
+  type: DISPLAY_ERROR_LOGIN,
+  payload: {
+    status,
+    errorMessage
+  }
+})
+
+export const displayErrorUpdate = payload => ({
+  type: DISPLAY_ERROR_UPDATE,
+  payload
+})
+
+export const displaySuccess = (status, sucessMessage) => ({
+  type: DISPLAY_SUCCESS,
+  payload: {
+    status,
+    sucessMessage
+  }
+})
+
+export const getAccessToken = refresh_token => ({
+  type: GET_ACCESS_TOKEN,
+  refresh_token
+})
+
+export const cacheRegisterInfo = infoObj => ({
+  type: REGISTER_CACHE,
+  infoObj
+})
+
+export const getAllStories = () => ({
+  type: GET_ALL_STORIES
+})
+export const setAllStories = payload => ({
+  type: SET_ALL_STORIES,
+  payload
 })

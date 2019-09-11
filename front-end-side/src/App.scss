@@ -1,85 +1,55 @@
-//Custom Fonts
-@import url("https://fonts.googleapis.com/css?family=Open+Sans&display=swap");
-
 .App {
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: "Open Sans", sans-serif;
-  margin: 50px auto;
-  flex-direction: column;
+  font-family: Montserrat, sans-serif;
 }
 
-//Login Main Container
-.login {
-  width: 27em;
-  height: 40em;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 5px;
-  position: relative;
-  z-index: 99;
-  .container {
+nav {
+  margin: auto 210px;
+  ul {
     display: flex;
-    justify-content: center;
-    flex-direction: column;
+    justify-content: flex-end;
     align-items: center;
-    background-color: #fff;
-    box-shadow: 0px 0px 12px 2px rgba(15, 15, 15, 0.2);
-    border-radius: 4px;
-    position: relative;
-    z-index: 99;
-    width: 100%;
-    height: 100%;
-    z-index: 99;
-    padding: 17px 10px;
-    transition: transform 200ms ease-in-out;
-  }
-  .right-side {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    height: 90%;
-    background-color: #3498db;
-    width: 100%;
-    position: absolute;
-    right: -34%;
-    border-radius: 6px;
-    z-index: 1;
-    transition: all 400ms ease-in-out;
-    cursor: pointer;
-    box-shadow: 0px 0px 12px 2px rgba(15, 15, 15, 0.281);
-
-    &.right {
-      right: -40%;
-      align-items: flex-end;
-      &:hover {
-        right: -45%;
+    list-style: none;
+    li {
+      .brand-text {
+        font-size: 33px;
+        font-weight: 400;
+      }
+      padding-right: 12px;
+      cursor: pointer;
+      a {
+        color: #333;
+        text-decoration: none;
+        &:visited {
+          text-decoration: none;
+          color: #333;
+        }
+        &:hover {
+          text-decoration: none;
+          font-weight: bold;
+          color: rgba(27, 30, 26, 0.954);
+        }
+      }
+      &:first-child {
+        margin-right: auto;
+      }
+      &:last-child {
+        padding-right: 0px;
       }
     }
-    &.left {
-      right: 40%;
-      align-items: flex-start;
-      &:hover {
-        right: 45%;
-      }
-    }
-
-    .text {
-      font-size: 21px;
-      font-weight: 500;
-      color: #fff;
-      margin-right: 3em;
-      margin-left: 3em;
-    }
   }
+}
+
+h1 {
+  text-align: center
+}
+
+main {
+  margin: auto 205px;
 }
 
 //Button
 .btn {
-  font-size: 21px;
+  font-size: 1.1rem;
   padding: 5px 20px;
   border: 0;
   background-color: #3498db;
@@ -95,10 +65,40 @@
   }
 }
 
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  width: 250px;
+  .cancel {
+    margin-left: 23px;
+  }
+}
 
-.toggle-register-login {
-  padding-left: 15px;
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
+.react-spinner-container {
+  margin: 80px auto;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width:768px) { 
+  nav {
+    margin: 0 0;
+    ul {
+      padding: 0px;
+      display: flex;
+      justify-content: center;
+      list-style: none;
+      li {
+        padding-right: 12px;
+        &:last-child {
+          padding-right: 0px;
+        }
+      }
+    }
+  }
+
+  main {
+    margin: auto 25px;
+  }
 }
