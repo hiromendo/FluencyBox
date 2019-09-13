@@ -7,7 +7,7 @@ const rootReducer = combineReducers({
   loading: loadingReducer,
   authInfo: authReducer,
   registerCache: registerCacheReducer,
-  stories: storiesReducer
+  storiesInfo: storiesReducer
 })
 
 export default rootReducer;

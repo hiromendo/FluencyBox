@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Switch, Route, Link, withRouter } from 'react-router-dom';
+import { Grid, Row, Col } from 'react-flexbox-grid';
 
 import { HomePage, 
   LoginPage, 
@@ -13,7 +14,7 @@ import { HomePage,
 } from './components/pages';
 
 import PrivateRoute from './util/PrivateRoute';
-import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert, setAllStories } from './actions';
+import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert, getAllStories } from './actions';
 
 import "./App.scss";
 
@@ -30,7 +31,7 @@ class App extends React.Component {
       const infoObj = {};
       infoObj.uid = localStorage.uid;
       this.props.getCurrentUser(infoObj);
-      this.props.setAllStories();
+      this.props.getAllStories();
     } else if (localStorage.refresh_token) {
       this.props.getAccessToken(localStorage.refresh_token);
     } else {
@@ -47,15 +48,40 @@ class App extends React.Component {
 
   renderNavBar() {
     return (
-    <nav id="top-nav">
-      <ul>
-        <li><h1 className="brand-text"><Link to="/app">FluencyBox</Link></h1></li>
-        <li><Link to="/app">Dashboard</Link></li>
-        <li><Link to="/userprofile">UserProfile</Link></li>
-        <li><Link to="/aboutus">About Us</Link></li>
-        <li><a href="#" onClick={this.logOffUser}>Logout</a></li>
-      </ul>
-    </nav>
+      <nav id="top-nav">
+        <ul>
+          <Grid>
+            <Row middle="md">
+              <Col xs={6} md={3} lg={3} >
+                <li>
+                  <h1 className="brand-text">
+                    <Link to="/app">FluencyBox</Link></h1>
+                </li>
+              </Col>
+              <Col xs={6} md={2} mdOffset={1} lg={1} lgOffset={5}>
+                <li>
+                  <Link to="/app">Dashboard</Link>
+                </li> 
+              </Col>
+              <Col xs={6} md={2} lg={1}>
+                <li>
+                  <Link to="/userprofile">UserProfile</Link>
+                </li> 
+              </Col>
+              <Col xs={6} md={2} lg={1}>
+                <li>
+                  <Link to="/aboutus">About Us</Link>
+                </li> 
+              </Col>
+              <Col xs={6} md={2} lg={1}>
+                <li>
+                  <a href="#" onClick={this.logOffUser}>Logout</a>
+                </li> 
+              </Col>
+            </Row>
+          </Grid>
+        </ul>
+      </nav>
     )
   }
 
@@ -89,7 +115,7 @@ const mapDispatchToProps = {
   getAccessToken,
   removeCurrentUser,
   resetAlert,
-  setAllStories
+  getAllStories
 }
 
 export default withRouter(connect(null, mapDispatchToProps)(App));
