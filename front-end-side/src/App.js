@@ -1,7 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Switch, Route, Link, withRouter } from 'react-router-dom';
-import { Grid, Row, Col } from 'react-flexbox-grid';
+import { Switch, Route, withRouter } from 'react-router-dom';
+
+import { NavBar } from './components/navbar/NavBar';
 
 import { HomePage, 
   LoginPage, 
@@ -23,7 +24,6 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.logOffUser = this.logOffUser.bind(this);
-    this.renderNavBar = this.renderNavBar.bind(this);
   }
 
   componentDidMount() {
@@ -43,46 +43,14 @@ class App extends React.Component {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('uid');
-    this.props.removeCurrentUser();
-  }
 
-  renderNavBar() {
-    return (
-      <nav id="top-nav">
-        <ul>
-          <Grid>
-            <Row middle="md">
-              <Col xs={6} md={3} lg={3} >
-                <li>
-                  <h1 className="brand-text">
-                    <Link to="/app">FluencyBox</Link></h1>
-                </li>
-              </Col>
-              <Col xs={6} md={2} mdOffset={1} lg={1} lgOffset={5}>
-                <li>
-                  <Link to="/app">Dashboard</Link>
-                </li> 
-              </Col>
-              <Col xs={6} md={2} lg={1}>
-                <li>
-                  <Link to="/userprofile">UserProfile</Link>
-                </li> 
-              </Col>
-              <Col xs={6} md={2} lg={1}>
-                <li>
-                  <Link to="/aboutus">About Us</Link>
-                </li> 
-              </Col>
-              <Col xs={6} md={2} lg={1}>
-                <li>
-                  <a href="#" onClick={this.logOffUser}>Logout</a>
-                </li> 
-              </Col>
-            </Row>
-          </Grid>
-        </ul>
-      </nav>
-    )
+    const bodyTag = document.querySelector('body');
+    bodyTag.classList.remove('prevent-scroll');
+    document.ontouchmove = function (e) {
+      return true;
+    }
+
+    this.props.removeCurrentUser();
   }
 
   render() {
@@ -91,7 +59,7 @@ class App extends React.Component {
     return (
       <div className="App">
       <header>
-        {location.pathname !== "/login" ? this.renderNavBar() : null}
+        {location.pathname !== "/login" ? <NavBar logOffUser={this.logOffUser} /> : null}
       </header>
         <Switch>
           <Route exact path="/" component={HomePage}/>

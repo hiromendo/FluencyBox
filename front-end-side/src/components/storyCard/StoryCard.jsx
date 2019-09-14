@@ -1,9 +1,7 @@
 import React from 'react';
 import { Col } from 'react-flexbox-grid';
 
-export const StoryCard = ( {infoObj }) => {
-  console.log(infoObj)
-  console.log('ffiiiiii')
+export const StoryCard = ({ infoObj }) => {
   return (
     <Col xs={12} md={4} lg={4} key={infoObj.uid}>
       <div data-uid={infoObj.uid} className="story-card">
