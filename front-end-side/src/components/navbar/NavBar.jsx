@@ -11,15 +11,24 @@ const preventDefault = e => {
 
 export const NavBar = props => {
   const isMenuOpen = state => {
+    console.log('never sdfsdakl')
     const { isOpen } = state;
     const bodyTag = document.querySelector('body');
+    const overLayBg = document.querySelector('.bm-overlay');
+    const overLayWrap = document.querySelector('.bm-menu-wrap');
     if (isOpen) {
       bodyTag.addEventListener('touchmove',  preventDefault, { passive: false })
+      overLayBg.classList.add('bm-overlay-expand');
+      overLayWrap.classList.add('bm-overlay-expand');
     } else {
+      setTimeout(() => {
+        /* workaround to have smooth animation transition */
+        overLayBg.classList.remove('bm-overlay-expand');
+        overLayWrap.classList.remove('bm-overlay-expand');
+      }, 0)
       bodyTag.removeEventListener('touchmove', preventDefault, { passive: false })
     }
   };
-
 
   return (
     <nav id="top-nav">

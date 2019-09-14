@@ -34,9 +34,7 @@ Sidebar wrapper styles
 Note: Beware of modifying this element as it can break the animations - you should not need to touch it in most cases
 */
 .bm-menu-wrap {
-  position: absolute !important;
-  // height: 100%;
-  height: 100vh !important;
+  height: 100%;
 }
 
 /* General sidebar styles */
@@ -68,21 +66,16 @@ Note: Beware of modifying this element as it can break the animations - you shou
 
 /* Styling of overlay */
 .bm-overlay {
-  position: absolute !important;
-  height: 100vh !important;
   background: rgba(0, 0, 0, 0.3);
 }
 
-
-// .bm-burger-button {
-//   position: absolute;
-//   top: 23px;
-// }
-
-// .bm-menu {
-//   .bm-item-list {
-//     .bm-item {
-//       color: white;
-//     }
-//   }
-// }
+/* 
+I had to add this since changing the position to absolute changed the behavior.
+this will prevent having too much width on the mobile layout -- before this
+user was able to scroll left-right without any content in the page
+*/
+.bm-overlay-expand {
+  // width: 0% !important;
+  height: 100vh !important;
+  position: absolute !important;
+}
