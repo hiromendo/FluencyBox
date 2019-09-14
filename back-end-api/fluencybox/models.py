@@ -57,9 +57,11 @@ class Report_Schema(ma.ModelSchema):
 class User_Story(db.Model):
     __tablename__ = 'user_story'
     id = db.Column(db.Integer, primary_key=True)
+    uid = db.Column(db.String(50), unique=True)
     user_id =  db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     story_id =  db.Column(db.Integer, db.ForeignKey('story.id'), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    completed = db.Column(db.Boolean, default=0)
     story_scene_user_response = db.relationship('Story_Scene_User_Response', backref='user_story', lazy=True)
     report = db.relationship('Report', backref='user_story', lazy=True)
 
@@ -241,4 +243,4 @@ class Story_Schema(ma.ModelSchema):
         model = Story
         
 
-db.create_all()
+# db.create_all()
