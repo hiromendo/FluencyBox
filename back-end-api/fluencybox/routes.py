@@ -886,12 +886,13 @@ def upload_story_zip(story_zip):
             zip_file_content = ZipFile(BytesIO(zip_response.read()))
             #Loop through each file and save it to the bucket
             for file_name in zip_file_content.namelist():
-                story_object = zip_file_content.open(file_name).read()
-                upload_resp = save_story_object(story_object, file_name, False)
-                if upload_resp['status'] != 'success':
-                    resp_dict['status'] = 'fail'
-                    resp_dict['message'] = upload_resp['message']
-                    return resp_dict
+                if zip_file_content.open(file_name).read():
+                    story_object = zip_file_content.open(file_name).read()
+                    upload_resp = save_story_object(story_object, file_name, False)
+                    if upload_resp['status'] != 'success':
+                        resp_dict['status'] = 'fail'
+                        resp_dict['message'] = upload_resp['message']
+                        return resp_dict
 
         #Delete the zip file uploaded to the bucket
         delete_story_object(zip_url)
@@ -978,21 +979,18 @@ def upload_story():
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
 
-def get_scene(uid, scene_order):
+def get_scene(story_id, scene_order):
     try:
         resp_dict = {}
-        story = Story.query.filter_by(uid = uid).first()
         
-        if not story:
+        scene = Story_Scene.query.filter(Story_Scene.story_id == story_id, Story_Scene.order == scene_order).first()
+        if not scene:
             resp_dict['status'] = 'fail'
-            resp_dict['message'] = 'No story found'
+            resp_dict['message'] = 'No scene found'
             return resp_dict
-        
-        scene = Story_Scene.query.filter(Story_Scene.story_id == story.id, Story_Scene.order == scene_order).first()
 
         scene_schema = Story_Scene_Schema()
         scene_data = scene_schema.dump(scene).data
-
         for speaker in scene_data['story_scene_speakers']:
             speaker['audio_filename'] = generate_presigned_url(app.config.get('S3_BUCKET'), app.config.get('S3_CONTENT_DIR')+'/'+speaker['audio_filename'])
             speaker['image_filename'] = generate_presigned_url(app.config.get('S3_BUCKET'), app.config.get('S3_CONTENT_DIR')+'/'+speaker['image_filename'])
@@ -1006,16 +1004,88 @@ def get_scene(uid, scene_order):
         resp_dict['message'] = str(e)
         return resp_dict
 
-#Get the scene based on the story uid & order
+@app.route('/start_story', methods=['POST'])
+@token_required
+def start_story():
+    try:
+        resp_dict = {}
+        story_data = request.get_json()
+
+        if not 'story_uid' in story_data:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No story in request'
+            return jsonify(resp_dict),400
+
+        if not 'user_uid' in story_data:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user in request'
+            return jsonify(resp_dict),400
+        
+        story = Story.query.filter_by(uid = story_data['story_uid'].strip()).first()
+        if not story:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No story found'
+            return resp_dict
+
+        user = User.query.filter_by(uid = story_data['user_uid'].strip()).first()
+        if not user:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user found'
+            return jsonify(resp_dict),404
+        
+        user_story = User_Story.query.filter(User_Story.user_id == user.id, User_Story.story_id == story.id, User_Story.completed == 0).order_by(User_Story.created_at.desc()).first()
+        if user_story:
+            #If user has incomplete story, send back next scene order & existing user_story_uid
+            story_scene_user_response = Story_Scene_User_Response.query.filter_by(user_story_id = user_story.id).order_by(Story_Scene_User_Response.story_scene_speaker_id.desc()).first()
+            next_scene_order = story_scene_user_response.story_scene_speaker.story_scene.order + 1
+            
+            resp_dict['status'] = 'success'
+            resp_dict['pending_story'] = True
+            resp_dict['next_scene_order'] = next_scene_order
+            resp_dict['user_story_uid'] = user_story.uid
+            return jsonify(resp_dict), 200
+        else:
+            #If user does not have a pending story, send back the first scene data & a new user_story_id
+            user_story_uid = str(uuid.uuid4())
+            new_user_story = User_Story(uid = user_story_uid, user_id = user.id, story_id = story.id, completed = 0)
+            db.session.add(new_user_story)
+            db.session.commit()
+        
+            get_scene_response = get_scene(story.id, 1)
+            if get_scene_response['status'] == 'success':
+                scene_data = get_scene_response['scene_data']
+                resp_dict['status'] = 'success'
+                resp_dict['pending_story'] = False
+                resp_dict['scene_data'] = scene_data
+                resp_dict['user_story_uid'] = user_story_uid
+                return jsonify(resp_dict), 200
+            else:
+                resp_dict['status'] = get_scene_response['status']
+                resp_dict['message'] = get_scene_response['message']
+                return jsonify(resp_dict)
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+#Get the scene based on the user_story_uid & order
 @app.route('/get_story_scene',methods=['GET'])
 @token_required
 def get_story_scene():
     try:
         resp_dict = {}
-        uid = request.args.get('uid', type=str)
+        user_story_uid = request.args.get('uid', type=str)
         scene_order = request.args.get('order', 1, type=int)
 
-        get_scene_response = get_scene(uid, scene_order)
+        #use user_story_uid to get story id to pass into get_scene
+        user_story = User_Story.query.filter_by(uid = user_story_uid).first()
+        if not user_story:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user story found'
+            return jsonify(resp_dict),404
+
+        get_scene_response = get_scene(user_story.story_id, scene_order)
         if get_scene_response['status'] == 'success':
             scene_data = get_scene_response['scene_data']
             resp_dict['status'] = 'success'
@@ -1030,7 +1100,60 @@ def get_story_scene():
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
 
-#Receive the story uid + user response + next scene order & return next scene
+#Restart the story
+@app.route('/restart_story',methods=['POST'])
+@token_required
+def restart_story():
+    try:
+        resp_dict = {}
+        story_data = request.get_json()
+
+        if not 'story_uid' in story_data:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No story in request'
+            return jsonify(resp_dict),400
+
+        if not 'user_uid' in story_data:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user in request'
+            return jsonify(resp_dict),400
+        
+        story = Story.query.filter_by(uid = story_data['story_uid'].strip()).first()
+        if not story:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No story found'
+            return resp_dict
+
+        user = User.query.filter_by(uid = story_data['user_uid'].strip()).first()
+        if not user:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user found'
+            return jsonify(resp_dict),404
+
+        user_story_uid = str(uuid.uuid4())
+        new_user_story = User_Story(uid = user_story_uid, user_id = user.id, story_id = story.id, completed = 0)
+        db.session.add(new_user_story)
+        db.session.commit()
+    
+        get_scene_response = get_scene(story.id, 1)
+        if get_scene_response['status'] == 'success':
+            scene_data = get_scene_response['scene_data']
+            resp_dict['status'] = 'success'
+            resp_dict['scene_data'] = scene_data
+            resp_dict['user_story_uid'] = user_story_uid
+            return jsonify(resp_dict), 200
+        else:
+            resp_dict['status'] = get_scene_response['status']
+            resp_dict['message'] = get_scene_response['message']
+            return jsonify(resp_dict)
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+
+#Receive the user_story_uid + user response + next scene order & return next scene
 @app.route('/user_response', methods=['POST'])
 @token_required
 def user_response():
@@ -1042,24 +1165,28 @@ def user_response():
             resp_dict['message'] = 'No audio file found'
             return jsonify(resp_dict), 400
 
-        uid = request.form['uid']
-        story_scene_speaker_id = request.form['story_scene_speaker_id']
-        audio_text = request.form['audio_text']
-        next_scene_order = request.form['next_scene_order']
-
-        story = Story.query.filter_by(uid = uid).first()
-        if not story:
+        user_story_uid = request.form['user_story_uid'].strip()
+        story_scene_speaker_id = request.form['story_scene_speaker_id'].strip()
+        audio_text = request.form['audio_text'].strip()
+        next_scene_order = request.form['next_scene_order'].strip()
+        
+        user_story = User_Story.query.filter_by(uid = user_story_uid).first()
+        if not user_story:
             resp_dict['status'] = 'fail'
-            resp_dict['message'] = 'No story found'
+            resp_dict['message'] = 'No user story found'
             return jsonify(resp_dict),404
 
-        audio_upload_response = save_story_object(request.files['user_audio'], request.files['user_audio'].filename, False)
+        audio_upload_response = save_story_object(request.files['user_audio'], app.config.get('USER_RESPONSE_DIR') + '/' + request.files['user_audio'].filename, False)
         if audio_upload_response['status'] == 'success':
-            new_user_response = Story_Scene_User_Response(user_story_id = story.id, story_scene_speaker_id = story_scene_speaker_id, audio_filename = request.files['user_audio'].name, audio_text = audio_text)
+            new_user_response = Story_Scene_User_Response(user_story_id = user_story.id, story_scene_speaker_id = story_scene_speaker_id, audio_filename = request.files['user_audio'].filename, audio_text = audio_text)
             db.session.add(new_user_response)
             db.session.commit()
+        else:
+            resp_dict['status'] = audio_upload_response['status']
+            resp_dict['message'] = audio_upload_response['message']
+            return jsonify(resp_dict),500
 
-        get_scene_response = get_scene(uid, next_scene_order)
+        get_scene_response = get_scene(user_story.story_id, next_scene_order)
         if get_scene_response['status'] == 'success':
             scene_data = get_scene_response['scene_data']
             resp_dict['status'] = 'success'
