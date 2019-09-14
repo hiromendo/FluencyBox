@@ -39,18 +39,12 @@ def save_s3_object(object_dir, body, content_type, is_public = False):
         object_url = ''
         my_bucket = get_bucket()
         s3 = get_resource()
-        print('save_s3_object_1')
         upload_response = my_bucket.Object(object_dir).put(Body = body, ContentType = content_type) #set directory, object and content type of the object
-        print('save_s3_object_2')
         if upload_response['ResponseMetadata']['HTTPStatusCode'] == 200:
             if is_public:
-                print('save_s3_object_2')
                 object_acl = s3.ObjectAcl(app.config.get('S3_BUCKET'), object_dir)
-                print('save_s3_object_3')
                 acl_response = object_acl.put(ACL='public-read') #set access permissions
-                print('save_s3_object_4')
                 if acl_response['ResponseMetadata']['HTTPStatusCode'] == 200:
-                    print('save_s3_object_5')
                     object_url = app.config.get('S3_URL') + object_dir #get full URL to the object
                 else:
                     resp_dict['status'] = 'fail'
@@ -99,13 +93,10 @@ def save_avatar(my_avatar):
 def save_story_object(my_object, object_filename, is_public = False):
     try:
         resp_dict = {}
-        print('save_story_object_1')
-        _, obj_ext = os.path.splitext(object_filename)
+        _, obj_ext = os.path.splitext(object_filename) #check for obj_ext being ''
         mime_type = mimetypes.types_map[obj_ext]
-        print('save_story_object_2')
         object_dir = app.config.get('S3_CONTENT_DIR') + '/' + object_filename
         object_url = save_s3_object(object_dir, my_object, mime_type, is_public)
-        print('save_story_object_3')
         if object_url['status'] == 'success':
             resp_dict['status'] = 'success'
             story_object_url = object_url['object_url']
