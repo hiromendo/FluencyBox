@@ -94,19 +94,14 @@ h1 {
   nav {
     #mobile-nav {
       display: block;
-      .brand-text {
-        text-decoration: none;
-        text-transform: uppercase;
-        a {
-          text-decoration: none;
-          color: $white-color;
+      
+      .logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        img.logo-brand {
+          width: 245px;
         }
-
-      }
-      img.logo-brand {
-        display: block;
-        width: 245px;
-        margin: 0 auto;
       }
     }
     ul#desktop-nav {

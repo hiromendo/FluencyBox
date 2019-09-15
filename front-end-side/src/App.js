@@ -2,7 +2,8 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Switch, Route, withRouter } from 'react-router-dom';
 
-import { NavBar } from './components/navbar/NavBar';
+import NavBar from './components/navbar/NavBar';
+// import { NavBar } from './components/navbar/NavBar';
 
 import { HomePage, 
   LoginPage, 
