@@ -15,7 +15,6 @@ body {
 }
 
 nav {
-  // margin: auto 205px;
   #mobile-nav {
     display: none;
   }
@@ -28,6 +27,9 @@ nav {
         font-weight: 400;
         text-transform: uppercase;
       }
+      img.logo-brand {
+        width: 245px;
+      }
       cursor: pointer;
       a {
         color: $white-color;
@@ -37,9 +39,9 @@ nav {
           color: $white-color;
         }
         &:hover {
-          text-decoration: none;
-          font-weight: bold;
-          color: rgba(27, 30, 26, 0.954);
+          // text-decoration: none;
+          // font-weight: bold;
+          // color: 
         }
       }
       font-size: 13px;
@@ -100,6 +102,11 @@ h1 {
           color: $white-color;
         }
 
+      }
+      img.logo-brand {
+        display: block;
+        width: 245px;
+        margin: 0 auto;
       }
     }
     ul#desktop-nav {
