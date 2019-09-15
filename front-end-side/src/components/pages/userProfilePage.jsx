@@ -21,7 +21,7 @@ class UserProfilePage extends React.Component {
             <li>Email: {email_address}</li>
           </ul>
         </div>
-        <div>
+        <div className="update-links-container">
           <Link to="/updatePassword">Update Password</Link>
           <br/>
           <Link to="/updateprofileinfo">Update Profile Info</Link>

@@ -6,12 +6,13 @@
   align-items: center;
   flex-flow: column;
   padding: 20px;
+  background: rgba(63, 61, 87, 0.83);
   -webkit-box-shadow: 0px 4px 5px 1px rgba(0,0,0,0.14);
   -moz-box-shadow: 0px 4px 5px 1px rgba(0,0,0,0.14);
   box-shadow: 0px 4px 5px 1px rgba(0,0,0,0.14);
   #profile-image {
     max-width: 110px;
-    border-radius: 50%;
+    border-radius: 60%/50%;
     height: 100px;
   }
 
@@ -27,8 +28,10 @@
   }
 
 }
-.update-container {
-  padding-top: 20px;
-  display: flex;
-  justify-content: space-around;
+
+.update-links-container {
+  a {
+    color: white;
+    text-decoration: none;
+  }
 }
