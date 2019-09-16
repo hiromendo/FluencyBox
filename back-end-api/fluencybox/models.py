@@ -243,4 +243,4 @@ class Story_Schema(ma.ModelSchema):
         model = Story
         
 
-# db.create_all()
+db.create_all()
