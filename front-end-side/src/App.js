@@ -1,9 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Switch, Route, withRouter } from 'react-router-dom';
+import { CSSTransition, TransitionGroup } from 'react-transition-group'
 
 import NavBar from './components/navbar/NavBar';
-// import { NavBar } from './components/navbar/NavBar';
 
 import { HomePage, 
   LoginPage, 
@@ -19,6 +19,7 @@ import PrivateRoute from './util/PrivateRoute';
 import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert, getAllStories } from './actions';
 
 import "./App.scss";
+
 
 class App extends React.Component {
 
@@ -48,24 +49,32 @@ class App extends React.Component {
   }
 
   render() {
-    const { location } = this.props;
+    const { location} = this.props;
     
     return (
       <div className="App">
       <header>
         {location.pathname !== "/login" ? <NavBar logOffUser={this.logOffUser} /> : null}
       </header>
-        <Switch>
-          <Route exact path="/" component={HomePage}/>
-          <Route exact path="/login" component={LoginPage}/>
-          <Route exact path="/resetpassword" component={resetPasswordPage}/>
-          <PrivateRoute path='/app' component={AppLayOut} />
-          <PrivateRoute path='/userprofile' component={UserProfilePage} />
-          <PrivateRoute path='/updateprofileinfo' component={updateProfileInfoPage} />
-          <PrivateRoute path='/updatePassword' component={updatePasswordPage} />
-          <PrivateRoute path='/updatePicture' component={UpdatePicturePage} />
-          <Route path="*" component={() => "404 not found" } />
-        </Switch>
+      <TransitionGroup>
+        <CSSTransition
+          key={location.key}
+          timeout={450}
+          classNames="fade"
+        >
+          <Switch location={location}>
+            <Route exact path="/" component={HomePage}/>
+            <Route exact path="/login" component={LoginPage}/>
+            <Route exact path="/resetpassword" component={resetPasswordPage}/>
+            <PrivateRoute path='/app' component={AppLayOut} />
+            <PrivateRoute path='/userprofile' component={UserProfilePage} />
+            <PrivateRoute path='/updateprofileinfo' component={updateProfileInfoPage} />
+            <PrivateRoute path='/updatePassword' component={updatePasswordPage} />
+            <PrivateRoute path='/updatePicture' component={UpdatePicturePage} />
+            <Route path="*" component={() => "404 not found" } />
+          </Switch>
+        </CSSTransition>
+      </TransitionGroup>
       </div>
     )
   }

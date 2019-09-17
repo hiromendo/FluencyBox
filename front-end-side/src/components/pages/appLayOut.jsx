@@ -61,7 +61,7 @@ class AppLayOut extends React.Component {
   render() {
     const stories = this.renderAllStories()
     return (
-      <main id="main-content">
+      <main id="main-content" className="page">
         <Grid>
           <Row middle="lg">
             {stories}

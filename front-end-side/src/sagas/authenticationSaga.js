@@ -1,4 +1,4 @@
-import { put, call } from 'redux-saga/effects';
+import { put, call, delay } from 'redux-saga/effects';
 import { loginUserAPI, 
   getUserInfoAPI, 
   registerUserAPI, 
@@ -34,6 +34,7 @@ export function* getAllStoriesAsync() {
  export function* settingUserInfo(response, history = null) {
   yield put({ type: SET_CURRENT_USER, payload: { user: response.user }})
   if (history) { yield history.push('/app') }
+  yield delay(450)
   yield put({ type: END_LOADING });
 }
 

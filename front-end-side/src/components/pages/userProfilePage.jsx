@@ -9,7 +9,7 @@ class UserProfilePage extends React.Component {
   render() {
     const { first_name, last_name, phone_number, user_name, email_address, profile_picture } = this.props.userInfo;
     return (
-      <main>
+      <main className="page">
         <div className="profile-container">
           <h2>User Profile</h2>
           <img id="profile-image" src={profile_picture} alt="profile"/>
