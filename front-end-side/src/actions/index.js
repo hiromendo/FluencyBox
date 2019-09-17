@@ -11,6 +11,7 @@ export const RESET_PASSWORD = 'RESET_PASSWORD';
 
 export const GET_CURRENT_USER = 'GET_CURRENT_USER';
 export const SET_CURRENT_USER = 'SET_CURRENT_USER';
+export const REMOVE_CURRENT_USER_ASYNC = 'REMOVE_CURRENT_USER_ASYNC';
 export const REMOVE_CURRENT_USER = 'REMOVE_CURRENT_USER';
 
 export const GET_ACCESS_TOKEN = 'GET_ACCESS_TOKEN';
@@ -79,7 +80,7 @@ export const updateProfilePicture = payload => ({
 })
 
 export const removeCurrentUser = () => ({
-  type: REMOVE_CURRENT_USER
+  type: REMOVE_CURRENT_USER_ASYNC
 })
 
 export const resetAlert = () => ({

@@ -18,7 +18,8 @@ import {
   DISPLAY_ERROR_LOGIN,
   DISPLAY_SUCCESS,
   DISPLAY_ERROR_UPDATE,
-  SET_ALL_STORIES
+  SET_ALL_STORIES,
+  REMOVE_CURRENT_USER
  } from '../actions'
 
 export function* getAllStoriesAsync() {
@@ -34,7 +35,7 @@ export function* getAllStoriesAsync() {
  export function* settingUserInfo(response, history = null) {
   yield put({ type: SET_CURRENT_USER, payload: { user: response.user }})
   if (history) { yield history.push('/app') }
-  yield delay(450)
+  yield delay(450);
   yield put({ type: END_LOADING });
 }
 
@@ -164,4 +165,9 @@ export function* resetPasswordAsync (request) {
     yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
     yield put({ type: END_LOADING });
   }
+}
+
+export function* removeUserAsync() {
+  yield delay(50);
+  yield put({ type: REMOVE_CURRENT_USER })
 }

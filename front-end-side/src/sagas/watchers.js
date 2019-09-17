@@ -8,7 +8,8 @@ import { getLoginAsync,
   updatePasswordAsync,
   updateProfilePictureAsync,
   resetPasswordAsync,
-  getAllStoriesAsync
+  getAllStoriesAsync,
+  removeUserAsync
 } from './authenticationSaga';
 
 import * as types from './../actions';
@@ -23,6 +24,7 @@ function* actionWatcher() {
   yield takeLatest(types.UPDATE_PROFILE_PICTURE, updateProfilePictureAsync);
   yield takeLatest(types.RESET_PASSWORD, resetPasswordAsync);
   yield takeLatest(types.GET_ALL_STORIES, getAllStoriesAsync);
+  yield takeLatest(types.REMOVE_CURRENT_USER_ASYNC, removeUserAsync);
 }
 
 export default function* rootSaga() {
