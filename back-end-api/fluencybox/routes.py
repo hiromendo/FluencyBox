@@ -1200,3 +1200,27 @@ def user_response():
         resp_dict['status'] = 'fail'
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
+
+#Mark the story as complete & trigger SQS
+@app.route('/complete_story', methods=['POST'])
+@token_required
+def complete_story():
+    try:
+        resp_dict = {}
+        story_data = request.get_json()
+
+        if not 'user_story_uid' in story_data:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user story uid in request'
+            return jsonify(resp_dict),400
+        user_story = User_Story.query.filter_by(uid = story_data['user_story_uid'].strip()).first()
+        user_story.completed = 1
+        db.session.commit()
+
+        #Trigger SQS here by passing story_data['user_story_uid']
+        resp_dict['status'] = 'success'
+        return jsonify(resp_dict), 200
+    except Exception as e:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = str(e)
+            return jsonify(resp_dict), 500
