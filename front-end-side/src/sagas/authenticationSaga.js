@@ -50,7 +50,7 @@ export function* getLoginAsync (payload) {
       localStorage.setItem('uid', loginResponse.uid);
     }
     const userInfoResponse = yield call(getUserInfoAPI, loginResponse);
-    // yield getAllStoriesAsync(getAllStoriesAPI);
+    yield getAllStoriesAsync(getAllStoriesAPI);
     yield settingUserInfo(userInfoResponse, history);
   } catch(error) {
     console.error(error)
@@ -70,7 +70,7 @@ export function* sendRegisterAsync (payload) {
       localStorage.setItem('uid', registerResponse.uid);
     }
     yield put({ type: REGISTER_CLEAR })
-    // yield getAllStoriesAsync(getAllStoriesAPI);
+    yield getAllStoriesAsync(getAllStoriesAPI);
     const userInfoResponse = yield call(getUserInfoAPI, registerResponse);
     yield settingUserInfo(userInfoResponse, history);
 

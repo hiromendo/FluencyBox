@@ -33,7 +33,7 @@ class App extends React.Component {
       const infoObj = {};
       infoObj.uid = localStorage.uid;
       this.props.getCurrentUser(infoObj);
-      // this.props.getAllStories();
+      this.props.getAllStories();
     } else if (localStorage.refresh_token) {
       this.props.getAccessToken(localStorage.refresh_token);
     } else {
