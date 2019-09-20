@@ -1,0 +1,26 @@
+.story-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-flow: column;
+  padding-bottom: 15px;
+
+  img {
+    opacity: 1;
+    display: block;
+    max-width: 267px;
+    max-height: 350px;
+    width: auto;
+    height: auto;
+    cursor: pointer;
+    transition: .2s ease;
+    &:hover {
+      opacity: 0.6;
+    }
+  }
+
+  .story-title {
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+}

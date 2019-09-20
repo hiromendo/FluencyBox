@@ -16,6 +16,7 @@ import { HomePage,
 } from './components/pages';
 
 import PrivateRoute from './util/PrivateRoute';
+import SingleStoryPage from './components/pages/SingleStoryPage/SingleStoryPage';
 import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert, getAllStories } from './actions';
 
 import "./App.scss";
@@ -26,6 +27,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.logOffUser = this.logOffUser.bind(this);
+    this.renderAllStoriesLinks = this.renderAllStoriesLinks.bind(this);
   }
 
   componentDidMount() {
@@ -48,37 +50,58 @@ class App extends React.Component {
     this.props.removeCurrentUser();
   }
 
+  renderAllStoriesLinks() {
+    const { storiesInfo: { story } }  = this.props;
+    const listStoryRoutes = story.map(info => {
+      return (
+        <Route 
+          exact 
+          path={`/story/${info.uid}`} 
+          key={info.uid} 
+          render={(props) => <SingleStoryPage {...info} routeProps={props} />} />
+      )
+    })
+    return listStoryRoutes
+  }
+
   render() {
     const { location} = this.props;
-    
     return (
       <div className="App">
-      <header>
-        {location.pathname !== "/login" ? <NavBar logOffUser={this.logOffUser} /> : null}
-      </header>
-      <TransitionGroup>
-        <CSSTransition
-          key={location.key}
-          timeout={450}
-          classNames="fade"
-        >
-          <Switch location={location}>
-            <Route exact path="/" component={HomePage}/>
-            <Route exact path="/login" component={LoginPage}/>
-            <Route exact path="/resetpassword" component={resetPasswordPage}/>
-            <PrivateRoute path='/app' component={AppLayOut} />
-            <PrivateRoute path='/userprofile' component={UserProfilePage} />
-            <PrivateRoute path='/updateprofileinfo' component={updateProfileInfoPage} />
-            <PrivateRoute path='/updatePassword' component={updatePasswordPage} />
-            <PrivateRoute path='/updatePicture' component={UpdatePicturePage} />
-            <Route path="*" component={() => "404 not found" } />
-          </Switch>
-        </CSSTransition>
-      </TransitionGroup>
+        <header>
+          {location.pathname !== "/login" ? <NavBar logOffUser={this.logOffUser} /> : null}
+        </header>
+        <main>
+          <TransitionGroup>
+            <CSSTransition
+              key={location.key}
+              timeout={450}
+              classNames="fade"
+            >
+              <Switch location={location}>
+                <Route exact path="/" component={HomePage}/>
+                <Route exact path="/login" component={LoginPage}/>
+                <Route exact path="/resetpassword" component={resetPasswordPage}/>
+                <PrivateRoute path='/app' component={AppLayOut} />
+                <PrivateRoute path='/userprofile' component={UserProfilePage} />
+                <PrivateRoute path='/updateprofileinfo' component={updateProfileInfoPage} />
+                <PrivateRoute path='/updatePassword' component={updatePasswordPage} />
+                <PrivateRoute path='/updatePicture' component={UpdatePicturePage} />
+                {this.renderAllStoriesLinks()}
+                <Route path="*" component={() => "404 not found" } />
+              </Switch>
+            </CSSTransition>
+          </TransitionGroup>
+
+        </main>
       </div>
     )
   }
 }
+
+const mapStateToProps = ({ storiesInfo }) => ({
+  storiesInfo
+})
 
 const mapDispatchToProps = {
   endLoading,
@@ -89,4 +112,4 @@ const mapDispatchToProps = {
   getAllStories
 }
 
-export default withRouter(connect(null, mapDispatchToProps)(App));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));

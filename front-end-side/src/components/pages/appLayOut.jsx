@@ -52,22 +52,22 @@ class AppLayOut extends React.Component {
   renderAllStories() {
     const { storiesInfo: { story } }  = this.props;
     const { mockStories }  = this.state;
-    const listItems = mockStories.map( info => {
+    const listStoryCards = story.map( info => {
       return <StoryCard infoObj={info} key={info.uid} />
     })
-    return listItems;
+    return listStoryCards;
   }
 
   render() {
     const stories = this.renderAllStories()
     return (
-      <main id="main-content" className="page">
+      <div className="page">
         <Grid>
           <Row middle="lg">
             {stories}
           </Row>
         </Grid>
-      </main>
+      </div>
     )
   }
 }

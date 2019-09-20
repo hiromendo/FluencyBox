@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Grid, Row, Col } from 'react-flexbox-grid';
-import { elastic as Menu } from 'react-burger-menu';
+import { slide as Menu } from 'react-burger-menu';
 
 import './NavBar.scss';
 
@@ -103,7 +103,7 @@ class NavBar extends React.Component {
               </Col>
               <Col xs={6} md={2} lg={1}>
                 <li>
-                  <a href="#" onClick={() => this.beforeSigningOff()}>Logout</a>
+                  <Link onClick={() => this.beforeSigningOff()} to="/login">Logout</Link>
                 </li> 
               </Col>
             </Row>
@@ -120,7 +120,7 @@ class NavBar extends React.Component {
             <Link onClick={this.closeMenu} to="/app">Dashboard</Link>
             <Link onClick={this.closeMenu} to="/userprofile">UserProfile</Link>
             <Link onClick={this.closeMenu} to="/aboutus">About Us</Link>
-            <a href="#" onClick={() => this.beforeSigningOff()}>Logout</a>
+            <Link onClick={() => this.beforeSigningOff()} to="/login">Logout</Link>
           </Menu>
         </div>
       </nav>
