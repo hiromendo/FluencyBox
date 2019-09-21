@@ -62,7 +62,7 @@ class LoginPage extends React.Component {
 const LoginOrRegistration = props => {
   return (
     <div className="toggle-register-login" onClick={props.onClick}>
-        <a className="cancel" href="#/">{props.current}</a>
+        {props.current}
     </div>
   )
 }
