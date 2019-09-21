@@ -60,16 +60,46 @@ nav {
 
 //Button
 .btn {
-  font-size: 1.1rem;
-  padding: 5px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.94rem;
+  padding: 6px 0px;
+  min-width: 65px;
+  max-width: 215px;
   border: 0;
-  background-color: #3498db;
-  color: #fff;
-  border-radius: 3px;
+  border-radius: 8px;
   transition: all 250ms ease-in-out;
   cursor: pointer;
+  text-decoration: none;
+  a {
+    text-decoration: none;
+  }
+}
+
+.btn-blue {
+  background-color: #3498db;
+  color: #fff;
+  a {
+    color: white;
+  }
   &:hover {
     background-color: #2386c8;
+  }
+  &:focus {
+    outline: none;
+  }
+}
+
+.btn-dark-blue {
+  background-color: #333;
+  color: #68a2e6;
+  border: 2px solid #3267a6;
+  a {
+    color: #68a2e6;
+  }
+  &:hover {
+    background-color: rgb(18, 18, 18);
   }
   &:focus {
     outline: none;
