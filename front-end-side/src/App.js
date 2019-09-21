@@ -17,6 +17,7 @@ import { HomePage,
 
 import PrivateRoute from './util/PrivateRoute';
 import SingleStoryPage from './components/pages/SingleStoryPage/SingleStoryPage';
+import StartStoryPage from './components/pages/StartStoryPage/StartStoryPage';
 import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert, getAllStories } from './actions';
 
 import "./App.scss";
@@ -28,6 +29,7 @@ class App extends React.Component {
     super(props);
     this.logOffUser = this.logOffUser.bind(this);
     this.renderAllStoriesLinks = this.renderAllStoriesLinks.bind(this);
+    this.renderAllStartStoriesLinks = this.renderAllStartStoriesLinks.bind(this);
   }
 
   componentDidMount() {
@@ -64,6 +66,20 @@ class App extends React.Component {
     return listStoryRoutes
   }
 
+  renderAllStartStoriesLinks() {
+    const { storiesInfo: { story } }  = this.props;
+    const listStoryRoutes = story.map(info => {
+      return (
+        <Route 
+          exact 
+          path={`/story/${info.uid}/start`} 
+          key={info.uid} 
+          render={(props) => <StartStoryPage {...info} routeProps={props} />} />
+      )
+    })
+    return listStoryRoutes
+  }
+
   render() {
     const { location} = this.props;
     return (
@@ -88,6 +104,7 @@ class App extends React.Component {
                 <PrivateRoute path='/updatePassword' component={updatePasswordPage} />
                 <PrivateRoute path='/updatePicture' component={UpdatePicturePage} />
                 {this.renderAllStoriesLinks()}
+                {this.renderAllStartStoriesLinks()}
                 <Route path="*" component={() => "404 not found" } />
               </Switch>
             </CSSTransition>

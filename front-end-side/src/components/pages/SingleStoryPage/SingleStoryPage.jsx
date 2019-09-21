@@ -13,7 +13,7 @@ class SingleStoryPage extends React.Component {
   }
 
   render() {
-    const { name, image_filename, description, difficulty, length, genre } = this.props
+    const { name, image_filename, description, difficulty, length, genre, uid } = this.props
     return (
       <div id="story" className="page">
         <Grid className="content-container">
@@ -33,7 +33,9 @@ class SingleStoryPage extends React.Component {
           </Row>
           <Row middle="xs" center="xs" start="md">
             <Col xs={6} md={2} mdOffset={4} lg={2}>
-              <button className="btn">Start</button>
+              <button className="btn">
+                <Link className="cancel" to={`/story/${uid}/start`}>Start</Link>
+              </button>
             </Col>
             <Col xs={6} md={2} lg={2}>
               <Link className="cancel" to="/app">Cancel</Link>
