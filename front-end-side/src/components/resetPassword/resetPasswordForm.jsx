@@ -53,7 +53,7 @@ class ResetPasswordForm extends React.Component {
                 />
               </div>
             <div className="footer">
-              <button type="submit" className="btn">Submit</button>
+              <button type="submit" className="btn btn-blue">Submit</button>
               <Link to="/login">Cancel</Link>
             </div>
             </form>

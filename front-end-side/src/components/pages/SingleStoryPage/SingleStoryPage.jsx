@@ -33,8 +33,8 @@ class SingleStoryPage extends React.Component {
           </Row>
           <Row middle="xs" center="xs" start="md">
             <Col xs={6} md={2} mdOffset={4} lg={2}>
-              <button className="btn">
-                <Link className="cancel" to={`/story/${uid}/start`}>Start</Link>
+              <button className="btn btn-blue">
+                <Link to={`/story/${uid}/start`}>Start</Link>
               </button>
             </Col>
             <Col xs={6} md={2} lg={2}>

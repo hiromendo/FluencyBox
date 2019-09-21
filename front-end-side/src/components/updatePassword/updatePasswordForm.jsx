@@ -105,7 +105,7 @@ class UpdatePassWordForm extends React.Component {
               />
             </div>
             <div className="footer">
-              <button type="submit" className="btn">Update</button>
+              <button type="submit" className="btn btn-blue">Update</button>
               <Link className="cancel" to="/userprofile">Cancel</Link>
             </div>
           </form>

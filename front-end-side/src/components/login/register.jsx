@@ -200,7 +200,7 @@ class Register extends React.Component {
               </div>
               {this.renderPassWordInputs()}
               <div className="footer">
-                <button type="submit" className="btn">{reUpdateInfoProfile ? 'Update' : 'Register'}</button>
+                <button type="submit" className="btn btn-blue">{reUpdateInfoProfile ? 'Update' : 'Register'}</button>
                 {reUpdateInfoProfile ? <Link className="cancel" to="/userprofile">Cancel</Link> : null }
               </div>
             </form>

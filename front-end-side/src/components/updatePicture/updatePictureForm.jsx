@@ -79,7 +79,7 @@ class UpdatePictureForm extends React.Component {
               </div>
             </div>
             <div className="footer">
-              <button type="submit" className="btn">Upload</button>
+              <button type="submit" className="btn btn-blue">Upload</button>
               <Link className="cancel" to="/userprofile">Cancel</Link>
             </div>
           </form>
