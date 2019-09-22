@@ -1037,7 +1037,11 @@ def start_story():
         if user_story:
             #If user has incomplete story, send back next scene order & existing user_story_uid
             story_scene_user_response = Story_Scene_User_Response.query.filter_by(user_story_id = user_story.id).order_by(Story_Scene_User_Response.story_scene_speaker_id.desc()).first()
-            next_scene_order = story_scene_user_response.story_scene_speaker.story_scene.order + 1
+            #To cater for situation where user doesn't submit a response for the first scene
+            if story_scene_user_response:
+                next_scene_order = story_scene_user_response.story_scene_speaker.story_scene.order + 1
+            else:
+                next_scene_order = 1
             
             resp_dict['status'] = 'success'
             resp_dict['pending_story'] = True
