@@ -2,7 +2,6 @@ from flask import request, jsonify, make_response, Response, send_file, url_for
 from sqlalchemy import or_
 import base64
 import os, io
-import re
 import json
 from io import StringIO
 from PIL import Image
@@ -17,15 +16,19 @@ Scene_Keyword, Scene_Keyword_Schema, Story_Scene_Speaker, Story_Scene_Speaker_Sc
 Story_Scene_Master_Response, Story_Scene_Master_Response_Schema, User_Story, User_Story_Schema, \
 Story_Scene_User_Response, Story_Scene_User_Response_Schema, Report, Report_Schema, \
 Report_Images, Report_Images_Schema, Story_Purchase, Story_Purchase_Schema, User_Purchase, User_Purchase_Schema
-from fluencybox.S3AssetManager import get_bucket, get_resource, save_avatar, save_story_object, delete_avatar, delete_story_object, generate_presigned_url
+from fluencybox.S3AssetManager import get_bucket, get_resource, save_avatar, save_story_object, delete_avatar, \
+delete_story_object, generate_presigned_url
 from fluencybox.mailer import send_reset_email
+from fluencybox.helper import insert_story, insert_story_scene, insert_scene_keyword, insert_story_scene_speaker, \
+insert_story_scene_master_responses, validate_user_name, validate_email_address, get_paginated_list, upload_story_zip, \
+upload_story_json, get_scene, generate_tokens, generate_public_url
 from io import BytesIO
 from zipfile import ZipFile
 from urllib.request import urlopen
 
-@app.route('/')
-def index():
-    return jsonify({'Page' : 'Index'})
+# @app.route('/')
+# def index():
+#     return jsonify({'Page' : 'Index'})
 
 def token_required(f):
     @wraps(f)
@@ -44,6 +47,7 @@ def token_required(f):
         
         try:
             payload = jwt.decode(access_token, app.config.get('SECRET_KEY'))
+            #current_user = User.query.filter_by(uid = payload['uid']).first()
             if payload['token_type'] != 'access_token':
                 resp_dict['status'] = 'fail'
                 resp_dict['message'] = 'Token is invalid'
@@ -61,85 +65,54 @@ def token_required(f):
 
     return decorated
 
-#common method to generate tokens
-def generate_tokens(uid):
-    tokens = {}
-    access_token = jwt.encode({'uid' : uid, 'token_type' : 'access_token' , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
-    refresh_token = jwt.encode({'uid' : uid, 'token_type' : 'refresh_token' , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=app.config['REFRESH_TOKEN_EXPIRY'])}, app.config['SECRET_KEY'])
-	
-    tokens['access_token'] = access_token.decode('UTF-8')
-    tokens['refresh_token'] = refresh_token.decode('UTF-8')
-
-    return tokens
-
-def validate_email_address(email_address):
-    regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
-    if(re.search(regex,email_address)): 
-        return True
-    else:
-        return False
-
-def validate_user_name(user_name):
-    regex = '^[A-Za-z0-9_-]+$'
-    if(re.search(regex,user_name)): 
-        return True
-    else:
-        return False
-
-
-def get_paginated_list(page_object, object_type):
-    try:
-        resp_dict = {}
-        output = []
-        pagination = {}
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        access_token = None
         
-        if object_type == 'user':
-            for user in page_object.items:
-                output.append({
-                'uid' : user.uid, 
-                'first_name' : user.first_name, 
-                'last_name' : user.last_name, 
-                'user_name' : user.user_name,
-                'email_address' : user.email_address,
-                'phone_number' : user.phone_number,
-                'profile_picture' : user.profile_picture
-                })
-        elif object_type == 'story':
-            for story in page_object.items:
-                image_filename = generate_presigned_url(app.config.get('S3_BUCKET'), app.config.get('S3_CONTENT_DIR')+'/'+story.image_filename)
-                output.append({
-                'uid' : story.uid, 
-                'name' : story.name,
-                'description' : story.description,
-                'length' : story.length,
-                'image_filename' : image_filename,
-                'difficulty' : story.difficulty,
-                'genre' : story.genre,
-                'is_demo': story.is_demo
-                })
+        resp_dict = {}
 
-        pagination['has_next'] = page_object.has_next
-        pagination['has_prev'] = page_object.has_prev
-        pagination['next_num'] = page_object.next_num
-        pagination['page'] = page_object.page
-        pagination['pages'] = page_object.pages
-        pagination['per_page'] = page_object.per_page
-        pagination['prev_num'] = page_object.prev_num
-        pagination['total'] = page_object.total
+        if 'x-access-token' in request.headers:
+            access_token = request.headers['x-access-token'].strip()
 
-        resp_dict['status'] = 'success'
-        resp_dict['paginated_list'] = output
-        resp_dict['pagination'] = pagination  
-        return resp_dict
+        if not access_token:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'Token is invalid'
+            return jsonify(resp_dict), 401
+        
+        try:
+            payload = jwt.decode(access_token, app.config.get('SECRET_KEY'))
 
-    except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return jsonify(resp_dict), 500
+            if payload['token_type'] != 'access_token':
+                resp_dict['status'] = 'fail'
+                resp_dict['message'] = 'Token is invalid'
+                return jsonify(resp_dict), 401
 
-#Get all users - paginate using page = 1 and per_page = 10 args in the URL
+            current_user = User.query.filter_by(uid = payload['uid']).first()
+
+            if not current_user.is_admin:
+                resp_dict['status'] = 'fail'
+                resp_dict['message'] = 'Admin access only'
+                return jsonify(resp_dict), 403
+
+        except jwt.ExpiredSignatureError:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'Token has expired'
+            return jsonify(resp_dict), 401
+        except jwt.InvalidTokenError:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'Token is invalid'
+            return jsonify(resp_dict), 401
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+#Get all users - paginate using page = 1 and per_page = 10 args in the URL - Admin Only
 @app.route('/users',methods=['GET'])
 @token_required
+@admin_required
 def get_all_users():
     try:
         resp_dict = {}
@@ -147,7 +120,7 @@ def get_all_users():
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         user_list = User.query.paginate(page = page, per_page = per_page)
-
+        
         paginated_list = get_paginated_list(user_list, 'user')
 
         if paginated_list['status'] == 'success':
@@ -282,7 +255,7 @@ def create_user():
         access_token = tokens['access_token']
         refresh_token = tokens['refresh_token']
 
-        new_user = User(uid = uid, first_name = first_name, last_name = last_name, email_address = email_address, user_name = user_name, password = hashed_password, phone_number = phone_number, refresh_token = refresh_token)
+        new_user = User(uid = uid, first_name = first_name, last_name = last_name, email_address = email_address, user_name = user_name, password = hashed_password, phone_number = phone_number, refresh_token = refresh_token, is_admin = 0)
         db.session.add(new_user)
         db.session.commit()
 
@@ -490,6 +463,7 @@ def update_profile_picture(uid):
         return jsonify(resp_dict), 500
 
 #Login
+@app.route('/')
 @app.route('/login',methods=['POST'])
 def login():
     try:
@@ -747,8 +721,8 @@ def get_single_story(uid):
         
         story_schema = Story_Schema()
         story_data = story_schema.dump(story).data
-
-        story_data['image_filename'] = generate_presigned_url(app.config.get('S3_BUCKET'), app.config.get('S3_CONTENT_DIR')+'/'+story_data['image_filename'])
+        story_data['image_url'] = generate_public_url('story_image', story_data['image_filename'])
+        
         resp_dict['status'] = 'success'
         resp_dict['story'] = story_data
         
@@ -802,152 +776,14 @@ def get_filtered_story():
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
 
-def insert_story(name, description, length, image_filename, difficulty, genre, is_demo):
-    try:
-        resp_dict = {}
-        uid = str(uuid.uuid4())
-        new_story = Story(uid = uid, name = name, description = description, length = length, image_filename = image_filename, difficulty = difficulty, genre = genre, is_demo = is_demo)
-        db.session.add(new_story)
-        db.session.commit()
-        resp_dict['status'] = 'success'
-        resp_dict['new_story'] = new_story
-        return resp_dict
-    except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return resp_dict
-
-def insert_story_scene(new_story, order, type, next_scene_order):
-    try:
-        resp_dict = {}
-        uid = str(uuid.uuid4())
-        new_scene = Story_Scene(uid = uid, story = new_story, order = order, type = type, next_scene_order = next_scene_order)
-        db.session.add(new_scene)
-        db.session.commit()
-        resp_dict['status'] = 'success'
-        resp_dict['new_scene'] = new_scene
-        return resp_dict
-    except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return resp_dict
-
-def insert_scene_keyword(new_scene, keyword_list):
-    try:
-        resp_dict = {}
-        for keyword in keyword_list:
-            new_keyword = Scene_Keyword(story_scene = new_scene, keyword = keyword['keyword'], next_scene_order = keyword['next_scene_order'])
-            db.session.add(new_keyword)
-            db.session.commit()
-        resp_dict['status'] = 'success'
-        return resp_dict
-    except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return resp_dict
-
-def insert_story_scene_speaker(new_scene, order, image_filename, audio_filename, audio_text, prompt):
-    try:
-        resp_dict = {}
-        new_story_scene_speaker = Story_Scene_Speaker(story_scene = new_scene, order = order, image_filename = image_filename, audio_filename=audio_filename, audio_text = audio_text, prompt = prompt)
-        db.session.add(new_story_scene_speaker)
-        db.session.commit()
-        resp_dict['status'] = 'success'
-        resp_dict['new_story_scene_speaker'] = new_story_scene_speaker
-        return resp_dict
-    except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return resp_dict
-
-def insert_story_scene_master_responses(new_story_scene_speaker, audio_filename, audio_text):
-    try:
-        resp_dict = {}
-        new_story_scene_master_response = Story_Scene_Master_Response(story_scene_speaker = new_story_scene_speaker, audio_filename = audio_filename, audio_text = audio_text)
-        db.session.add(new_story_scene_master_response)
-        db.session.commit()
-        resp_dict['status'] = 'success'
-        return resp_dict
-    except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return resp_dict
-
-def upload_story_zip(story_zip):
-    try:
-        resp_dict = {}
-        #Temporarily save zip the file to the bucket
-        zip_upload_response = save_story_object(story_zip, story_zip.filename, True)
-        if zip_upload_response['status'] == 'success':
-            zip_url = zip_upload_response['object_url']
-            #Open the URL pointing to the zip file
-            zip_response = urlopen(zip_url)
-            #Read the content to memory
-            zip_file_content = ZipFile(BytesIO(zip_response.read()))
-            #Loop through each file and save it to the bucket
-            for file_name in zip_file_content.namelist():
-                if zip_file_content.open(file_name).read():
-                    story_object = zip_file_content.open(file_name).read()
-                    upload_resp = save_story_object(story_object, file_name, False)
-                    if upload_resp['status'] != 'success':
-                        resp_dict['status'] = 'fail'
-                        resp_dict['message'] = upload_resp['message']
-                        return resp_dict
-
-        #Delete the zip file uploaded to the bucket
-        delete_story_object(zip_url)
-        resp_dict['status'] = 'success'
-        resp_dict['message'] = 'success'
-        return resp_dict
-    except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return resp_dict
-
-def upload_story_json(story_json):
-    try:
-        resp_dict = {}
-        #Read the JSON content to string then load it as JSON object
-        story_string = story_json.read().decode('utf-8')
-        json_dict = json.loads(story_string)
-
-        #Insert the main story and pass new_story to story_scene
-        insert_story_response = insert_story(json_dict['name'], json_dict['description'], json_dict['length'], json_dict['image_filename'], json_dict['difficulty'], json_dict['genre'], json_dict['is_demo'])
-        if insert_story_response['status'] == 'success':
-            new_story = insert_story_response['new_story']
-            #Insert the scene
-            for story_scene in json_dict['story_scenes']:
-                insert_story_scene_response = insert_story_scene(new_story, story_scene['order'], story_scene['type'], story_scene['next_scene_order'])
-                if insert_story_scene_response['status'] == 'success':
-                    new_scene = insert_story_scene_response['new_scene'] 
-                    #insert the keywords
-                    insert_scene_keyword_response = insert_scene_keyword(new_scene, story_scene['scene_keywords'])
-                    if insert_scene_keyword_response['status'] == 'success':
-                        for speaker in story_scene['story_scene_speakers']:
-                            #insert scene speakers
-                            insert_story_scene_speaker_response = insert_story_scene_speaker(new_scene, speaker['order'], speaker['image_filename'], speaker['audio_filename'], speaker['audio_text'], speaker['prompt'])
-                            if insert_story_scene_speaker_response['status'] == 'success':
-                                new_story_scene_speaker = insert_story_scene_speaker_response['new_story_scene_speaker']
-                                for master_response in speaker['story_scene_master_responses']:
-                                    #insert scene master response
-                                    insert_story_scene_master_responses_response = insert_story_scene_master_responses(new_story_scene_speaker, master_response['audio_filename'], master_response['audio_text'])
-
-        resp_dict['status'] = 'success'
-        resp_dict['message'] = 'JSON successfully uploaded'
-
-        return resp_dict
-
-    except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return resp_dict
-
+#Admin Only
 @app.route('/upload_story', methods=['POST'])
 @token_required
+@admin_required
 def upload_story():
     try:
         resp_dict = {}
-        
+
         if 'story_zip' not in request.files:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No zip file found'
@@ -957,19 +793,21 @@ def upload_story():
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No JSON file found'
             return jsonify(resp_dict), 400
-        
-        upload_zip_response = upload_story_zip(request.files['story_zip'])
-        if upload_zip_response['status'] != 'success':
-            resp_dict['status'] = 'fail'
-            resp_dict['message'] = upload_zip_response['message']
-            return jsonify(resp_dict), 500
 
         upload_json_response = upload_story_json(request.files['story_json'])
         if upload_json_response['status'] != 'success':
             resp_dict['status'] = 'fail'
             resp_dict['message'] = upload_json_response['message']
             return jsonify(resp_dict), 500
+        media_dict = upload_json_response['media_dict']
+
+        upload_zip_response = upload_story_zip(request.files['story_zip'], media_dict)
+        if upload_zip_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = upload_zip_response['message']
+            return jsonify(resp_dict), 500
         
+
         resp_dict['status'] = 'success'
         resp_dict['message'] = 'story content uploaded successfully'
         return jsonify(resp_dict), 201
@@ -979,30 +817,6 @@ def upload_story():
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
 
-def get_scene(story_id, scene_order):
-    try:
-        resp_dict = {}
-        
-        scene = Story_Scene.query.filter(Story_Scene.story_id == story_id, Story_Scene.order == scene_order).first()
-        if not scene:
-            resp_dict['status'] = 'fail'
-            resp_dict['message'] = 'No scene found'
-            return resp_dict
-
-        scene_schema = Story_Scene_Schema()
-        scene_data = scene_schema.dump(scene).data
-        for speaker in scene_data['story_scene_speakers']:
-            speaker['audio_filename'] = generate_presigned_url(app.config.get('S3_BUCKET'), app.config.get('S3_CONTENT_DIR')+'/'+speaker['audio_filename'])
-            speaker['image_filename'] = generate_presigned_url(app.config.get('S3_BUCKET'), app.config.get('S3_CONTENT_DIR')+'/'+speaker['image_filename'])
-
-        resp_dict['status'] = 'success'
-        resp_dict['scene_data'] = scene_data
-        
-        return resp_dict
-    except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return resp_dict
 
 @app.route('/start_story', methods=['POST'])
 @token_required
@@ -1025,7 +839,7 @@ def start_story():
         if not story:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No story found'
-            return resp_dict
+            return jsonify(resp_dict),404
 
         user = User.query.filter_by(uid = story_data['user_uid'].strip()).first()
         if not user:
@@ -1042,7 +856,7 @@ def start_story():
                 next_scene_order = story_scene_user_response.story_scene_speaker.story_scene.order + 1
             else:
                 next_scene_order = 1
-            
+
             resp_dict['status'] = 'success'
             resp_dict['pending_story'] = True
             resp_dict['next_scene_order'] = next_scene_order
@@ -1180,9 +994,13 @@ def user_response():
             resp_dict['message'] = 'No user story found'
             return jsonify(resp_dict),404
 
-        audio_upload_response = save_story_object(request.files['user_audio'], app.config.get('USER_RESPONSE_DIR') + '/' + request.files['user_audio'].filename, False)
+        #Rename audio file
+        _, audio_ext = request.files['user_audio'].filename.split('.',1)
+        audio_uid = str(uuid.uuid4()) + '.' + audio_ext
+
+        audio_upload_response = save_story_object(request.files['user_audio'], app.config.get('USER_RESPONSE_AUDIO_DIR') + '/' + audio_uid, True)
         if audio_upload_response['status'] == 'success':
-            new_user_response = Story_Scene_User_Response(user_story_id = user_story.id, story_scene_speaker_id = story_scene_speaker_id, audio_filename = request.files['user_audio'].filename, audio_text = audio_text)
+            new_user_response = Story_Scene_User_Response(user_story_id = user_story.id, story_scene_speaker_id = story_scene_speaker_id, audio_filename = audio_uid, audio_text = audio_text)
             db.session.add(new_user_response)
             db.session.commit()
         else:
