@@ -2,6 +2,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from datetime import datetime
 from fluencybox import db, app, ma
 from marshmallow import fields
+from sqlalchemy import Index
 
 class Report_Images(db.Model):
     __tablename__ = "report_images"
@@ -102,7 +103,7 @@ class User(db.Model):
     email_address = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(100))
     phone_number = db.Column(db.String(25))
-    profile_picture = db.Column(db.String(255), default = app.config.get('S3_URL') + app.config.get('S3_AVATAR_DIR') + '/default_image.png')
+    profile_picture = db.Column(db.String(255), default = app.config.get('S3_URL') + app.config.get('S3_AVATAR_DIR') + '/' + app.config.get('DEFAULT_IMAGE'))
     failed_login_attempts = db.Column(db.Integer, default=0)
     is_locked = db.Column(db.Boolean, default=0)
     created_on = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.utcnow)
@@ -139,6 +140,7 @@ class Story_Purchase(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     story_id = db.Column(db.Integer, db.ForeignKey('story.id'), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    __table_args__ = (Index('ix_user_id_story_id', "user_id", "story_id"), Index('user_id', "user_id"))
 
     def __repr__(self):
         return f"Story_Purchase('{self.user_id}', '{self.story_id}', '{self.created_at}')"
@@ -154,6 +156,7 @@ class Story_Scene_Master_Response(db.Model):
     story_scene_speaker_id =  db.Column(db.Integer, db.ForeignKey('story_scene_speaker.id'), nullable=False)
     audio_filename = db.Column(db.String(255))
     audio_text = db.Column(db.Text)
+    #phoneme_filename = db.Column(db.String(255)) #To add later
 
     def __repr__(self):
         return f"Story_Scene_Master_Response('{self.story_scene_speaker_id}', '{self.audio_filename}', '{self.audio_text}')"
