@@ -38,18 +38,15 @@ def save_s3_object(object_dir, body, content_type, is_public = False):
         resp_dict = {}
         object_url = ''
         my_bucket = get_bucket()
-        s3 = get_resource()
-        upload_response = my_bucket.Object(object_dir).put(Body = body, ContentType = content_type) #set directory, object and content type of the object
+
+        if is_public:
+            upload_response = my_bucket.Object(object_dir).put(Body = body, ContentType = content_type, ACL='public-read') #set directory, object, content type & public access of the object
+            if upload_response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                object_url = app.config.get('S3_URL') + object_dir #get full URL to the object
+        else:
+            upload_response = my_bucket.Object(object_dir).put(Body = body, ContentType = content_type) #set directory, object and content type of the object
+        
         if upload_response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            if is_public:
-                object_acl = s3.ObjectAcl(app.config.get('S3_BUCKET'), object_dir)
-                acl_response = object_acl.put(ACL='public-read') #set access permissions
-                if acl_response['ResponseMetadata']['HTTPStatusCode'] == 200:
-                    object_url = app.config.get('S3_URL') + object_dir #get full URL to the object
-                else:
-                    resp_dict['status'] = 'fail'
-                    resp_dict['message'] = acl_response['ResponseMetadata']['HTTPStatusCode']
-                    return resp_dict
             resp_dict['status'] = 'success'
             resp_dict['object_url'] = object_url
             return resp_dict
@@ -57,6 +54,7 @@ def save_s3_object(object_dir, body, content_type, is_public = False):
             resp_dict['status'] = 'fail'
             resp_dict['message'] = upload_response['ResponseMetadata']['HTTPStatusCode']
             return resp_dict
+
     except Exception as e:
         resp_dict['status'] = 'fail'
         resp_dict['message'] = str(e)
@@ -93,10 +91,9 @@ def save_avatar(my_avatar):
 def save_story_object(my_object, object_filename, is_public = False):
     try:
         resp_dict = {}
-        _, obj_ext = os.path.splitext(object_filename) #check for obj_ext being ''
+        _, obj_ext = os.path.splitext(object_filename) 
         mime_type = mimetypes.types_map[obj_ext]
-        object_dir = app.config.get('S3_CONTENT_DIR') + '/' + object_filename
-        object_url = save_s3_object(object_dir, my_object, mime_type, is_public)
+        object_url = save_s3_object(object_filename, my_object, mime_type, is_public)
         if object_url['status'] == 'success':
             resp_dict['status'] = 'success'
             story_object_url = object_url['object_url']
@@ -118,7 +115,9 @@ def delete_avatar(my_avatar):
         my_bucket = get_bucket()
         file_name = my_avatar.split('/')[-1]
         file_name = app.config.get('S3_AVATAR_DIR') + '/' + file_name
-        my_bucket.Object(file_name).delete()
+        default_image = app.config.get('S3_AVATAR_DIR') + '/' + app.config.get('DEFAULT_IMAGE')
+        if file_name != default_image:
+            my_bucket.Object(file_name).delete()
         
         resp_dict['status'] = 'success'
         resp_dict['message'] = 'successfully deleted'
@@ -134,7 +133,6 @@ def delete_story_object(my_object_key):
         resp_dict = {}
         my_bucket = get_bucket()
         file_name = my_object_key.split('/')[-1]
-        file_name = app.config.get('S3_CONTENT_DIR') + '/' + file_name
         my_bucket.Object(file_name).delete()
         
         resp_dict['status'] = 'success'
@@ -158,3 +156,20 @@ def generate_presigned_url(bucket, key):
 
     url = s3_client.generate_presigned_url(ClientMethod = 'get_object', Params = {'Bucket': bucket, 'Key': key}, ExpiresIn = expiry)
     return url
+
+def generate_public_url(object_type, object_name):
+    if object_type == 'story_image':
+        object_dir = app.config.get('STORY_IMAGES_DIR')
+    elif object_type == 'speaker_image':
+        object_dir = app.config.get('SPEAKER_IMAGES_DIR')
+    elif object_type == 'speaker_audio':
+        object_dir = app.config.get('SPEAKER_AUDIO_DIR')
+    elif object_type == 'master_audio':
+        object_dir = app.config.get('MASTER_RESPONSE_AUDIO_DIR')
+    elif object_type == 'user_audio':
+        object_dir = app.config.get('USER_RESPONSE_AUDIO_DIR')
+    elif object_type == 'report_image':
+        object_dir = app.config.get('REPORT_IMAGES_DIR')
+
+    public_url = app.config.get('S3_URL') + object_dir + '/' + object_name
+    return public_url
