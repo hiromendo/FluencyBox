@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Grid, Row, Col } from 'react-flexbox-grid';
+import throttle from 'lodash.throttle';
 
 import './StartStoryPage.scss';
 
@@ -14,22 +15,36 @@ class StartStoryPage extends React.Component {
     }
   }
 
+  throttledHandleWindowResize = () => {
+    //TODO: add a throttle here for optimzation purpose
+    this.setState({ isMobile: window.innerWidth < 768 })
+  }
+
+  componentDidMount() {
+    this.throttledHandleWindowResize()
+    window.addEventListener('resize', this.throttledHandleWindowResize);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.throttledHandleWindowResize);
+  }
+
   displayDesktopLayout() {
     const { uid } = this.props
     return (
       <Grid>
         <Row middle="md">
           <Col md={3} mdOffset={1}>
-            <div class="btn btn-dark-blue">Repeat Audio</div>
+            <div className="btn btn-dark-blue">Repeat Audio</div>
           </Col>
           <Col md={4} mdOffset={1}>
-            <div class="btn btn-dark-blue">Hide Subtitles</div>
+            <div className="btn btn-dark-blue">Hide Subtitles</div>
           </Col>
           <Col md={1}>
-            <div class="btn btn-dark-blue">Restart</div>
+            <div className="btn btn-dark-blue">Restart</div>
           </Col>
           <Col md={1}>
-            <div class="btn btn-dark-blue">
+            <div className="btn btn-dark-blue">
               <Link to={`/story/${uid}`}>Home</Link>
             </div>
           </Col>
@@ -41,17 +56,17 @@ class StartStoryPage extends React.Component {
         </Row>
         <Row>
           <Col md={3} mdOffset={1}>
-          <div class="btn btn-dark-blue">
+          <div className="btn btn-dark-blue">
             Record Again
           </div>
           </Col>
           <Col md={2} mdOffset={1}>
-            <div class="btn btn-dark-blue">
+            <div className="btn btn-dark-blue">
               Record Button
             </div>
           </Col>
           <Col md={3} mdOffset={2}>
-            <div class="btn btn-dark-blue">
+            <div className="btn btn-dark-blue">
               Next Scene
             </div>
           </Col>
@@ -61,7 +76,7 @@ class StartStoryPage extends React.Component {
   }
 
   displayMobileLayOut() {
-    const { uid } = this.props
+    const { uid } = this.props;
     return (
       <Grid>
         <Row middle="xs">

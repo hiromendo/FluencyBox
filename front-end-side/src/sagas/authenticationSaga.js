@@ -7,7 +7,9 @@ import { loginUserAPI,
   updatePassWordAPI, 
   updateProfilePictureAPI, 
   resetPasswordAPI,
-  getAllStoriesAPI
+  getAllStoriesAPI,
+  getStoryData,
+  getStorySceneAPI
 } from './../util/api'
 
 import {
@@ -170,4 +172,45 @@ export function* resetPasswordAsync (request) {
 export function* removeUserAsync() {
   yield delay(50);
   yield put({ type: REMOVE_CURRENT_USER })
+}
+
+export function* getStoryStartedAsync({ payload }) {
+  yield put({ type: START_LOADING });
+  try {
+    const serverResponse = yield call(getStoryData, payload)
+    if (serverResponse.pending_story) {
+      const { user_story_uid, next_scene_order } = serverResponse;
+      const { history, story_uid } = payload
+      const objPayloadScene = {
+        payload: {
+          user_story_uid,
+          next_scene_order,
+          story_uid,
+          history
+        }
+      }
+      yield getStorySceneAsync(objPayloadScene)
+    } else {
+      yield payload.history.push(`/story/${payload.story_uid}/start`);
+      yield put({ type: END_LOADING });
+    }
+  } catch (error) {
+    console.error(error);
+    yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
+    yield put({ type: END_LOADING });
+  }
+}
+
+export function* getStorySceneAsync({ payload }) {
+  yield put({ type: START_LOADING });
+  try {
+    const serverResponse = yield call(getStorySceneAPI, payload);
+    console.log(serverResponse)
+    yield payload.history.push(`/story/${payload.story_uid}/start`);
+    yield put({ type: END_LOADING });
+  } catch (error) {
+    console.error(error);
+    yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
+    yield put({ type: END_LOADING });
+  }
 }

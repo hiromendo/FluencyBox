@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Switch, Route, withRouter } from 'react-router-dom';
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
+import ReactLoading from 'react-loading';
 
 import NavBar from './components/navbar/NavBar';
 
@@ -22,7 +23,6 @@ import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAle
 
 import "./App.scss";
 
-
 class App extends React.Component {
 
   constructor(props) {
@@ -30,6 +30,7 @@ class App extends React.Component {
     this.logOffUser = this.logOffUser.bind(this);
     this.renderAllStoriesLinks = this.renderAllStoriesLinks.bind(this);
     this.renderAllStartStoriesLinks = this.renderAllStartStoriesLinks.bind(this);
+    this.renderSpinnerLoading = this.renderSpinnerLoading.bind(this);
   }
 
   componentDidMount() {
@@ -80,13 +81,22 @@ class App extends React.Component {
     return listStoryRoutes
   }
 
+  renderSpinnerLoading() {
+    return (
+      <div className="react-spinner-container ">
+        <ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105}  />
+      </div>
+    )
+  }
+
   render() {
-    const { location} = this.props;
+    const { location, loading } = this.props;
     return (
       <div className="App">
         <header>
           {location.pathname !== "/login" ? <NavBar logOffUser={this.logOffUser} /> : null}
         </header>
+        {loading ? this.renderSpinnerLoading() :
         <main>
           <TransitionGroup>
             <CSSTransition
@@ -111,13 +121,15 @@ class App extends React.Component {
           </TransitionGroup>
 
         </main>
+        }
       </div>
     )
   }
 }
 
-const mapStateToProps = ({ storiesInfo }) => ({
-  storiesInfo
+const mapStateToProps = ({ storiesInfo, loading }) => ({
+  storiesInfo,
+  loading
 })
 
 const mapDispatchToProps = {

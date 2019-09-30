@@ -320,3 +320,61 @@ export const getAllStoriesAPI = () => {
     throw Error(error);
   }
 }
+
+export const getStoryData = request => {
+  const { story_uid, user_uid } = request
+  try {
+    const GET_STORY_DATA_ENDPOINT = `${BASE_URL}/start_story`;
+    const jwtToken = localStorage.getItem('access_token');
+    let headers = new Headers();
+    headers.set('x-access-token', jwtToken);
+    headers.set('Content-Type', 'application/json; charset=UTF-8');
+    headers.set('Accept', 'application/json');
+    const obj = {
+       story_uid,
+       user_uid
+    }
+
+    const parameters = {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(obj)
+    }
+
+    return fetch(GET_STORY_DATA_ENDPOINT, parameters)
+      .then(response => {
+        return response.json()
+      })
+      .catch(error => {
+        throw Error(error)
+      }) 
+  } catch (error) {
+      console.error(error);
+      throw Error(error);
+  }
+}
+
+export const getStorySceneAPI = request => {
+  const { user_story_uid, next_scene_order } = request;
+  try {
+    const GET_STORY_SCENE_ENDPOINT = `${BASE_URL}/get_story_scene?uid=${user_story_uid}&order=${next_scene_order}`;
+    const jwtToken = localStorage.getItem('access_token');
+    let headers = new Headers();
+    headers.set('x-access-token', jwtToken);
+    const parameters = {
+      method: 'GET',
+      headers
+    }
+
+    return fetch(GET_STORY_SCENE_ENDPOINT, parameters)
+      .then(response => {
+        return response.json();
+      })
+      .catch(error => {
+        throw Error(error)
+      }) 
+  } catch (error) {
+      console.error(error);
+      throw Error(error);
+  }
+}

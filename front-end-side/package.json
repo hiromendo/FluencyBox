@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "jwt-decode": "^2.2.0",
+    "lodash.throttle": "^4.1.1",
     "react": "16.8.6",
     "react-burger-menu": "^2.6.11",
     "react-dom": "16.8.6",

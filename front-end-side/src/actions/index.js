@@ -26,6 +26,7 @@ export const REGISTER_CLEAR = 'REGISTER_CLEAR';
 
 export const GET_ALL_STORIES = 'GET_ALL_STORIES';
 export const SET_ALL_STORIES = 'SET_ALL_STORIES';
+export const GET_STORY_STARTED = 'GET_STORY_STARTED';
 
 export const startLoading = () => ({
   type: START_LOADING
@@ -121,7 +122,13 @@ export const cacheRegisterInfo = infoObj => ({
 export const getAllStories = () => ({
   type: GET_ALL_STORIES
 })
+
 export const setAllStories = payload => ({
   type: SET_ALL_STORIES,
+  payload
+})
+
+export const getStoryStarted = payload => ({
+  type: GET_STORY_STARTED,
   payload
 })
