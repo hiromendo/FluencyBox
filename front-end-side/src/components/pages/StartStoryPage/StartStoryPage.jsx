@@ -1,7 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Grid, Row, Col } from 'react-flexbox-grid';
+import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
+
+import { getStoryStarted, removeStoryContents } from '../../../actions';
 
 import './StartStoryPage.scss';
 
@@ -11,7 +14,7 @@ class StartStoryPage extends React.Component {
     this.displayDesktopLayout = this.displayDesktopLayout.bind(this);
     this.displayMobileLayOut = this.displayMobileLayOut.bind(this);
     this.state = {
-      isMobile: true
+      isMobile: false
     }
   }
 
@@ -21,12 +24,20 @@ class StartStoryPage extends React.Component {
   }
 
   componentDidMount() {
-    this.throttledHandleWindowResize()
-    window.addEventListener('resize', this.throttledHandleWindowResize);
+    const { storyContent } = this.props;
+    if (storyContent.isContentFinishedLoaded === false) {
+      const { authInfo: { serverResponse: { user }}, uid, routeProps: { history } } = this.props;
+      const payloadObj = {
+        user_uid: user.uid,
+        history,
+        story_uid: uid
+      }
+      this.props.getStoryStarted(payloadObj)
+    }
   }
 
   componentWillUnmount() {
-    window.removeEventListener('resize', this.throttledHandleWindowResize);
+    this.props.removeStoryContents();
   }
 
   displayDesktopLayout() {
@@ -118,4 +129,16 @@ class StartStoryPage extends React.Component {
   }
 }
 
-export default StartStoryPage;
+const mapStateToProps = ({ storiesInfo, authInfo, storyContent }) => ({
+  storiesInfo,
+  authInfo,
+  storyContent
+})
+
+const mapDispatchToProps = {
+  getStoryStarted,
+  removeStoryContents
+}
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(StartStoryPage);

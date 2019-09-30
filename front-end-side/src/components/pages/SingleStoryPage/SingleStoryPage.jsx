@@ -17,7 +17,7 @@ class SingleStoryPage extends React.Component {
 
   handleInitiatingStory(event) {
     event.preventDefault();
-    const { authInfo: { serverResponse: { user }}, uid, routeProps:  {history } } = this.props;
+    const { authInfo: { serverResponse: { user }}, uid, routeProps: { history } } = this.props;
     const payloadObj = {
       user_uid: user.uid,
       history,
@@ -49,7 +49,7 @@ class SingleStoryPage extends React.Component {
           <Row middle="xs" center="xs" start="md">
             <Col xs={6} md={2} mdOffset={5} lg={2}>
               <button onClick={this.handleInitiatingStory} className="btn btn-blue">
-                {/* <Link to={`/story/${uid}/start`}>Start</Link> */}
+
                 Start
               </button>
             </Col>

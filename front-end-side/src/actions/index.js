@@ -27,6 +27,10 @@ export const REGISTER_CLEAR = 'REGISTER_CLEAR';
 export const GET_ALL_STORIES = 'GET_ALL_STORIES';
 export const SET_ALL_STORIES = 'SET_ALL_STORIES';
 export const GET_STORY_STARTED = 'GET_STORY_STARTED';
+export const GET_STORY_CONTENTS = 'GET_STORY_CONTENTS';
+export const SET_STORY_CONTENTS = 'SET_STORY_CONTENTS';
+export const REMOVE_STORY_CONTENTS = 'REMOVE_STORY_CONTENTS';
+export const STORY_CONTENT_LOADED = 'STORY_CONTENT_LOADED';
 
 export const startLoading = () => ({
   type: START_LOADING
@@ -131,4 +135,13 @@ export const setAllStories = payload => ({
 export const getStoryStarted = payload => ({
   type: GET_STORY_STARTED,
   payload
+})
+
+export const getStoryContents = payload => ({
+  type: GET_STORY_CONTENTS,
+  payload
+})
+
+export const removeStoryContents = () => ({
+  type: REMOVE_STORY_CONTENTS
 })

@@ -28,6 +28,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.logOffUser = this.logOffUser.bind(this);
+    this.handleStoriesInfo = this.handleStoriesInfo.bind(this);
     this.renderAllStoriesLinks = this.renderAllStoriesLinks.bind(this);
     this.renderAllStartStoriesLinks = this.renderAllStartStoriesLinks.bind(this);
     this.renderSpinnerLoading = this.renderSpinnerLoading.bind(this);
@@ -35,15 +36,20 @@ class App extends React.Component {
 
   componentDidMount() {
     if (localStorage.access_token && localStorage.uid) {
-      const infoObj = {};
-      infoObj.uid = localStorage.uid;
-      this.props.getCurrentUser(infoObj);
+      debugger
+      const infoObjToken = {};
+      infoObjToken.uid = localStorage.uid;
+      this.props.getCurrentUser(infoObjToken);
       this.props.getAllStories();
     } else if (localStorage.refresh_token) {
       this.props.getAccessToken(localStorage.refresh_token);
     } else {
       this.props.endLoading()
     }
+  }
+
+  handleStoriesInfo() {
+    
   }
 
   logOffUser() {
@@ -69,7 +75,7 @@ class App extends React.Component {
 
   renderAllStartStoriesLinks() {
     const { storiesInfo: { story } }  = this.props;
-    const listStoryRoutes = story.map(info => {
+    const listStartRoutes = story.map(info => {
       return (
         <Route 
           exact 
@@ -78,7 +84,7 @@ class App extends React.Component {
           render={(props) => <StartStoryPage {...info} routeProps={props} />} />
       )
     })
-    return listStoryRoutes
+    return listStartRoutes
   }
 
   renderSpinnerLoading() {

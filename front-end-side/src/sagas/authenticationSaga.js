@@ -21,7 +21,9 @@ import {
   DISPLAY_SUCCESS,
   DISPLAY_ERROR_UPDATE,
   SET_ALL_STORIES,
-  REMOVE_CURRENT_USER
+  REMOVE_CURRENT_USER,
+  STORY_CONTENT_LOADED,
+  SET_STORY_CONTENTS
  } from '../actions'
 
 export function* getAllStoriesAsync() {
@@ -175,9 +177,10 @@ export function* removeUserAsync() {
 }
 
 export function* getStoryStartedAsync({ payload }) {
+  //TODO: you must handle on scenario where story is started first time...
   yield put({ type: START_LOADING });
   try {
-    const serverResponse = yield call(getStoryData, payload)
+    const serverResponse = yield call(getStoryData, payload);
     if (serverResponse.pending_story) {
       const { user_story_uid, next_scene_order } = serverResponse;
       const { history, story_uid } = payload
@@ -189,8 +192,9 @@ export function* getStoryStartedAsync({ payload }) {
           history
         }
       }
-      yield getStorySceneAsync(objPayloadScene)
+      yield getStoryContentAsync(objPayloadScene)
     } else {
+      //TODO: handle situation here
       yield payload.history.push(`/story/${payload.story_uid}/start`);
       yield put({ type: END_LOADING });
     }
@@ -201,12 +205,13 @@ export function* getStoryStartedAsync({ payload }) {
   }
 }
 
-export function* getStorySceneAsync({ payload }) {
+export function* getStoryContentAsync({ payload }) {
   yield put({ type: START_LOADING });
   try {
     const serverResponse = yield call(getStorySceneAPI, payload);
-    console.log(serverResponse)
-    yield payload.history.push(`/story/${payload.story_uid}/start`);
+    yield put(({ type: STORY_CONTENT_LOADED }))
+    if (payload.history) { yield payload.history.push(`/story/${payload.story_uid}/start`) }
+    yield put({ type: SET_STORY_CONTENTS, payload: serverResponse })
     yield put({ type: END_LOADING });
   } catch (error) {
     console.error(error);
