@@ -98,11 +98,6 @@ class NavBar extends React.Component {
               </Col>
               <Col xs={6} md={2} lg={1}>
                 <li>
-                  <Link to="/aboutus">About Us</Link>
-                </li> 
-              </Col>
-              <Col xs={6} md={2} lg={1}>
-                <li>
                   <Link onClick={() => this.beforeSigningOff()} to="/login">Logout</Link>
                 </li> 
               </Col>
