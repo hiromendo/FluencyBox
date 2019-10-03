@@ -36,7 +36,6 @@ class App extends React.Component {
 
   componentDidMount() {
     if (localStorage.access_token && localStorage.uid) {
-      debugger
       const infoObjToken = {};
       infoObjToken.uid = localStorage.uid;
       this.props.getCurrentUser(infoObjToken);
