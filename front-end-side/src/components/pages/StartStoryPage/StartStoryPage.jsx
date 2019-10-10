@@ -6,6 +6,7 @@ import throttle from 'lodash.throttle';
 
 import { getStoryStarted, removeStoryContents } from '../../../actions';
 
+import ContentScreen from './components/ContentScreen'
 import './StartStoryPage.scss';
 
 class StartStoryPage extends React.Component {
@@ -13,14 +14,12 @@ class StartStoryPage extends React.Component {
     super(props);
     this.displayDesktopLayout = this.displayDesktopLayout.bind(this);
     this.displayMobileLayOut = this.displayMobileLayOut.bind(this);
+    this.handleShowSubtitleDialog = this.handleShowSubtitleDialog.bind(this);
     this.state = {
-      isMobile: false
+      isMobile: false,
+      showSubtitle: false
     }
-  }
-
-  throttledHandleWindowResize = () => {
-    //TODO: add a throttle here for optimzation purpose
-    this.setState({ isMobile: window.innerWidth < 768 })
+    this.audioNode = new Audio();
   }
 
   componentDidMount() {
@@ -35,9 +34,31 @@ class StartStoryPage extends React.Component {
       this.props.getStoryStarted(payloadObj)
     }
   }
-
+  
+  /* props recieve from redux to indicate audio play */
+  componentDidUpdate() {
+    console.log(this.props.storyContent.scene.story_scene_speakers[0].audio_url, '<===')
+    this.audioNode.src = this.props.storyContent.scene.story_scene_speakers[0].audio_url;
+    this.audioNode.play()
+  }
+  
   componentWillUnmount() {
+    console.log('pause')
+    this.audioNode.pause()
     this.props.removeStoryContents();
+  }
+  
+  throttledHandleWindowResize = () => {
+    //TODO: add a throttle here for optimzation purpose
+    this.setState({ isMobile: window.innerWidth < 768 })
+  }
+
+  handleShowSubtitleDialog() {
+    this.setState({
+      showSubtitle: !this.state.showSubtitle
+    }, () => {
+      console.log(this.state.showSubtitle)
+    })
   }
 
   displayDesktopLayout() {
@@ -49,7 +70,7 @@ class StartStoryPage extends React.Component {
             <div className="btn btn-dark-blue">Repeat Audio</div>
           </Col>
           <Col md={4} mdOffset={1}>
-            <div className="btn btn-dark-blue">Hide Subtitles</div>
+            <div className="btn btn-dark-blue" onClick={this.handleShowSubtitleDialog}>Hide Subtitles</div>
           </Col>
           <Col md={1}>
             <div className="btn btn-dark-blue">Restart</div>
@@ -62,7 +83,7 @@ class StartStoryPage extends React.Component {
         </Row>
         <Row center="md">
           <Col md={12}>
-            <div id="story-content">Content Here</div>
+            <ContentScreen />
           </Col>
         </Row>
         <Row>
@@ -122,17 +143,18 @@ class StartStoryPage extends React.Component {
 
   render() {
     return (
-      <div id="story-start">
+      <div id="story-media">
         {this.state.isMobile ? this.displayMobileLayOut() : this.displayDesktopLayout()}
       </div>
     )
   }
 }
 
-const mapStateToProps = ({ storiesInfo, authInfo, storyContent }) => ({
+const mapStateToProps = ({ storiesInfo, authInfo, storyContent, storyStatus }) => ({
   storiesInfo,
   authInfo,
-  storyContent
+  storyContent,
+  storyStatus
 })
 
 const mapDispatchToProps = {
