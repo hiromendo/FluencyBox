@@ -4,7 +4,7 @@ import { Grid, Row, Col } from 'react-flexbox-grid';
 import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
 
-import { getStoryStarted, removeStoryContents } from '../../../actions';
+import { getStoryStarted, removeStoryContents, resetStoryStatus, pauseAudio } from '../../../actions';
 
 import ContentScreen from './components/ContentScreen'
 import './StartStoryPage.scss';
@@ -14,14 +14,18 @@ class StartStoryPage extends React.Component {
     super(props);
     this.displayDesktopLayout = this.displayDesktopLayout.bind(this);
     this.displayMobileLayOut = this.displayMobileLayOut.bind(this);
+    this.handleAudioStatus = this.handleAudioStatus.bind(this);
     this.handleShowSubtitleDialog = this.handleShowSubtitleDialog.bind(this);
     this.state = {
       isMobile: false,
-      showSubtitle: false
+      showSubtitle: false,
+      audioStatus: null,
+      isDisplayContentImage: false
     }
     this.audioNode = new Audio();
   }
 
+  /*TODO: there should be a spinning gif here to indicate the story is being loaded */
   componentDidMount() {
     const { storyContent } = this.props;
     if (storyContent.isContentFinishedLoaded === false) {
@@ -34,23 +38,41 @@ class StartStoryPage extends React.Component {
       this.props.getStoryStarted(payloadObj)
     }
   }
-  
-  /* props recieve from redux to indicate audio play */
-  componentDidUpdate() {
-    console.log(this.props.storyContent.scene.story_scene_speakers[0].audio_url, '<===')
-    this.audioNode.src = this.props.storyContent.scene.story_scene_speakers[0].audio_url;
-    this.audioNode.play()
-  }
-  
+    
   componentWillUnmount() {
-    console.log('pause')
     this.audioNode.pause()
     this.props.removeStoryContents();
+    this.props.resetStoryStatus();
   }
   
   throttledHandleWindowResize = () => {
     //TODO: add a throttle here for optimzation purpose
     this.setState({ isMobile: window.innerWidth < 768 })
+  }
+
+  //TODO: add try/catch error handling here when loading audio file
+  handleAudioStatus() {
+    if (this.state.audioStatus === 'playing') {
+      this.setState({
+        audioStatus: 'paused'
+      }, () => {
+        this.audioNode.pause()
+      })
+    } else if (this.state.audioStatus === 'paused') {
+      this.setState({
+        audioStatus: 'playing'
+      }, () => {
+        this.audioNode.play()
+      })
+    } else {
+      this.setState({
+        audioStatus: 'playing',
+        isDisplayContentImage: true
+      }, () => {
+        this.audioNode.src = this.props.storyContent.scene.story_scene_speakers[0].audio_url;
+        this.audioNode.play()
+      })
+    }
   }
 
   handleShowSubtitleDialog() {
@@ -83,7 +105,10 @@ class StartStoryPage extends React.Component {
         </Row>
         <Row center="md">
           <Col md={12}>
-            <ContentScreen />
+            <ContentScreen 
+              isDisplayContentImage={this.state.isDisplayContentImage}
+              handleAudioStatus={this.handleAudioStatus} 
+              storyContent={this.props.storyContent} />
           </Col>
         </Row>
         <Row>
@@ -159,7 +184,9 @@ const mapStateToProps = ({ storiesInfo, authInfo, storyContent, storyStatus }) =
 
 const mapDispatchToProps = {
   getStoryStarted,
-  removeStoryContents
+  removeStoryContents,
+  resetStoryStatus,
+  pauseAudio
 }
 
 
