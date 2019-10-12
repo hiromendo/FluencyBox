@@ -32,7 +32,9 @@ export const SET_STORY_CONTENTS = 'SET_STORY_CONTENTS';
 export const REMOVE_STORY_CONTENTS = 'REMOVE_STORY_CONTENTS';
 export const STORY_CONTENT_LOADED = 'STORY_CONTENT_LOADED';
 
+export const RESET_STORY_STATUS = 'RESET_STORY_STATUS';
 export const AUDIO_PLAY = 'AUDIO_PLAY';
+export const PAUSE_AUDIO = 'PAUSE_AUDIO';
 export const UPDATE_STATUS_SUBTITLE = 'UPDATE_STATUS_SUBTITLE';
 
 export const startLoading = () => ({
@@ -149,8 +151,17 @@ export const removeStoryContents = () => ({
   type: REMOVE_STORY_CONTENTS
 })
 
+/////////////////////////////////
+
+export const resetStoryStatus = () => ({
+  type: RESET_STORY_STATUS
+})
+
 export const audioPlay = () => ({
   type: AUDIO_PLAY
+})
+export const pauseAudio = () => ({
+  type: PAUSE_AUDIO
 })
 
 export const updateSubtitleDisplay = payload => ({

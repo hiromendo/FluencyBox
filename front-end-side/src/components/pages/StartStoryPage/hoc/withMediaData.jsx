@@ -1,14 +1,15 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { audioPlay } from '../../../../actions';
+import { audioPlay, pauseAudio } from '../../../../actions';
 
 const withMediaData = WrappedComponent => {
   class NewComponent extends React.Component {
     render() {
-      const { audioPlay } = this.props;
+      const { audioPlay, pauseAudio } = this.props;
       const dispatchActionsContainer = {
-        audioPlay
+        audioPlay,
+        pauseAudio
       }
       return (
         <WrappedComponent
@@ -24,7 +25,8 @@ const withMediaData = WrappedComponent => {
   })
 
   const mapDispatchToProps = {
-    audioPlay
+    audioPlay,
+    pauseAudio
   }
 
   return connect(mapStateToProps, mapDispatchToProps)(NewComponent)
