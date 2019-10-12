@@ -2,8 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Grid, Row, Col } from 'react-flexbox-grid';
 import { connect } from 'react-redux';
-import throttle from 'lodash.throttle';
-
 import { getStoryStarted, removeStoryContents, resetStoryStatus, pauseAudio } from '../../../actions';
 
 import ContentScreen from './components/ContentScreen'
@@ -15,11 +13,12 @@ class StartStoryPage extends React.Component {
     this.displayDesktopLayout = this.displayDesktopLayout.bind(this);
     this.displayMobileLayOut = this.displayMobileLayOut.bind(this);
     this.handleAudioStatus = this.handleAudioStatus.bind(this);
+    this.updateAudioStatus = this.updateAudioStatus.bind(this);
     this.handleShowSubtitleDialog = this.handleShowSubtitleDialog.bind(this);
     this.state = {
       isMobile: false,
       showSubtitle: false,
-      audioStatus: null,
+      audioStatus: 'initial',
       isDisplayContentImage: false
     }
     this.audioNode = new Audio();
@@ -64,6 +63,12 @@ class StartStoryPage extends React.Component {
       }, () => {
         this.audioNode.play()
       })
+    } else if (this.state.audioStatus === 'repeat') {
+      this.audioNode.currentTime = 0;
+      this.audioNode.play();
+      this.setState({
+        audioStatus: 'playing'
+      })
     } else {
       this.setState({
         audioStatus: 'playing',
@@ -71,15 +76,28 @@ class StartStoryPage extends React.Component {
       }, () => {
         this.audioNode.src = this.props.storyContent.scene.story_scene_speakers[0].audio_url;
         this.audioNode.play()
+        this.audioNode.addEventListener("ended", () => {
+          console.log('audio ended')
+          this.setState({
+            audioStatus: 'finished'
+          })
+        })
       })
     }
+  }
+
+  updateAudioStatus(newAudioState) {
+    if (this.state.audioStatus === 'initial') return
+    this.setState({
+      audioStatus: newAudioState
+    }, () => {
+      this.handleAudioStatus()
+    })
   }
 
   handleShowSubtitleDialog() {
     this.setState({
       showSubtitle: !this.state.showSubtitle
-    }, () => {
-      console.log(this.state.showSubtitle)
     })
   }
 
@@ -89,13 +107,13 @@ class StartStoryPage extends React.Component {
       <Grid>
         <Row middle="md">
           <Col md={3} mdOffset={1}>
-            <div className="btn btn-dark-blue">Repeat Audio</div>
+            <div className="btn btn-dark-blue" onClick={() => this.updateAudioStatus('repeat')}>Repeat Audio</div>
           </Col>
           <Col md={4} mdOffset={1}>
-            <div className="btn btn-dark-blue" onClick={this.handleShowSubtitleDialog}>Hide Subtitles</div>
+            <div className={`btn btn-dark-blue ${this.state.showSubtitle ? 'btn-dark-blue-active' : ''}`} onClick={this.handleShowSubtitleDialog}>Hide Subtitles</div>
           </Col>
           <Col md={1}>
-            <div className="btn btn-dark-blue">Restart</div>
+            <div className={"btn btn-dark-blue"}>Restart</div>
           </Col>
           <Col md={1}>
             <div className="btn btn-dark-blue">
@@ -107,6 +125,7 @@ class StartStoryPage extends React.Component {
           <Col md={12}>
             <ContentScreen 
               isDisplayContentImage={this.state.isDisplayContentImage}
+              showSubtitle={this.state.showSubtitle}
               handleAudioStatus={this.handleAudioStatus} 
               storyContent={this.props.storyContent} />
           </Col>
