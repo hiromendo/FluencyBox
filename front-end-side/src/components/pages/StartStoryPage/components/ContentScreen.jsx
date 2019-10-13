@@ -3,10 +3,18 @@ import React from 'react';
 const ContentScreen = props => {
     let imgTag;
     let subTitleText;
-    const { isDisplayContentImage, showSubtitle } = props
+    const { isDisplayContentImage, showSubtitle, micPermissionStatus } = props
     if (props.storyContent.scene) {
       imgTag = props.storyContent.scene.story_scene_speakers[0].image_url;
       subTitleText = props.storyContent.scene.story_scene_speakers[0].audio_text;
+    }
+
+    if (micPermissionStatus === false ) {
+      return (
+        <div id="story-content" >
+          <div>Display a Popup asking user to permit Microphone usage</div>
+      </div>
+      )
     }
 
     return (

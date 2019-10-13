@@ -8,6 +8,8 @@ import ContentScreen from './components/ContentScreen'
 import './StartStoryPage.scss';
 
 class StartStoryPage extends React.Component {
+  /* https://www.robinwieruch.de/react-warning-cant-call-setstate-on-an-unmounted-component */
+  _isMounted = false;
   constructor(props) {
     super(props);
     this.displayDesktopLayout = this.displayDesktopLayout.bind(this);
@@ -19,13 +21,20 @@ class StartStoryPage extends React.Component {
       isMobile: false,
       showSubtitle: false,
       audioStatus: 'initial',
-      isDisplayContentImage: false
+      isDisplayContentImage: false,
+      micPermissionStatus: null
+    }
+    this.constraintObj = {
+      audio: true 
     }
     this.audioNode = new Audio();
+    this.stream = ''
   }
+  
 
   /*TODO: there should be a spinning gif here to indicate the story is being loaded */
-  componentDidMount() {
+  async componentDidMount() {
+    this._isMounted = true;
     const { storyContent } = this.props;
     if (storyContent.isContentFinishedLoaded === false) {
       const { authInfo: { serverResponse: { user }}, uid, routeProps: { history } } = this.props;
@@ -36,9 +45,35 @@ class StartStoryPage extends React.Component {
       }
       this.props.getStoryStarted(payloadObj)
     }
+
+    try {
+      const mediaStreamObj = await navigator.mediaDevices.getUserMedia(this.constraintObj)
+      console.log(mediaStreamObj)
+      console.log('yay')
+      if (this._isMounted) {
+        this.setState({
+          micPermissionStatus: true
+
+        })
+      }
+    } catch(error) {
+      console.error(error)
+      console.error('User has blocked microphone permission');
+      if (this._isMounted) {
+        this.setState({
+          micPermissionStatus: false
+        })
+      }
+    }
+    
   }
     
   componentWillUnmount() {
+    this._isMounted = false;
+    if (this.stream) {
+      this.stream.getTracks()
+      .forEach((track) => track.stop());
+    }
     this.audioNode.pause()
     this.props.removeStoryContents();
     this.props.resetStoryStatus();
@@ -51,6 +86,7 @@ class StartStoryPage extends React.Component {
 
   //TODO: add try/catch error handling here when loading audio file
   handleAudioStatus() {
+    if (!this.state.micPermissionStatus) return
     if (this.state.audioStatus === 'playing') {
       this.setState({
         audioStatus: 'paused'
@@ -126,6 +162,7 @@ class StartStoryPage extends React.Component {
             <ContentScreen 
               isDisplayContentImage={this.state.isDisplayContentImage}
               showSubtitle={this.state.showSubtitle}
+              micPermissionStatus={this.state.micPermissionStatus}
               handleAudioStatus={this.handleAudioStatus} 
               storyContent={this.props.storyContent} />
           </Col>
