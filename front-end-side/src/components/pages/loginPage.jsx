@@ -42,7 +42,7 @@ class LoginPage extends React.Component {
         {this.props.loading ? (
           <div className="react-spinner-container"><ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105} /></div>
         ) : (
-          <div className="login">
+          <div className="login page">
             <div className="container">
               {this.renderAlertMessage()}
               {isLogginActive && <Login />}

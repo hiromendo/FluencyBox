@@ -4,8 +4,22 @@ import { Grid, Row, Col } from 'react-flexbox-grid';
 import { connect } from 'react-redux';
 import { getStoryStarted, removeStoryContents, resetStoryStatus, pauseAudio } from '../../../actions';
 
-import ContentScreen from './components/ContentScreen'
+import ContentScreen from './components/ContentScreen';
 import './StartStoryPage.scss';
+
+//TODO: Handle this more gracefully...
+if (!('webkitSpeechRecognition' in window)) {
+  console.error('does not support API')
+}
+let SpeechRecognition
+SpeechRecognition = SpeechRecognition || window.webkitSpeechRecognition
+const recognition = new SpeechRecognition()
+
+recognition.continous = true;
+recognition.interimResults = true;
+recognition.lang = 'en-US';
+
+
 
 class StartStoryPage extends React.Component {
   /* https://www.robinwieruch.de/react-warning-cant-call-setstate-on-an-unmounted-component */
@@ -17,18 +31,22 @@ class StartStoryPage extends React.Component {
     this.handleAudioStatus = this.handleAudioStatus.bind(this);
     this.updateAudioStatus = this.updateAudioStatus.bind(this);
     this.handleShowSubtitleDialog = this.handleShowSubtitleDialog.bind(this);
+    this.toggleListenSpeechToText = this.toggleListenSpeechToText.bind(this);
+    this.handleListen = this.handleListen.bind(this);
     this.state = {
       isMobile: false,
       showSubtitle: false,
       audioStatus: 'initial',
       isDisplayContentImage: false,
-      micPermissionStatus: null
+      micPermissionStatus: null,
+      isReadyToRecord: false,
+      listeningText: false
     }
     this.constraintObj = {
       audio: true 
     }
     this.audioNode = new Audio();
-    this.stream = ''
+    this.stream = '';
   }
   
 
@@ -49,11 +67,10 @@ class StartStoryPage extends React.Component {
     try {
       const mediaStreamObj = await navigator.mediaDevices.getUserMedia(this.constraintObj)
       console.log(mediaStreamObj)
-      console.log('yay')
+      console.log('permission granted');
       if (this._isMounted) {
         this.setState({
           micPermissionStatus: true
-
         })
       }
     } catch(error) {
@@ -113,9 +130,9 @@ class StartStoryPage extends React.Component {
         this.audioNode.src = this.props.storyContent.scene.story_scene_speakers[0].audio_url;
         this.audioNode.play()
         this.audioNode.addEventListener("ended", () => {
-          console.log('audio ended')
           this.setState({
-            audioStatus: 'finished'
+            audioStatus: 'finished',
+            isReadyToRecord: true
           })
         })
       })
@@ -135,6 +152,48 @@ class StartStoryPage extends React.Component {
     this.setState({
       showSubtitle: !this.state.showSubtitle
     })
+  }
+
+  toggleListenSpeechToText() {
+    this.setState({
+      listeningText: !this.state.listeningText
+    }, this.handleListen)
+  }
+
+  handleListen() {
+    console.log('listening?', this.state.listeningText)
+    if (this.state.listeningText) {
+      recognition.start()
+      recognition.onend = () => {
+        recognition.start()
+        console.log('...listening...')
+      } 
+    } else {
+      recognition.stop();
+      recognition.onend = () => { 
+        console.log('I stopped listening')
+      }
+    }
+    recognition.onstart = () => {
+      console.log("Listening!")
+    }
+
+    recognition.onerror = event => {
+      console.log("Error occurred in recognition: " + event.error)
+    }
+
+    let finalTranscript = ''
+    recognition.onresult = event => {
+      let interimTranscript = ''
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalTranscript += transcript + ' ';
+        else interimTranscript += transcript;
+      }
+      document.getElementById('speech-to-text').innerHTML = interimTranscript
+      document.getElementById('speech-to-text').innerHTML = finalTranscript
+  }
   }
 
   displayDesktopLayout() {
@@ -174,7 +233,7 @@ class StartStoryPage extends React.Component {
           </div>
           </Col>
           <Col md={2} mdOffset={1}>
-            <div className="btn btn-dark-blue">
+            <div onClick={this.toggleListenSpeechToText} className="btn btn-dark-blue">
               Record Button
             </div>
           </Col>
@@ -183,6 +242,9 @@ class StartStoryPage extends React.Component {
               Next Scene
             </div>
           </Col>
+        </Row>
+        <Row>
+          <div id="speech-to-text"></div>
         </Row>
       </Grid>
     )

@@ -99,7 +99,7 @@ class App extends React.Component {
     return (
       <div className="App">
         <header>
-          {location.pathname !== "/login" ? <NavBar logOffUser={this.logOffUser} /> : null}
+          {(location.pathname !== "/login" && location.pathname !=='/resetpassword') ? <NavBar logOffUser={this.logOffUser} /> : null}
         </header>
         {loading ? this.renderSpinnerLoading() :
         <main>
