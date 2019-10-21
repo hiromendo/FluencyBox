@@ -2,8 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Grid, Row, Col } from 'react-flexbox-grid';
 import { connect } from 'react-redux';
-import { getStoryStarted, removeStoryContents, resetStoryStatus, pauseAudio } from '../../../actions';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faMicrophone } from '@fortawesome/free-solid-svg-icons'
 
+import { getStoryStarted, removeStoryContents, resetStoryStatus, pauseAudio } from '../../../actions';
 import ContentScreen from './components/ContentScreen';
 import './StartStoryPage.scss';
 
@@ -19,6 +21,7 @@ recognition.continous = true;
 recognition.interimResults = true;
 recognition.lang = 'en-US';
 
+// let mediaRecorder;
 
 
 class StartStoryPage extends React.Component {
@@ -33,6 +36,7 @@ class StartStoryPage extends React.Component {
     this.handleShowSubtitleDialog = this.handleShowSubtitleDialog.bind(this);
     this.toggleListenSpeechToText = this.toggleListenSpeechToText.bind(this);
     this.handleListen = this.handleListen.bind(this);
+    this.handleAudioRecording = this.handleAudioRecording.bind(this);
     this.state = {
       isMobile: false,
       showSubtitle: false,
@@ -40,13 +44,17 @@ class StartStoryPage extends React.Component {
       isDisplayContentImage: false,
       micPermissionStatus: null,
       isReadyToRecord: false,
-      listeningText: false
+      listeningText: false,
+      mediaStreamObj: null,
+      mediaRecorder: null,
+      audioFile: null
     }
     this.constraintObj = {
       audio: true 
     }
     this.audioNode = new Audio();
     this.stream = '';
+
   }
   
 
@@ -66,11 +74,12 @@ class StartStoryPage extends React.Component {
 
     try {
       const mediaStreamObj = await navigator.mediaDevices.getUserMedia(this.constraintObj)
-      console.log(mediaStreamObj)
-      console.log('permission granted');
       if (this._isMounted) {
         this.setState({
-          micPermissionStatus: true
+          micPermissionStatus: true,
+          mediaStreamObj
+        }, () => {
+          this.handleAudioRecording();
         })
       }
     } catch(error) {
@@ -166,14 +175,17 @@ class StartStoryPage extends React.Component {
       recognition.start()
       recognition.onend = () => {
         recognition.start()
-        console.log('...listening...')
       } 
+      this.state.mediaRecorder.start()
+    
     } else {
       recognition.stop();
       recognition.onend = () => { 
         console.log('I stopped listening')
       }
+      this.state.mediaRecorder.stop()
     }
+
     recognition.onstart = () => {
       console.log("Listening!")
     }
@@ -191,9 +203,44 @@ class StartStoryPage extends React.Component {
         if (event.results[i].isFinal) finalTranscript += transcript + ' ';
         else interimTranscript += transcript;
       }
-      document.getElementById('speech-to-text').innerHTML = interimTranscript
-      document.getElementById('speech-to-text').innerHTML = finalTranscript
+      document.querySelector('#speech-to-text span.word-texts').innerHTML = interimTranscript
+      document.querySelector('#speech-to-text span.word-texts').innerHTML = finalTranscript
+    }
   }
+
+  handleAudioRecording() {
+    if (!this.state.mediaStreamObj) return
+    const mediaRecorder = new MediaRecorder(this.state.mediaStreamObj);
+    let chunks = [];
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) {
+        chunks.push(e.data)
+      }
+    }
+
+    mediaRecorder.onstop = () => {
+      if (chunks && chunks.length > 0) {
+        const audio = document.querySelector('.sound-clips');
+        audio.controls = true;
+        const blob = new Blob(chunks, { type: 'audio/mpeg-3' });
+        const audioURL = window.URL.createObjectURL(blob);
+        audio.src = audioURL;
+        chunks = [];
+
+        let audioFile = new File([blob], 'sample-audio.mp3', {
+          type: 'audio/mp3'
+        });
+
+        this.setState({
+          audioFile
+        })
+
+        audio.play()
+      }
+    }
+
+    this.setState({ mediaRecorder: mediaRecorder });
   }
 
   displayDesktopLayout() {
@@ -233,7 +280,7 @@ class StartStoryPage extends React.Component {
           </div>
           </Col>
           <Col md={2} mdOffset={1}>
-            <div onClick={this.toggleListenSpeechToText} className="btn btn-dark-blue">
+            <div onClick={this.toggleListenSpeechToText} id="btnStartRecord" className="btn btn-dark-blue">
               Record Button
             </div>
           </Col>
@@ -244,7 +291,13 @@ class StartStoryPage extends React.Component {
           </Col>
         </Row>
         <Row>
-          <div id="speech-to-text"></div>
+          <div id="speech-to-text">
+            <FontAwesomeIcon icon={faMicrophone} color="green" />
+            <span className="word-texts"></span>
+          </div>
+        </Row>
+        <Row>
+          <audio className="sound-clips"></audio>
         </Row>
       </Grid>
     )
