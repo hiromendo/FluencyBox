@@ -4,9 +4,9 @@ import os, io
 import boto3
 from fluencybox import app
 from botocore.exceptions import NoCredentialsError
-from fluencybox.config import S3_BUCKET, S3_KEY, S3_SECRET
+from fluencybox.config import S3_BUCKET, S3_KEY, S3_SECRET, SQS_QUEUE_URL, S3_REGION
 import mimetypes
-
+import json
 def get_resource():
     if S3_KEY and S3_SECRET:
         return boto3.resource(
@@ -173,3 +173,31 @@ def generate_public_url(object_type, object_name):
 
     public_url = app.config.get('S3_URL') + object_dir + '/' + object_name
     return public_url
+
+def get_sqs_client():
+    sqs = boto3.client('sqs', aws_access_key_id=S3_KEY, aws_secret_access_key=S3_SECRET, region_name = S3_REGION)
+    return sqs
+
+
+def trigger_sqs(payload):
+    try:
+        resp_dict = {}
+       # Create SQS client
+        sqs = get_sqs_client()
+        
+        # Send message to SQS queue
+        response = sqs.send_message(
+            QueueUrl=SQS_QUEUE_URL, 
+            MessageBody=(payload)
+            )
+
+        print(response['MessageId'])
+
+        resp_dict['status'] = 'success'
+        resp_dict['message'] = 'sqs triggered'
+        return resp_dict
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return resp_dict
