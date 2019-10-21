@@ -74,6 +74,15 @@ def get_paginated_list(page_object, object_type):
                 'genre' : story.genre,
                 'is_demo': story.is_demo
                 })
+        elif object_type == 'report':
+            for report in page_object.items:
+                output.append({
+                    'uid' : report.uid,
+                    'name' : report.user_story.story.name + " speech report",
+                    'uploaded_at' : report.uploaded_at,
+                    'score' : report.score,
+                    'genre' : report.user_story.story.genre
+                })
 
         pagination['has_next'] = page_object.has_next
         pagination['has_prev'] = page_object.has_prev
