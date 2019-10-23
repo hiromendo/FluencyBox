@@ -37,6 +37,8 @@ class StartStoryPage extends React.Component {
     this.toggleListenSpeechToText = this.toggleListenSpeechToText.bind(this);
     this.handleListen = this.handleListen.bind(this);
     this.handleAudioRecording = this.handleAudioRecording.bind(this);
+    this.handleAnalyzingsTextForNextScene = this.handleAnalyzingsTextForNextScene.bind(this);
+    this.handleButtonNextScene = this.handleButtonNextScene.bind(this);
     this.state = {
       isMobile: false,
       showSubtitle: false,
@@ -55,6 +57,7 @@ class StartStoryPage extends React.Component {
     this.audioNode = new Audio();
     this.stream = '';
 
+    this.wordTexts = React.createRef()
   }
   
 
@@ -164,14 +167,15 @@ class StartStoryPage extends React.Component {
   }
 
   toggleListenSpeechToText() {
+    // if (!this.state.isReadyToRecord) return
     this.setState({
       listeningText: !this.state.listeningText
     }, this.handleListen)
   }
 
   handleListen() {
-    console.log('listening?', this.state.listeningText)
     if (this.state.listeningText) {
+      this.wordTexts.current.innerText = '';
       recognition.start()
       recognition.onend = () => {
         recognition.start()
@@ -180,8 +184,10 @@ class StartStoryPage extends React.Component {
     
     } else {
       recognition.stop();
+
       recognition.onend = () => { 
         console.log('I stopped listening')
+        this.handleAnalyzingsTextForNextScene()
       }
       this.state.mediaRecorder.stop()
     }
@@ -203,8 +209,8 @@ class StartStoryPage extends React.Component {
         if (event.results[i].isFinal) finalTranscript += transcript + ' ';
         else interimTranscript += transcript;
       }
-      document.querySelector('#speech-to-text span.word-texts').innerHTML = interimTranscript
-      document.querySelector('#speech-to-text span.word-texts').innerHTML = finalTranscript
+      this.wordTexts.current.innerText = interimTranscript
+      this.wordTexts.current.innerText = finalTranscript
     }
   }
 
@@ -243,8 +249,33 @@ class StartStoryPage extends React.Component {
     this.setState({ mediaRecorder: mediaRecorder });
   }
 
+  handleAnalyzingsTextForNextScene() {
+    const { scene: { scene_keywords, order } } = this.props.storyContent
+    const textValue = this.wordTexts.current.innerText;
+    let correctIdx;
+    scene_keywords.some((x, idx) => {
+      if (textValue.includes(x.keyword)) {
+        correctIdx = idx;
+        return true
+      }
+    })
+
+    if ((correctIdx >= 0) && scene_keywords[correctIdx].next_scene_order === order) {
+      console.log('repeat the scene')
+    } else if (correctIdx >= 0) {
+      console.log('make an HTTP call')
+    } else {
+      console.log('no words found matching')
+    }
+  }
+
+  handleButtonNextScene() {
+    console.log('het')
+  }
+
   displayDesktopLayout() {
     const { uid } = this.props
+    const { listeningText } = this.state
     return (
       <Grid>
         <Row middle="md">
@@ -273,27 +304,19 @@ class StartStoryPage extends React.Component {
               storyContent={this.props.storyContent} />
           </Col>
         </Row>
-        <Row>
-          <Col md={3} mdOffset={1}>
-          <div className="btn btn-dark-blue">
-            Record Again
-          </div>
-          </Col>
-          <Col md={2} mdOffset={1}>
-            <div onClick={this.toggleListenSpeechToText} id="btnStartRecord" className="btn btn-dark-blue">
+
+        <div className="btn-container">
+          <div className="btn">
+            <button onClick={this.toggleListenSpeechToText} id="btnStartRecord" className={`btn-record ${listeningText ? 'Rec' : 'notRec'}`}>
               Record Button
-            </div>
-          </Col>
-          <Col md={3} mdOffset={2}>
-            <div className="btn btn-dark-blue">
-              Next Scene
-            </div>
-          </Col>
-        </Row>
+            </button>
+          </div>
+          <div onClick={this.handleButtonNextScene} className="btn btn-dark-blue">Next Scene</div>
+        </div>
         <Row>
           <div id="speech-to-text">
             <FontAwesomeIcon icon={faMicrophone} color="green" />
-            <span className="word-texts"></span>
+            <span ref={this.wordTexts} className="word-texts"></span>
           </div>
         </Row>
         <Row>
