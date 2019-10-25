@@ -9,7 +9,9 @@ import { loginUserAPI,
   resetPasswordAPI,
   getAllStoriesAPI,
   getStoryData,
-  getStorySceneAPI
+  getStorySceneAPI,
+  getNextSceneAPI,
+  completeStoryAPI
 } from './../util/api'
 
 import {
@@ -23,7 +25,8 @@ import {
   SET_ALL_STORIES,
   REMOVE_CURRENT_USER,
   STORY_CONTENT_LOADED,
-  SET_STORY_CONTENTS
+  SET_STORY_CONTENTS,
+  SET_USER_STORY_ID
  } from '../actions'
 
 export function* getAllStoriesAsync() {
@@ -178,11 +181,13 @@ export function* removeUserAsync() {
 
 export function* getStoryStartedAsync({ payload }) {
   //TODO: you must handle on scenario where story is started first time...
+  console.log(payload)
   yield put({ type: START_LOADING });
   try {
     const serverResponse = yield call(getStoryData, payload);
     if (serverResponse.pending_story) {
       const { user_story_uid, next_scene_order } = serverResponse;
+      yield put({ type: SET_USER_STORY_ID, payload: user_story_uid})
       const { history, story_uid } = payload
       const objPayloadScene = {
         payload: {
@@ -195,6 +200,8 @@ export function* getStoryStartedAsync({ payload }) {
       yield getStoryContentAsync(objPayloadScene)
     } else {
       //TODO: handle situation here
+      const { user_story_uid } = serverResponse;
+      yield put({ type: SET_USER_STORY_ID, payload: user_story_uid})
       yield payload.history.push(`/story/${payload.story_uid}/start`);
       yield put({ type: END_LOADING });
     }
@@ -212,6 +219,34 @@ export function* getStoryContentAsync({ payload }) {
     yield put(({ type: STORY_CONTENT_LOADED }))
     if (payload.history) { yield payload.history.push(`/story/${payload.story_uid}/start`) }
     yield put({ type: SET_STORY_CONTENTS, payload: serverResponse })
+    yield put({ type: END_LOADING });
+  } catch (error) {
+    console.error(error);
+    yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
+    yield put({ type: END_LOADING });
+  }
+}
+
+export function* getNextSceneAsync({ payload }) {
+  yield put({ type: START_LOADING });
+  try {
+    const serverResponse = yield call(getNextSceneAPI, payload); //TODO: why is it loading the story content without this?
+    yield delay(450);
+    yield put({ type: END_LOADING });
+  } catch (error) {
+    console.error(error);
+    yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
+    yield put({ type: END_LOADING });
+  }
+}
+
+export function* completeStoryAsync( { payload }) {
+  yield put({ type: START_LOADING });
+  try {
+    debugger
+    const serverResponse = yield call(completeStoryAPI, payload);
+    console.log(serverResponse, 'this is server response!')
+    yield delay(450);
     yield put({ type: END_LOADING });
   } catch (error) {
     console.error(error);

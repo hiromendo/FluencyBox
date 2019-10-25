@@ -31,11 +31,15 @@ export const GET_STORY_CONTENTS = 'GET_STORY_CONTENTS';
 export const SET_STORY_CONTENTS = 'SET_STORY_CONTENTS';
 export const REMOVE_STORY_CONTENTS = 'REMOVE_STORY_CONTENTS';
 export const STORY_CONTENT_LOADED = 'STORY_CONTENT_LOADED';
+export const SET_USER_STORY_ID = 'SET_USER_STORY_ID';
 
 export const RESET_STORY_STATUS = 'RESET_STORY_STATUS';
 export const AUDIO_PLAY = 'AUDIO_PLAY';
 export const PAUSE_AUDIO = 'PAUSE_AUDIO';
 export const UPDATE_STATUS_SUBTITLE = 'UPDATE_STATUS_SUBTITLE';
+
+export const GET_NEXT_SCENE_ASYNC = 'GET_NEXT_SCENE_ASYNC'
+export const COMPLETE_STORY = 'COMPLETE_STORY'
 
 export const startLoading = () => ({
   type: START_LOADING
@@ -166,5 +170,16 @@ export const pauseAudio = () => ({
 
 export const updateSubtitleDisplay = payload => ({
   type: UPDATE_STATUS_SUBTITLE,
+  payload
+})
+
+///////////////////////////////////
+export const getAsyncNextScene = payload => ({
+  type: GET_NEXT_SCENE_ASYNC,
+  payload
+})
+
+export const completeStory = payload => ({
+  type: COMPLETE_STORY,
   payload
 })

@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMicrophone } from '@fortawesome/free-solid-svg-icons'
 
-import { getStoryStarted, removeStoryContents, resetStoryStatus, pauseAudio } from '../../../actions';
+import { getStoryStarted, removeStoryContents, resetStoryStatus, pauseAudio, getAsyncNextScene, getStoryContents, completeStory } from '../../../actions';
 import ContentScreen from './components/ContentScreen';
 import './StartStoryPage.scss';
 
@@ -21,9 +21,6 @@ recognition.continous = true;
 recognition.interimResults = true;
 recognition.lang = 'en-US';
 
-// let mediaRecorder;
-
-
 class StartStoryPage extends React.Component {
   /* https://www.robinwieruch.de/react-warning-cant-call-setstate-on-an-unmounted-component */
   _isMounted = false;
@@ -31,7 +28,7 @@ class StartStoryPage extends React.Component {
     super(props);
     this.displayDesktopLayout = this.displayDesktopLayout.bind(this);
     this.displayMobileLayOut = this.displayMobileLayOut.bind(this);
-    this.handleAudioStatus = this.handleAudioStatus.bind(this);
+    this.handleContentAudioStatus = this.handleContentAudioStatus.bind(this);
     this.updateAudioStatus = this.updateAudioStatus.bind(this);
     this.handleShowSubtitleDialog = this.handleShowSubtitleDialog.bind(this);
     this.toggleListenSpeechToText = this.toggleListenSpeechToText.bind(this);
@@ -49,7 +46,8 @@ class StartStoryPage extends React.Component {
       listeningText: false,
       mediaStreamObj: null,
       mediaRecorder: null,
-      audioFile: null
+      audioFile: null,
+      requestNextSceneOrder: null
     }
     this.constraintObj = {
       audio: true 
@@ -114,11 +112,12 @@ class StartStoryPage extends React.Component {
   }
 
   //TODO: add try/catch error handling here when loading audio file
-  handleAudioStatus() {
+  handleContentAudioStatus() {
     if (!this.state.micPermissionStatus) return
     if (this.state.audioStatus === 'playing') {
       this.setState({
-        audioStatus: 'paused'
+        audioStatus: 'paused',
+        isReadyToRecord: false
       }, () => {
         this.audioNode.pause()
       })
@@ -132,7 +131,8 @@ class StartStoryPage extends React.Component {
       this.audioNode.currentTime = 0;
       this.audioNode.play();
       this.setState({
-        audioStatus: 'playing'
+        audioStatus: 'playing',
+        isReadyToRecord: false
       })
     } else {
       this.setState({
@@ -156,7 +156,7 @@ class StartStoryPage extends React.Component {
     this.setState({
       audioStatus: newAudioState
     }, () => {
-      this.handleAudioStatus()
+      this.handleContentAudioStatus()
     })
   }
 
@@ -167,7 +167,10 @@ class StartStoryPage extends React.Component {
   }
 
   toggleListenSpeechToText() {
-    // if (!this.state.isReadyToRecord) return
+    const { storyContent: { scene } } = this.props;
+    const keywords = scene.scene_keywords;
+    if (!this.state.isReadyToRecord) return
+    if (!keywords.length) return 
     this.setState({
       listeningText: !this.state.listeningText
     }, this.handleListen)
@@ -215,6 +218,7 @@ class StartStoryPage extends React.Component {
   }
 
   handleAudioRecording() {
+    const { authInfo: { serverResponse: { user }}, storyContent: { scene }} = this.props
     if (!this.state.mediaStreamObj) return
     const mediaRecorder = new MediaRecorder(this.state.mediaStreamObj);
     let chunks = [];
@@ -234,7 +238,7 @@ class StartStoryPage extends React.Component {
         audio.src = audioURL;
         chunks = [];
 
-        let audioFile = new File([blob], 'sample-audio.mp3', {
+        let audioFile = new File([blob], `${user.first_name}-${user.uid}-${scene.uid}.mp3`, {
           type: 'audio/mp3'
         });
 
@@ -263,6 +267,9 @@ class StartStoryPage extends React.Component {
     if ((correctIdx >= 0) && scene_keywords[correctIdx].next_scene_order === order) {
       console.log('repeat the scene')
     } else if (correctIdx >= 0) {
+      this.setState({
+        requestNextSceneOrder: scene_keywords[correctIdx].next_scene_order
+      })
       console.log('make an HTTP call')
     } else {
       console.log('no words found matching')
@@ -270,7 +277,34 @@ class StartStoryPage extends React.Component {
   }
 
   handleButtonNextScene() {
-    console.log('het')
+    const { requestNextSceneOrder } = this.state;
+    const { storyContent, storyStatus } = this.props
+    const keywords = storyContent.scene.scene_keywords;
+    if (keywords.length) {
+      const textValue = this.wordTexts.current.innerText;
+      const data = new FormData();
+      data.append('user_story_uid', storyStatus.userStoryID);
+      data.append('user_audio', this.state.audioFile);
+      data.append('audio_text', textValue);
+      data.append('story_scene_speaker_id', storyContent.scene.story_scene_speakers[0].id);
+      data.append('next_scene_order', requestNextSceneOrder);
+  
+      this.props.getAsyncNextScene(data)
+    } else if (!keywords.length && storyContent.scene.next_scene_order)  {
+      //if there is no keywords but theres next scene, move on to next scene provided by server response
+      const objPayload = {
+        next_scene_order: storyContent.scene.next_scene_order,
+        story_uid: storyContent.scene.uid,
+        user_story_uid: storyStatus.userStoryID
+      }
+      this.props.getStoryContents(objPayload)
+    } else {
+      console.log('the end')
+      const objPayload = {
+        user_story_uid: storyStatus.userStoryID
+      }
+      this.props.completeStory(objPayload)
+    }
   }
 
   displayDesktopLayout() {
@@ -300,7 +334,7 @@ class StartStoryPage extends React.Component {
               isDisplayContentImage={this.state.isDisplayContentImage}
               showSubtitle={this.state.showSubtitle}
               micPermissionStatus={this.state.micPermissionStatus}
-              handleAudioStatus={this.handleAudioStatus} 
+              handleContentAudioStatus={this.handleContentAudioStatus} 
               storyContent={this.props.storyContent} />
           </Col>
         </Row>
@@ -369,9 +403,9 @@ class StartStoryPage extends React.Component {
   }
 }
 
-const mapStateToProps = ({ storiesInfo, authInfo, storyContent, storyStatus }) => ({
-  storiesInfo,
+const mapStateToProps = ({ authInfo, storiesInfo, storyContent, storyStatus }) => ({
   authInfo,
+  storiesInfo,
   storyContent,
   storyStatus
 })
@@ -380,7 +414,10 @@ const mapDispatchToProps = {
   getStoryStarted,
   removeStoryContents,
   resetStoryStatus,
-  pauseAudio
+  pauseAudio,
+  getAsyncNextScene,
+  getStoryContents,
+  completeStory
 }
 
 

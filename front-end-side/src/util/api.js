@@ -214,6 +214,7 @@ export const updatePassWordAPI = request => {
 
 export const updateProfilePictureAPI = request => {
   const { uid, data } = request;
+  console.log(data, 'this is data')
   try {
     const UPDATE_PROFILE_PIC_ENDPOINT = `${BASE_URL}/users/${uid}/profile_picture`;
     const jwtToken = localStorage.getItem('access_token');
@@ -376,5 +377,70 @@ export const getStorySceneAPI = request => {
   } catch (error) {
       console.error(error);
       throw Error(error);
+  }
+}
+
+export const getNextSceneAPI = request => {
+  try {
+    const USER_RESPONSE_NEXT_SCENE_ENDPOINT = `${BASE_URL}/user_response`;
+    const jwtToken = localStorage.getItem('access_token');
+    let headers = new Headers();
+    headers.set('x-access-token', jwtToken);
+    headers.set('Accept', 'x-www-form-urlencoded');
+
+    const parameters = {
+      method: 'POST',
+      headers,
+      body: request
+    }
+
+    return fetch(USER_RESPONSE_NEXT_SCENE_ENDPOINT, parameters)
+    .then(response => {
+      switch (response.status) {
+        case 400: {
+          return response.json().then(data => {
+            return Promise.reject(`${data.message}`)
+          })
+        }
+        default: 
+          return response.json();
+      }
+    })
+  } catch (error) {
+    console.error(error);
+    throw Error(error)
+  }
+}
+
+export const completeStoryAPI = request => {
+  try {
+    const COMPLETE_STORY_ENDPOINT = `${BASE_URL}/complete_story`;
+    const jwtToken = localStorage.getItem('access_token');
+    let headers = new Headers();
+    headers.set('x-access-token', jwtToken);
+    headers.set('Accept', 'application/json');
+    headers.set('Content-Type', 'application/json; charset=UTF-8');
+
+    const parameters = {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(request)
+    }
+
+    return fetch(COMPLETE_STORY_ENDPOINT, parameters)
+    .then(response => {
+      switch (response.status) {
+        case 400: {
+          return response.json().then(data => {
+            return Promise.reject(`${data.message}`)
+          })
+        }
+        default: 
+          return response.json();
+      }
+    })
+  } catch (error) {
+    console.error(error);
+    throw Error(error)
   }
 }

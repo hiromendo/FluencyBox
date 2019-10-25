@@ -18,7 +18,7 @@ const ContentScreen = props => {
     }
 
     return (
-      <div id="story-content" onClick={props.handleAudioStatus}>
+      <div id="story-content" onClick={props.handleContentAudioStatus}>
         {showSubtitle ? <div className="subtitle-caption">{subTitleText}</div> : null }
         {isDisplayContentImage ? <img src={imgTag} alt="content screen" /> : <div>Click here to start</div>}
       </div>

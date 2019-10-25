@@ -11,7 +11,9 @@ import { getLoginAsync,
   getAllStoriesAsync,
   removeUserAsync,
   getStoryStartedAsync,
-  getStoryContentAsync
+  getStoryContentAsync,
+  getNextSceneAsync,
+  completeStoryAsync
 } from './authenticationSaga';
 
 import * as types from './../actions';
@@ -29,6 +31,8 @@ function* actionWatcher() {
   yield takeLatest(types.REMOVE_CURRENT_USER_ASYNC, removeUserAsync);
   yield takeLatest(types.GET_STORY_STARTED, getStoryStartedAsync);
   yield takeLatest(types.GET_STORY_CONTENTS, getStoryContentAsync);
+  yield takeLatest(types.GET_NEXT_SCENE_ASYNC, getNextSceneAsync);
+  yield takeLatest(types.COMPLETE_STORY, completeStoryAsync);
 }
 
 export default function* rootSaga() {
