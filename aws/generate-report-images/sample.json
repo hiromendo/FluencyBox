@@ -1,0 +1,41 @@
+{
+    "s3_bucket": "fluencybox-dev",
+    "report_uid": "ABC123",
+    "callback_url": "",
+    "user_story_uid": "abcde12345",
+    "story_scene_responses": [
+        {
+            "story_scene_speaker_id": 3,
+            "master": {
+                "audio_filename": "master_response_audio/_temp_3.m4a",
+                "audio_text": "Great! I cannot wait to get to know both of you. How are you guys doing?"
+            },
+            "user": {
+                "audio_filename": "user_response_audio/_temp_3.m4a",
+                "story_scene_user_response_id": 3
+            }
+        },
+        {
+            "story_scene_speaker_id": 4,
+            "master": {
+                "audio_filename": "master_response_audio/_temp_4.m4a",
+                "audio_text": "Alright, well, let's start!"
+            },
+            "user": {
+                "audio_filename": "user_response_audio/_temp_4.m4a",
+                "story_scene_user_response_id": 4
+            }
+        },
+        {
+            "story_scene_speaker_id": 7,
+            "master": {
+                "audio_filename": "master_response_audio/_temp_7.m4a",
+                "audio_text": "Why do you want this job?"
+            },
+            "user": {
+                "audio_filename": "user_response_audio/_temp_7.m4a",
+                "story_scene_user_response_id": 7
+            }
+        }
+    ]
+}
