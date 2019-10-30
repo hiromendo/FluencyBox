@@ -3,10 +3,10 @@ import React from 'react';
 const ContentScreen = props => {
     let imgTag;
     let subTitleText;
-    const { isDisplayContentImage, showSubtitle, micPermissionStatus } = props
+    const { isDisplayContentImage, showSubtitle, micPermissionStatus, audioIdx } = props
     if (props.storyContent.scene) {
-      imgTag = props.storyContent.scene.story_scene_speakers[0].image_url;
-      subTitleText = props.storyContent.scene.story_scene_speakers[0].audio_text;
+      imgTag = props.storyContent.scene.story_scene_speakers[audioIdx].image_url;
+      subTitleText = props.storyContent.scene.story_scene_speakers[audioIdx].audio_text;
     }
 
     if (micPermissionStatus === false ) {

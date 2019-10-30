@@ -36,6 +36,8 @@ class StartStoryPage extends React.Component {
     this.handleAudioRecording = this.handleAudioRecording.bind(this);
     this.handleAnalyzingsTextForNextScene = this.handleAnalyzingsTextForNextScene.bind(this);
     this.handleButtonNextScene = this.handleButtonNextScene.bind(this);
+    this.handleAudioSequences = this.handleAudioSequences.bind(this);
+    this.playSpeakersAudio = this.playSpeakersAudio.bind(this);
     this.state = {
       isMobile: false,
       showSubtitle: false,
@@ -47,15 +49,15 @@ class StartStoryPage extends React.Component {
       mediaStreamObj: null,
       mediaRecorder: null,
       audioFile: null,
-      requestNextSceneOrder: null
+      requestNextSceneOrder: null,
+      audioIdx: 0
     }
     this.constraintObj = {
       audio: true 
     }
     this.audioNode = new Audio();
     this.stream = '';
-
-    this.wordTexts = React.createRef()
+    this.wordTexts = React.createRef();
   }
   
 
@@ -139,14 +141,21 @@ class StartStoryPage extends React.Component {
         audioStatus: 'playing',
         isDisplayContentImage: true
       }, () => {
-        this.audioNode.src = this.props.storyContent.scene.story_scene_speakers[0].audio_url;
-        this.audioNode.play()
-        this.audioNode.addEventListener("ended", () => {
-          this.setState({
-            audioStatus: 'finished',
-            isReadyToRecord: true
-          })
-        })
+        // const arrSceneSpeakers = this.props.storyContent.scene.story_scene_speakers;
+        // console.log(arrSceneSpeakers, '<== arrSceneSpeakersObj')
+        // let idx = 0;
+        // this.audioNode.src = this.props.storyContent.scene.story_scene_speakers[idx].audio_url;
+        // this.audioNode.play()
+
+        this.handleAudioSequences()
+        // this.audioNode.src = this.props.storyContent.scene.story_scene_speakers[0].audio_url;
+        // this.audioNode.play()
+        // this.audioNode.addEventListener("ended", () => {
+        //   this.setState({
+        //     audioStatus: 'finished',
+        //     isReadyToRecord: true
+        //   })
+        // })
       })
     }
   }
@@ -307,6 +316,31 @@ class StartStoryPage extends React.Component {
     }
   }
 
+  handleAudioSequences() {
+    this.playSpeakersAudio(this.props.storyContent.scene.story_scene_speakers[this.state.audioIdx])
+  }
+
+  playSpeakersAudio(speaker) {
+    this.audioNode.src = speaker.audio_url;
+    this.audioNode.addEventListener("ended", () => {
+      if (this.state.audioIdx >= this.props.storyContent.scene.story_scene_speakers.length - 1) {
+        this.setState({
+          audioStatus: 'finished',
+          isReadyToRecord: true,
+        })
+      } else {
+        this.setState({
+          audioIdx: this.state.audioIdx + 1
+        }, () => {
+          this.playSpeakersAudio(this.props.storyContent.scene.story_scene_speakers[this.state.audioIdx])
+        })
+      }
+      
+    })
+    this.audioNode.play()
+    
+  }
+
   displayDesktopLayout() {
     const { uid } = this.props
     const { listeningText } = this.state
@@ -334,7 +368,8 @@ class StartStoryPage extends React.Component {
               isDisplayContentImage={this.state.isDisplayContentImage}
               showSubtitle={this.state.showSubtitle}
               micPermissionStatus={this.state.micPermissionStatus}
-              handleContentAudioStatus={this.handleContentAudioStatus} 
+              handleContentAudioStatus={this.handleContentAudioStatus}
+              audioIdx={this.state.audioIdx}
               storyContent={this.props.storyContent} />
           </Col>
         </Row>

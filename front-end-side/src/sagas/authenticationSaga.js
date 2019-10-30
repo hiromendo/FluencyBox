@@ -231,7 +231,6 @@ export function* getNextSceneAsync({ payload }) {
   yield put({ type: START_LOADING });
   try {
     const serverResponse = yield call(getNextSceneAPI, payload); //TODO: why is it loading the story content without this?
-    yield delay(450);
     yield put({ type: END_LOADING });
   } catch (error) {
     console.error(error);
