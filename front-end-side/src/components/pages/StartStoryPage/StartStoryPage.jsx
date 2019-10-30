@@ -130,32 +130,21 @@ class StartStoryPage extends React.Component {
         this.audioNode.play()
       })
     } else if (this.state.audioStatus === 'repeat') {
-      this.audioNode.currentTime = 0;
-      this.audioNode.play();
+      // this.audioNode.currentTime = 0;
+      // this.audioNode.play();
       this.setState({
         audioStatus: 'playing',
-        isReadyToRecord: false
+        isReadyToRecord: false,
+        audioIdx: 0
+      }, () => {
+        this.handleAudioSequences()
       })
     } else {
       this.setState({
         audioStatus: 'playing',
         isDisplayContentImage: true
       }, () => {
-        // const arrSceneSpeakers = this.props.storyContent.scene.story_scene_speakers;
-        // console.log(arrSceneSpeakers, '<== arrSceneSpeakersObj')
-        // let idx = 0;
-        // this.audioNode.src = this.props.storyContent.scene.story_scene_speakers[idx].audio_url;
-        // this.audioNode.play()
-
         this.handleAudioSequences()
-        // this.audioNode.src = this.props.storyContent.scene.story_scene_speakers[0].audio_url;
-        // this.audioNode.play()
-        // this.audioNode.addEventListener("ended", () => {
-        //   this.setState({
-        //     audioStatus: 'finished',
-        //     isReadyToRecord: true
-        //   })
-        // })
       })
     }
   }
