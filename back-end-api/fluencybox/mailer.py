@@ -19,3 +19,17 @@ To reset your password, please visit the below link:
 If you did not make this request then simply ignore this email and no changes will be made.
 '''
     mail.send(msg)
+
+def send_report_complete_email(user, story, report_uid):
+    
+    msg = Message('Fluency Box Report Complete',
+                  sender=('Fluency Box', 'fluencybox19@gmail.com'),
+                  recipients=[user.email_address])
+    msg.body = f'''Dear {user.first_name}, 
+    
+    We have completed our analysis of the story you completed ({ story.name }).
+    Kindly log into your Fluency Box account to view your report.
+   
+'''
+    mail.send(msg)
+
