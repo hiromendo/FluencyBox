@@ -47,7 +47,7 @@ def token_required(f):
         
         try:
             payload = jwt.decode(access_token, app.config.get('SECRET_KEY'))
-            #current_user = User.query.filter_by(uid = payload['uid']).first()
+            
             if payload['token_type'] != 'access_token':
                 resp_dict['status'] = 'fail'
                 resp_dict['message'] = 'Token is invalid'
@@ -109,35 +109,6 @@ def admin_required(f):
     return decorated
 
 
-#Get all users - paginate using page = 1 and per_page = 10 args in the URL - Admin Only
-@app.route('/users',methods=['GET'])
-@token_required
-@admin_required
-def get_all_users():
-    try:
-        resp_dict = {}
-        
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
-        user_list = User.query.paginate(page = page, per_page = per_page)
-        
-        paginated_list = get_paginated_list(user_list, 'user')
-
-        if paginated_list['status'] == 'success':
-            resp_dict['status'] = 'success'
-            resp_dict['users'] = paginated_list['paginated_list']
-            resp_dict['pagination'] = paginated_list['pagination']
-            return jsonify(resp_dict), 200
-        else:
-            resp_dict['status'] = 'fail'
-            resp_dict['message'] = paginated_list['message']
-            return jsonify(resp_dict), 500
-
-    except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return jsonify(resp_dict), 500
-        
 #Changed after PR1 - uid'
 #Get a specific user
 @app.route('/users/<uid>',methods=['GET'])
@@ -151,6 +122,12 @@ def get_single_user(uid):
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No user found'
             return jsonify(resp_dict),404
+        
+        if user.is_admin == 1:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'Admin access only'
+            return jsonify(resp_dict),404
+
         users_schema = User_Schema()
         user_data = users_schema.dump(user).data
 
@@ -678,7 +655,6 @@ def reset_password():
         return jsonify(resp_dict), 500
 
 #Story Routes
-
 #Get all stories - paginate using page = 1 and per_page = 10 args in the URL
 @app.route('/story',methods=['GET'])
 @token_required
@@ -770,47 +746,6 @@ def get_filtered_story():
             resp_dict['status'] = 'fail'
             resp_dict['message'] = paginated_list['message']
             return jsonify(resp_dict), 500
-
-    except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return jsonify(resp_dict), 500
-
-#Admin Only
-@app.route('/upload_story', methods=['POST'])
-@token_required
-@admin_required
-def upload_story():
-    try:
-        resp_dict = {}
-
-        if 'story_zip' not in request.files:
-            resp_dict['status'] = 'fail'
-            resp_dict['message'] = 'No zip file found'
-            return jsonify(resp_dict), 400
-
-        if 'story_json' not in request.files:
-            resp_dict['status'] = 'fail'
-            resp_dict['message'] = 'No JSON file found'
-            return jsonify(resp_dict), 400
-
-        upload_json_response = upload_story_json(request.files['story_json'])
-        if upload_json_response['status'] != 'success':
-            resp_dict['status'] = 'fail'
-            resp_dict['message'] = upload_json_response['message']
-            return jsonify(resp_dict), 500
-        media_dict = upload_json_response['media_dict']
-
-        upload_zip_response = upload_story_zip(request.files['story_zip'], media_dict)
-        if upload_zip_response['status'] != 'success':
-            resp_dict['status'] = 'fail'
-            resp_dict['message'] = upload_zip_response['message']
-            return jsonify(resp_dict), 500
-        
-
-        resp_dict['status'] = 'success'
-        resp_dict['message'] = 'story content uploaded successfully'
-        return jsonify(resp_dict), 201
 
     except Exception as e:
         resp_dict['status'] = 'fail'
@@ -1052,7 +987,7 @@ def complete_story():
         sqs_payload = {}
         sqs_payload['s3_bucket'] = app.config.get('S3_BUCKET')
         sqs_payload['report_uid'] = report_uid
-        sqs_payload['callback_url'] = url_for('reports', uid = ':uid', api_key = 'API_KEY', _external=True)
+        sqs_payload['callback_url'] = url_for('reports', uid = report_uid, api_key = app.config.get('S3_KEY'), _external=True)
         sqs_payload['user_story_uid'] = story_data['user_story_uid'].strip()
         
         #Get 'specific_response' scenes for this story
@@ -1074,10 +1009,11 @@ def complete_story():
 
                     story_scene_responses.append(data_dict)
 
-        sqs_payload = json.dumps(story_scene_responses)
-        trigger_sqs(sqs_payload)
+        sqs_payload['story_scene_responses'] = story_scene_responses #json.dumps(story_scene_responses)
+        #Send ECS command to run a task
 
-        resp_dict['status'] = 'success'
+        #resp_dict['status'] = 'success'
+        resp_dict['sqs_payload'] = sqs_payload
         return jsonify(resp_dict), 200
     except Exception as e:
         resp_dict['status'] = 'fail'
@@ -1103,8 +1039,8 @@ def reports(uid):
                 _, filename = image_data['image_filename'].strip().split('/',1)
                 new_report_images = Report_Images(report_id = my_report.id, filename = filename, scene_user_response_id = image_data['story_scene_user_response_id'], image_type = image_data['image_type'].strip())
                 db.session.add(new_report_images)
-                db.session.commit()
-                
+            db.session.commit()
+            
             #Send Email
             user_story = User_Story.query.filter_by(uid = report_data['user_story_uid'].strip()).first()
             user = User.query.filter_by(id = user_story.user_id).first()
@@ -1116,6 +1052,7 @@ def reports(uid):
             resp_dict['message'] = 'invalid key'
             return jsonify(resp_dict), 401
 
+        resp_dict['status'] = 'success'
         return jsonify(resp_dict), 200
     except Exception as e:
         resp_dict['status'] = 'fail'
@@ -1252,3 +1189,111 @@ def user_purchase():
         resp_dict['status'] = 'fail'
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
+
+#Admin Only End points
+#Get all F.E users - paginate using page = 1 and per_page = 10 args in the URL - Admin Only
+@app.route('/users',methods=['GET'])
+@token_required
+@admin_required
+def get_all_users():
+    try:
+        resp_dict = {}
+        
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        is_admin = request.args.get('is_admin', 'false', type=str)
+        if is_admin == 'true':
+            is_admin = 1
+        else:
+            is_admin = 0
+        
+        user_list = User.query.filter(User.is_admin == is_admin).paginate(page = page, per_page = per_page)
+        
+        paginated_list = get_paginated_list(user_list, 'user')
+
+        if paginated_list['status'] == 'success':
+            resp_dict['status'] = 'success'
+            resp_dict['users'] = paginated_list['paginated_list']
+            resp_dict['pagination'] = paginated_list['pagination']
+            return jsonify(resp_dict), 200
+        else:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = paginated_list['message']
+            return jsonify(resp_dict), 500
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+#Get a specific admin
+@app.route('/users/<uid>/admin',methods=['GET'])
+@token_required
+@admin_required
+def get_admin_user(uid):
+    try:
+        resp_dict = {}
+        user = User.query.filter_by(uid = uid).first()
+        
+        if not user:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No admin found'
+            return jsonify(resp_dict),404
+
+        if user.is_admin == 0:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'User not admin'
+            return jsonify(resp_dict),404
+        users_schema = User_Schema()
+        user_data = users_schema.dump(user).data
+
+        resp_dict['status'] = 'success'
+        resp_dict['user'] = user_data
+        
+        return jsonify(resp_dict)
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+
+@app.route('/upload_story', methods=['POST'])
+@token_required
+@admin_required
+def upload_story():
+    try:
+        resp_dict = {}
+
+        if 'story_zip' not in request.files:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No zip file found'
+            return jsonify(resp_dict), 400
+
+        if 'story_json' not in request.files:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No JSON file found'
+            return jsonify(resp_dict), 400
+
+        upload_json_response = upload_story_json(request.files['story_json'])
+        if upload_json_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = upload_json_response['message']
+            return jsonify(resp_dict), 500
+        media_dict = upload_json_response['media_dict']
+
+        upload_zip_response = upload_story_zip(request.files['story_zip'], media_dict)
+        if upload_zip_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = upload_zip_response['message']
+            return jsonify(resp_dict), 500
+        
+        resp_dict['status'] = 'success'
+        resp_dict['message'] = 'story content uploaded successfully'
+        return jsonify(resp_dict), 201
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+
