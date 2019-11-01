@@ -55,7 +55,8 @@ class StartStoryPage extends Component {
       requestNextSceneOrder: null,
       audioArray: [],
       audioIdx: 0,
-      audioNode: new Audio()
+      audioNode: new Audio(),
+      sceneKeyWords: []
     }
     this.constraintObj = {
       audio: true 
@@ -79,11 +80,13 @@ class StartStoryPage extends Component {
     }
 
     try {
+      const { storyContent: { scene } } = this.props
       const mediaStreamObj = await navigator.mediaDevices.getUserMedia(this.constraintObj)
       if (this._isMounted) {
         this.setState({
           micPermissionStatus: true,
-          mediaStreamObj
+          mediaStreamObj,
+          sceneKeyWords: scene.scene_keywords
         }, () => {
           this.handleAudioRecording();
           this.handleSettingAudioNodesArray()
@@ -359,7 +362,8 @@ class StartStoryPage extends Component {
 
   displayDesktopLayout() {
     const { uid } = this.props
-    const { listeningText } = this.state
+    const { listeningText, sceneKeyWords } = this.state;
+    const isKeyWordsAvailable = sceneKeyWords.length > 0;
     return (
       <Grid>
         <Row middle="md">
@@ -392,7 +396,7 @@ class StartStoryPage extends Component {
         </Row>
 
         <div className="btn-container">
-          <div className="btn">
+          <div className={`btn ${isKeyWordsAvailable ? '' : 'hide' }`}>
             <button onClick={this.toggleListenSpeechToText} id="btnStartRecord" className={`btn-record ${listeningText ? 'Rec' : 'notRec'}`}>
               Record Button
             </button>

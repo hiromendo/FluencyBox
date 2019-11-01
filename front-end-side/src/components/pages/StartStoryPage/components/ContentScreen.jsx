@@ -8,7 +8,7 @@ const ContentScreen = props => {
     if (props.storyContent.scene) {
       imgTag = props.storyContent.scene.story_scene_speakers[audioIdx].image_url;
       subTitleText = props.storyContent.scene.story_scene_speakers[audioIdx].audio_text;
-      promptText = props.storyContent.scene.story_scene_speakers[audioIdx].prompt;
+      promptText = props.storyContent.scene.story_scene_speakers[audioIdx].prompt || 'Click Next Scene';
     }
 
     if (micPermissionStatus === false ) {
