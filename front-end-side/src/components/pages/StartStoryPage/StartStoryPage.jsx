@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { Grid, Row, Col } from 'react-flexbox-grid';
 import { connect } from 'react-redux';
@@ -21,7 +21,7 @@ recognition.continous = true;
 recognition.interimResults = true;
 recognition.lang = 'en-US';
 
-class StartStoryPage extends React.Component {
+class StartStoryPage extends Component {
   /* https://www.robinwieruch.de/react-warning-cant-call-setstate-on-an-unmounted-component */
   _isMounted = false;
   constructor(props) {
@@ -36,11 +36,14 @@ class StartStoryPage extends React.Component {
     this.handleAudioRecording = this.handleAudioRecording.bind(this);
     this.handleAnalyzingsTextForNextScene = this.handleAnalyzingsTextForNextScene.bind(this);
     this.handleButtonNextScene = this.handleButtonNextScene.bind(this);
-    this.handleAudioSequences = this.handleAudioSequences.bind(this);
-    this.playSpeakersAudio = this.playSpeakersAudio.bind(this);
+    this.handleSettingAudioNodesArray = this.handleSettingAudioNodesArray.bind(this);
+    this.startAudioSequences = this.startAudioSequences.bind(this);
+    this.playAudio = this.playAudio.bind(this);
+    this.callBackAudio = this.callBackAudio.bind(this);
     this.state = {
       isMobile: false,
       showSubtitle: false,
+      showPrompt: false,
       audioStatus: 'initial',
       isDisplayContentImage: false,
       micPermissionStatus: null,
@@ -50,16 +53,16 @@ class StartStoryPage extends React.Component {
       mediaRecorder: null,
       audioFile: null,
       requestNextSceneOrder: null,
-      audioIdx: 0
+      audioArray: [],
+      audioIdx: 0,
+      audioNode: new Audio()
     }
     this.constraintObj = {
       audio: true 
     }
-    this.audioNode = new Audio();
     this.stream = '';
     this.wordTexts = React.createRef();
   }
-  
 
   /*TODO: there should be a spinning gif here to indicate the story is being loaded */
   async componentDidMount() {
@@ -83,6 +86,7 @@ class StartStoryPage extends React.Component {
           mediaStreamObj
         }, () => {
           this.handleAudioRecording();
+          this.handleSettingAudioNodesArray()
         })
       }
     } catch(error) {
@@ -94,7 +98,6 @@ class StartStoryPage extends React.Component {
         })
       }
     }
-    
   }
     
   componentWillUnmount() {
@@ -103,9 +106,23 @@ class StartStoryPage extends React.Component {
       this.stream.getTracks()
       .forEach((track) => track.stop());
     }
-    this.audioNode.pause()
+    this.state.audioNode.pause()
     this.props.removeStoryContents();
     this.props.resetStoryStatus();
+  }
+
+  handleSettingAudioNodesArray() {
+    const arrPlaceHolder = [];
+    const arrayObjSceneSpeakers = this.props.storyContent.scene.story_scene_speakers;
+    arrayObjSceneSpeakers.forEach( speakerSceneObj => {
+      const audioNode = new Audio();
+      audioNode.src = speakerSceneObj.audio_url
+      arrPlaceHolder.push(audioNode)
+    })
+
+    this.setState({
+      audioArray: arrPlaceHolder
+    })
   }
   
   throttledHandleWindowResize = () => {
@@ -121,30 +138,30 @@ class StartStoryPage extends React.Component {
         audioStatus: 'paused',
         isReadyToRecord: false
       }, () => {
-        this.audioNode.pause()
+        this.state.audioNode.pause()
       })
     } else if (this.state.audioStatus === 'paused') {
       this.setState({
         audioStatus: 'playing'
       }, () => {
-        this.audioNode.play()
+        this.state.audioNode.play()
       })
     } else if (this.state.audioStatus === 'repeat') {
-      // this.audioNode.currentTime = 0;
-      // this.audioNode.play();
       this.setState({
         audioStatus: 'playing',
         isReadyToRecord: false,
-        audioIdx: 0
+        audioIdx: 0,
+        showPrompt: false
       }, () => {
-        this.handleAudioSequences()
+        this.startAudioSequences()
       })
     } else {
       this.setState({
         audioStatus: 'playing',
-        isDisplayContentImage: true
+        isDisplayContentImage: true,
+        showPrompt: false
       }, () => {
-        this.handleAudioSequences()
+        this.startAudioSequences()
       })
     }
   }
@@ -305,28 +322,38 @@ class StartStoryPage extends React.Component {
     }
   }
 
-  handleAudioSequences() {
-    this.playSpeakersAudio(this.props.storyContent.scene.story_scene_speakers[this.state.audioIdx])
+  startAudioSequences() {
+    const arr = this.state.audioArray;
+    this.playAudio(arr[this.state.audioIdx]);
+    
   }
 
-  playSpeakersAudio(speaker) {
-    this.audioNode.src = speaker.audio_url;
-    this.audioNode.addEventListener("ended", () => {
-      if (this.state.audioIdx >= this.props.storyContent.scene.story_scene_speakers.length - 1) {
-        this.setState({
-          audioStatus: 'finished',
-          isReadyToRecord: true,
-        })
-      } else {
-        this.setState({
-          audioIdx: this.state.audioIdx + 1
-        }, () => {
-          this.playSpeakersAudio(this.props.storyContent.scene.story_scene_speakers[this.state.audioIdx])
-        })
-      }
-      
+  playAudio(audio){
+    if ((!audio || !(audio instanceof Audio))) return;
+    this.setState({
+      audioNode: audio
+    }, () => {
+      this.state.audioNode.addEventListener('ended', this.callBackAudio)
+      this.state.audioNode.play();
     })
-    this.audioNode.play()
+  }
+
+  callBackAudio(event) {
+    const arr = this.state.audioArray;
+    event.target.removeEventListener('ended', this.callBackAudio)
+    if (this.state.audioIdx >= this.props.storyContent.scene.story_scene_speakers.length - 1) {
+      this.setState({
+        audioStatus: 'finished',
+        isReadyToRecord: true,
+        showPrompt: true,
+      })
+    } else {
+      this.setState({
+        audioIdx: this.state.audioIdx + 1
+      }, () => {
+        this.playAudio(arr[this.state.audioIdx]);
+      })
+    }
     
   }
 
@@ -356,6 +383,7 @@ class StartStoryPage extends React.Component {
             <ContentScreen 
               isDisplayContentImage={this.state.isDisplayContentImage}
               showSubtitle={this.state.showSubtitle}
+              showPrompt={this.state.showPrompt}
               micPermissionStatus={this.state.micPermissionStatus}
               handleContentAudioStatus={this.handleContentAudioStatus}
               audioIdx={this.state.audioIdx}
