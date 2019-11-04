@@ -1004,8 +1004,12 @@ def complete_story():
                         master = {'audio_filename': master_response.audio_filename,'audio_text' : master_response.audio_text}
                         data_dict['master'] = master
                     user_response = Story_Scene_User_Response.query.filter(Story_Scene_User_Response.user_story_id == user_story.id, Story_Scene_User_Response.story_scene_speaker_id == speaker.id).first()
-                    user = {'audio_filename': user_response.audio_filename, 'story_scene_user_response_id' : user_response.id}
-                    data_dict['user'] = user
+                    #To cater for non existent user response
+                    if not user_response:
+                        print('No User Response for user_story.id = ', user_story.id, ' & story_scene_speaker_id = ', speaker.id)
+                    else:
+                        user = {'audio_filename': user_response.audio_filename, 'story_scene_user_response_id' : user_response.id}
+                        data_dict['user'] = user
 
                     story_scene_responses.append(data_dict)
 
