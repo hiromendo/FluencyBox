@@ -993,6 +993,7 @@ def complete_story():
         #Get 'specific_response' scenes for this story
         story_scene = Story_Scene.query.filter(Story_Scene.story_id == user_story.story_id, Story_Scene.type == 'specific_response').all()
 
+        
         story_scene_responses = []
         for scene in story_scene:
             for speaker in scene.story_scene_speakers:
@@ -1015,9 +1016,16 @@ def complete_story():
 
         sqs_payload['story_scene_responses'] = story_scene_responses #json.dumps(story_scene_responses)
         #Send ECS command to run a task
+        
+        #Get all user responses for debugging
+        all_user_response = Story_Scene_User_Response.query.all()
+
+        user_response_schema = Story_Scene_User_Response_Schema()
+        user_response_data = user_response_schema.dump(all_user_response).data
 
         #resp_dict['status'] = 'success'
         resp_dict['sqs_payload'] = sqs_payload
+        resp_dict['all_user_responses'] = user_response_data
         return jsonify(resp_dict), 200
     except Exception as e:
         resp_dict['status'] = 'fail'
