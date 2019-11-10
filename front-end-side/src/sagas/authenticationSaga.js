@@ -181,7 +181,6 @@ export function* removeUserAsync() {
 
 export function* getStoryStartedAsync({ payload }) {
   //TODO: you must handle on scenario where story is started first time...
-  console.log(payload)
   yield put({ type: START_LOADING });
   try {
     const serverResponse = yield call(getStoryData, payload);
@@ -242,9 +241,9 @@ export function* getNextSceneAsync({ payload }) {
 export function* completeStoryAsync( { payload }) {
   yield put({ type: START_LOADING });
   try {
-    debugger
     const serverResponse = yield call(completeStoryAPI, payload);
-    console.log(serverResponse, 'this is server response!')
+    console.log(serverResponse, 'this is server response!');
+    console.log('go to report page?')
     yield delay(450);
     yield put({ type: END_LOADING });
   } catch (error) {

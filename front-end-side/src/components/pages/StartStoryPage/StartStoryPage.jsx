@@ -295,7 +295,8 @@ class StartStoryPage extends Component {
     } else {
       console.log('no words found matching')
       this.setState({
-        requestNextSceneOrder: null
+        requestNextSceneOrder: null,
+        isDiplayNextSceneButton: true
       })
     }
   }
@@ -305,13 +306,14 @@ class StartStoryPage extends Component {
     if (!requestNextSceneOrder) return
     const { storyContent, storyStatus } = this.props
     const keywords = storyContent.scene.scene_keywords;
+    const lastSpokenSpeakerIndex = storyContent.scene.story_scene_speakers.length - 1;
     if (keywords.length) {
       const textValue = this.wordTexts.current.innerText;
       const data = new FormData();
       data.append('user_story_uid', storyStatus.userStoryID);
       data.append('user_audio', this.state.audioFile);
       data.append('audio_text', textValue);
-      data.append('story_scene_speaker_id', storyContent.scene.story_scene_speakers[0].id);
+      data.append('story_scene_speaker_id', storyContent.scene.story_scene_speakers[lastSpokenSpeakerIndex].id);
       data.append('next_scene_order', requestNextSceneOrder);
   
       this.props.getAsyncNextScene(data)
