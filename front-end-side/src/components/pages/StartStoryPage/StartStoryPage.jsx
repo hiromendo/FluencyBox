@@ -37,6 +37,7 @@ class StartStoryPage extends Component {
     this.handleAnalyzingsTextForNextScene = this.handleAnalyzingsTextForNextScene.bind(this);
     this.handleButtonNextScene = this.handleButtonNextScene.bind(this);
     this.handleSettingAudioNodesArray = this.handleSettingAudioNodesArray.bind(this);
+    this.handleDisplayNextSceneButton = this.handleDisplayNextSceneButton.bind(this);
     this.startAudioSequences = this.startAudioSequences.bind(this);
     this.playAudio = this.playAudio.bind(this);
     this.callBackAudio = this.callBackAudio.bind(this);
@@ -46,6 +47,7 @@ class StartStoryPage extends Component {
       showPrompt: false,
       audioStatus: 'initial',
       isDisplayContentImage: false,
+      isDiplayNextSceneButton: false,
       micPermissionStatus: null,
       isReadyToRecord: false,
       listeningText: false,
@@ -275,7 +277,7 @@ class StartStoryPage extends Component {
     const { scene: { scene_keywords, order } } = this.props.storyContent
     const textValue = this.wordTexts.current.innerText;
     let correctIdx;
-    scene_keywords.some((x, idx) => {
+    scene_keywords.forEach((x, idx) => {
       if (textValue.includes(x.keyword)) {
         correctIdx = idx;
         return true
@@ -286,16 +288,21 @@ class StartStoryPage extends Component {
       console.log('repeat the scene')
     } else if (correctIdx >= 0) {
       this.setState({
-        requestNextSceneOrder: scene_keywords[correctIdx].next_scene_order
+        requestNextSceneOrder: scene_keywords[correctIdx].next_scene_order,
+        isDiplayNextSceneButton: true
       })
       console.log('make an HTTP call')
     } else {
       console.log('no words found matching')
+      this.setState({
+        requestNextSceneOrder: null
+      })
     }
   }
 
   handleButtonNextScene() {
     const { requestNextSceneOrder } = this.state;
+    if (!requestNextSceneOrder) return
     const { storyContent, storyStatus } = this.props
     const keywords = storyContent.scene.scene_keywords;
     if (keywords.length) {
@@ -349,7 +356,7 @@ class StartStoryPage extends Component {
         audioStatus: 'finished',
         isReadyToRecord: true,
         showPrompt: true,
-      })
+      }, () => this.handleDisplayNextSceneButton())
     } else {
       this.setState({
         audioIdx: this.state.audioIdx + 1
@@ -360,9 +367,27 @@ class StartStoryPage extends Component {
     
   }
 
+  handleDisplayNextSceneButton() {
+    const { isReadyToRecord } = this.state;
+    if (!isReadyToRecord) return
+    const { storyContent: { scene } } = this.props;
+    const keywords = scene.scene_keywords;
+    if (keywords.length <= 0 && scene.type !== 'end') {
+      this.setState({
+        isDiplayNextSceneButton: true,
+        requestNextSceneOrder: scene.next_scene_order
+      })
+    } else if (scene.type === 'end') {
+      this.setState({
+        isDiplayNextSceneButton: true,
+        requestNextSceneOrder: 'end'
+      })
+    }
+  }
+
   displayDesktopLayout() {
     const { uid } = this.props
-    const { listeningText, sceneKeyWords } = this.state;
+    const { listeningText, sceneKeyWords, requestNextSceneOrder, isDiplayNextSceneButton } = this.state;
     const isKeyWordsAvailable = sceneKeyWords.length > 0;
     return (
       <Grid>
@@ -401,7 +426,7 @@ class StartStoryPage extends Component {
               Record Button
             </button>
           </div>
-          <div onClick={this.handleButtonNextScene} className="btn btn-dark-blue">Next Scene</div>
+          {isDiplayNextSceneButton ? <div onClick={this.handleButtonNextScene} className="btn btn-dark-blue">{requestNextSceneOrder ? 'Next Scene' : 'Try Record Again!'}</div> : null }
         </div>
         <Row>
           <div id="speech-to-text">
