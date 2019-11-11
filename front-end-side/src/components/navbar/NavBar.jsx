@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Grid, Row, Col } from 'react-flexbox-grid';
 import { slide as Menu } from 'react-burger-menu';
 
 import './NavBar.scss';
@@ -79,30 +78,19 @@ class NavBar extends React.Component {
     return (
       <nav id="top-nav">
         <ul id="desktop-nav">
-          <Grid>
-            <Row middle="md">
-              <Col xs={6} md={3} lg={3} >
-                <li>
-                  <Link to="/app"><img className="logo-brand" src="https://uploads-ssl.webflow.com/5d40e2a7625e7f495119ba08/5d78bd2c584e14d8417c6306_hanasulogo2.png" alt="logo" /></Link>
-                </li>
-              </Col>
-              <Col xs={6} md={2} mdOffset={1} lg={1} lgOffset={5}>
-                <li>
-                  <Link to="/app">Dashboard</Link>
-                </li> 
-              </Col>
-              <Col xs={6} md={2} lg={1}>
-                <li>
-                  <Link to="/userprofile">UserProfile</Link>
-                </li> 
-              </Col>
-              <Col xs={6} md={2} lg={1}>
-                <li>
-                  <Link onClick={() => this.beforeSigningOff()} to="/login">Logout</Link>
-                </li> 
-              </Col>
-            </Row>
-          </Grid>
+          <li>
+            <Link to="/app"><img className="logo-brand" src="https://uploads-ssl.webflow.com/5d40e2a7625e7f495119ba08/5d78bd2c584e14d8417c6306_hanasulogo2.png" alt="logo" />
+            </Link>
+          </li>
+          <li>
+          <Link to="/app">Dashboard</Link>
+          </li>
+          <li>
+            <Link to="/userprofile">UserProfile</Link>
+          </li>
+          <li>
+            <Link onClick={() => this.beforeSigningOff()} to="/login">Logout</Link>
+          </li>
         </ul>
         <div id="mobile-nav">
           <div className="logo-container">

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
-import { Grid, Row, Col } from 'react-flexbox-grid';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMicrophone } from '@fortawesome/free-solid-svg-icons'
@@ -27,7 +26,6 @@ class StartStoryPage extends Component {
   constructor(props) {
     super(props);
     this.displayDesktopLayout = this.displayDesktopLayout.bind(this);
-    this.displayMobileLayOut = this.displayMobileLayOut.bind(this);
     this.handleContentAudioStatus = this.handleContentAudioStatus.bind(this);
     this.updateAudioStatus = this.updateAudioStatus.bind(this);
     this.handleShowSubtitleDialog = this.handleShowSubtitleDialog.bind(this);
@@ -130,10 +128,6 @@ class StartStoryPage extends Component {
     })
   }
   
-  throttledHandleWindowResize = () => {
-    //TODO: add a throttle here for optimzation purpose
-    this.setState({ isMobile: window.innerWidth < 768 })
-  }
 
   //TODO: add try/catch error handling here when loading audio file
   handleContentAudioStatus() {
@@ -207,7 +201,6 @@ class StartStoryPage extends Component {
     
     } else {
       recognition.stop();
-
       recognition.onend = () => { 
         console.log('I stopped listening')
         this.handleAnalyzingsTextForNextScene()
@@ -392,37 +385,33 @@ class StartStoryPage extends Component {
     const { listeningText, sceneKeyWords, requestNextSceneOrder, isDiplayNextSceneButton } = this.state;
     const isKeyWordsAvailable = sceneKeyWords.length > 0;
     return (
-      <Grid>
-        <Row middle="md">
-          <Col md={3} mdOffset={1}>
+      <div className="page">
+        <div className="top-buttons">
+          <div>
             <div className="btn btn-dark-blue" onClick={() => this.updateAudioStatus('repeat')}>Repeat Audio</div>
-          </Col>
-          <Col md={4} mdOffset={1}>
+          </div>
+          <div>
             <div className={`btn btn-dark-blue ${this.state.showSubtitle ? 'btn-dark-blue-active' : ''}`} onClick={this.handleShowSubtitleDialog}>Hide Subtitles</div>
-          </Col>
-          <Col md={1}>
+          </div>
+          <div>
             <div className={"btn btn-dark-blue"}>Restart</div>
-          </Col>
-          <Col md={1}>
+          </div>
+          <div>
             <div className="btn btn-dark-blue">
               <Link to={`/story/${uid}`}>Home</Link>
             </div>
-          </Col>
-        </Row>
-        <Row center="md">
-          <Col md={12}>
-            <ContentScreen 
-              isDisplayContentImage={this.state.isDisplayContentImage}
-              showSubtitle={this.state.showSubtitle}
-              showPrompt={this.state.showPrompt}
-              micPermissionStatus={this.state.micPermissionStatus}
-              handleContentAudioStatus={this.handleContentAudioStatus}
-              audioIdx={this.state.audioIdx}
-              storyContent={this.props.storyContent} />
-          </Col>
-        </Row>
+          </div>
+        </div>
+        <ContentScreen 
+          isDisplayContentImage={this.state.isDisplayContentImage}
+          showSubtitle={this.state.showSubtitle}
+          showPrompt={this.state.showPrompt}
+          micPermissionStatus={this.state.micPermissionStatus}
+          handleContentAudioStatus={this.handleContentAudioStatus}
+          audioIdx={this.state.audioIdx}
+          storyContent={this.props.storyContent} />
 
-        <div className="btn-container">
+        <div className="bottom-buttons">
           <div className={`btn ${isKeyWordsAvailable ? '' : 'hide' }`}>
             <button onClick={this.toggleListenSpeechToText} id="btnStartRecord" className={`btn-record ${listeningText ? 'Rec' : 'notRec'}`}>
               Record Button
@@ -430,57 +419,22 @@ class StartStoryPage extends Component {
           </div>
           {isDiplayNextSceneButton ? <div onClick={this.handleButtonNextScene} className="btn btn-dark-blue">{requestNextSceneOrder ? 'Next Scene' : 'Try Record Again!'}</div> : null }
         </div>
-        <Row>
+        <div className="speech-text-container">
           <div id="speech-to-text">
             <FontAwesomeIcon icon={faMicrophone} color="green" />
             <span ref={this.wordTexts} className="word-texts"></span>
           </div>
-        </Row>
-        <Row>
-          <audio className="sound-clips"></audio>
-        </Row>
-      </Grid>
-    )
-  }
-
-  displayMobileLayOut() {
-    const { uid } = this.props;
-    return (
-      <Grid>
-        <Row middle="xs">
-          <Col xs={4} xsOffset={1}>
-            <div className="btn btn-dark-blue">Repeat Audio</div>
-          </Col>
-          <Col xs={4} xsOffset={2}>
-            <div className="btn btn-dark-blue">Hide Subtitles</div>
-          </Col>
-        </Row>
-        <Row center="xs">
-          <Col xs={12}>
-            <div id="story-content">Content Here</div>
-          </Col>
-        </Row>
-        <Row center="xs" middle="xs">
-          <Col xs={3}>
-            <div className="btn btn-dark-blue">Restart</div>
-          </Col>
-          <Col xs={4} xsOffset={1}>
-            Record Button
-          </Col>
-          <Col xs={3} xsOffset={1}>
-          <div className="btn btn-dark-blue">
-            <Link to={`/story/${uid}`}>Home</Link>
-          </div>
-          </Col>
-        </Row>
-      </Grid>
+        </div>
+        <audio className="sound-clips">
+        </audio>
+      </div>
     )
   }
 
   render() {
     return (
       <div id="story-media">
-        {this.state.isMobile ? this.displayMobileLayOut() : this.displayDesktopLayout()}
+        {this.displayDesktopLayout()}
       </div>
     )
   }
