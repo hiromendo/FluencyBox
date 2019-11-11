@@ -1117,13 +1117,25 @@ def get_single_report(uid):
         
         report_details['uid'] = report.uid
         report_details['name'] = report.user_story.story.name + " speech report"
+        report_details['score'] = report.score
 
         for report_image in report.report_images:
-            image_url = generate_public_url('report_image', report_image.filename)
+            master_response = Story_Scene_Master_Response.query.filter(Story_Scene_Master_Response.story_scene_speaker_id == report_image.story_scene_user_response.story_scene_speaker_id).first()
+            report_image_url = generate_public_url('report_image', report_image.filename)
+            master_audio_url = generate_public_url('master_audio', master_response.audio_filename)
+            user_response_audio_url = generate_public_url('user_audio', report_image.story_scene_user_response.audio_filename)
+            speaker_audio_url = generate_public_url('speaker_audio', master_response.story_scene_speaker.audio_filename)
+            
             report_images.append({
-                'user_audio_text' : report_image.story_scene_user_response.audio_text,
-                'image_url' : image_url, 
-                'image_type' : report_image.image_type
+                'master_audio_url' : master_audio_url,
+                'user_response_audio_url' : user_response_audio_url,
+                'speaker_audio_url' : speaker_audio_url,
+                
+                'speaker_audio_text' : master_response.story_scene_speaker.audio_text,
+                'user_response_audio_text' : report_image.story_scene_user_response.audio_text,
+                
+                'report_image_url' : report_image_url, 
+                'report_image_type' : report_image.image_type
                 })
 
         report_details['report_images'] = report_images
