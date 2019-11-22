@@ -1,6 +1,6 @@
 import base64 from 'base-64';
 
-const BASE_URL = 'http://127.0.0.1:5000';
+const BASE_URL = 'http://back-end-api-dev4.us-west-1.elasticbeanstalk.com'; //'http://127.0.0.1:5000';
 
 export const updateUserInfo = (request, uid) => {
   const { userInfo } = request
