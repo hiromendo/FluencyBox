@@ -19,7 +19,6 @@ MAIL_USERNAME = 'fluencybox19@gmail.com'
 MAIL_PASSWORD = 'English@2019'
 PASSWORD_RESET_TOKEN_EXPIRY =1800
 S3_URL = 'https://fluencybox-dev.s3-us-west-1.amazonaws.com/'
-SQS_QUEUE_URL = 'https://sqs.us-west-1.amazonaws.com/307571006414/fluencybox-reports-queue'
 S3_REGION = 'us-west-1'
 SIGNED_URL_EXPIRY =300
 STORY_IMAGES_DIR = 'story_images'

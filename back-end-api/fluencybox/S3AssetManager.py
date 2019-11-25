@@ -4,9 +4,10 @@ import os, io
 import boto3
 from fluencybox import app
 from botocore.exceptions import NoCredentialsError
-from fluencybox.config import S3_BUCKET, S3_KEY, S3_SECRET, SQS_QUEUE_URL, S3_REGION
+from fluencybox.config import S3_BUCKET, S3_KEY, S3_SECRET, S3_REGION
 import mimetypes
 import json
+
 def get_resource():
     if S3_KEY and S3_SECRET:
         return boto3.resource(
@@ -174,30 +175,48 @@ def generate_public_url(object_type, object_name):
     public_url = app.config.get('S3_URL') + object_dir + '/' + object_name
     return public_url
 
-def get_sqs_client():
-    sqs = boto3.client('sqs', aws_access_key_id=S3_KEY, aws_secret_access_key=S3_SECRET, region_name = S3_REGION)
-    return sqs
 
+def get_ecs_client():
+    return boto3.client('ecs', aws_access_key_id=S3_KEY, aws_secret_access_key=S3_SECRET, region_name=S3_REGION)
 
-def trigger_sqs(payload):
+def run_task(report_url):
     try:
-        resp_dict = {}
-       # Create SQS client
-        sqs = get_sqs_client()
+        ecs_client = get_ecs_client()
         
-        # Send message to SQS queue
-        response = sqs.send_message(
-            QueueUrl=SQS_QUEUE_URL, 
-            MessageBody=(payload)
-            )
+        response = ecs_client.run_task(
+            cluster='generate-report-images',
+            taskDefinition='generate-report-images',
+            overrides={
+                'containerOverrides': [
+                    {
+                        'name': 'generate-report-images',
+                        'command': [
+                            report_url
+                        ]
+                    },
+                ]
+            },
+            count=1,
+            launchType='FARGATE',
+            networkConfiguration={
+                'awsvpcConfiguration': {
+                    'subnets': [
+                        'subnet-85758be3',
+                        'subnet-3fd4de64'
+                    ],
+                    'securityGroups': [
+                        'sg-6faa9d13',
+                    ],
+                    'assignPublicIp': 'ENABLED'
+                }
+            }
+        )
 
-        print(response['MessageId'])
+        if response['failures'] && len(response['failures']) > 0:
+            print('Failed to run task for report_url {}. Failures {}' % (report_url, response['failures']))
+            return false
 
-        resp_dict['status'] = 'success'
-        resp_dict['message'] = 'sqs triggered'
-        return resp_dict
-
+        return true
     except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return resp_dict
+        print(str(e))
+        return false
