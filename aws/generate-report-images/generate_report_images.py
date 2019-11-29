@@ -243,7 +243,8 @@ def generate_report_images(context, data):
         report_image = {
              'story_scene_user_response_id': story_scene_user_response_id,
              'image_filename': image_key,
-             'image_type': 'stress'
+             'image_type': 'stress',
+             'story_scene_user_response_score' = score
         }
 
         report_images.append(report_image)
@@ -254,7 +255,8 @@ def generate_report_images(context, data):
         report_image = {
              'story_scene_user_response_id': story_scene_user_response_id,
              'image_filename': image_key,
-             'image_type': 'rhythm'
+             'image_type': 'rhythm',
+             'story_scene_user_response_score' = score
         }
 
         report_images.append(report_image)
