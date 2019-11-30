@@ -1043,7 +1043,7 @@ def reports(uid):
 
             for image_data in report_data['report_images']:
                 _, filename = image_data['image_filename'].strip().split('/',1)
-                new_report_images = Report_Images(report_id = my_report.id, filename = filename, scene_user_response_id = image_data['story_scene_user_response_id'], image_type = image_data['image_type'].strip())
+                new_report_images = Report_Images(report_id = my_report.id, filename = filename, scene_user_response_id = image_data['story_scene_user_response_id'], image_type = image_data['image_type'].strip(), scene_user_response_score = image_data['story_scene_user_response_score'])
                 db.session.add(new_report_images)
             db.session.commit()
             
@@ -1135,7 +1135,12 @@ def get_single_report(uid):
                 'user_response_audio_text' : report_image.story_scene_user_response.audio_text,
                 
                 'report_image_url' : report_image_url, 
-                'report_image_type' : report_image.image_type
+                'report_image_type' : report_image.image_type,
+
+                #New keys added
+                'master_response_text' : master_response.audio_text,
+                'scene_number' : master_response.story_scene_speaker.story_scene.order,
+                'scene_user_response_score' : report_image.scene_user_response_score
                 })
 
         report_details['report_images'] = report_images

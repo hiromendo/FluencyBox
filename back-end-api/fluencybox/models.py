@@ -10,6 +10,7 @@ class Report_Images(db.Model):
     report_id = db.Column(db.Integer, db.ForeignKey('report.id'), nullable=False)
     filename = db.Column(db.String(255))
     scene_user_response_id = db.Column(db.Integer, db.ForeignKey('story_scene_user_response.id'), nullable=False)
+    scene_user_response_score = db.Column(db.Float) #Added
     image_type = db.Column(db.String(50))
 
     def __repr__(self):
@@ -42,8 +43,7 @@ class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.String(50), unique=True)
     user_story_id = db.Column(db.Integer, db.ForeignKey('user_story.id'), nullable=False)
-    next_scene_order = db.Column(db.Integer, nullable=True)
-    score = db.Column(db.Integer)
+    score = db.Column(db.Float) #Changed to db.Column(db.Float)
     uploaded_at = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.utcnow)
     report_images = db.relationship('Report_Images', backref='report', lazy=True)
 
@@ -156,7 +156,7 @@ class Story_Scene_Master_Response(db.Model):
     story_scene_speaker_id =  db.Column(db.Integer, db.ForeignKey('story_scene_speaker.id'), nullable=False)
     audio_filename = db.Column(db.String(255))
     audio_text = db.Column(db.Text)
-    #phoneme_filename = db.Column(db.String(255)) #To add later
+    phoneme_filename = db.Column(db.String(255)) #Added
 
     def __repr__(self):
         return f"Story_Scene_Master_Response('{self.story_scene_speaker_id}', '{self.audio_filename}', '{self.audio_text}')"
