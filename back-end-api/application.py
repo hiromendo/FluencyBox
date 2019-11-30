@@ -1,4 +1,4 @@
-from fluencybox import app
+from fluencybox import application
 
 if __name__ == '__main__':
-    app.run()
+    application.run()

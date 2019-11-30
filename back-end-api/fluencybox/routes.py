@@ -29,6 +29,9 @@ from urllib.request import urlopen
 # @app.route('/')
 # def index():
 #     return jsonify({'Page' : 'Index'})
+@app.route('/')
+def healthcheck():
+    return jsonify({'status' : 'ok'})
 
 def token_required(f):
     @wraps(f)
