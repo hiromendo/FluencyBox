@@ -5,9 +5,7 @@ from flask_mail import Mail
 from flask_cors import CORS, cross_origin
 from flask_marshmallow import Marshmallow
 
-#app = Flask(__name__)
-application = Flask(__name__)
-app = application
+app = Flask(__name__)
 CORS(app)
 app.config.from_pyfile('config.py')
 

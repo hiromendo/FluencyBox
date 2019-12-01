@@ -212,7 +212,7 @@ def run_task(report_url):
             }
         )
 
-        if response['failures'] and len(response['failures']) > 0:
+        if response['failures'] & len(response['failures']) > 0:
             print('Failed to run task for report_url {}. Failures {}' % (report_url, response['failures']))
             return false
 
