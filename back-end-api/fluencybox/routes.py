@@ -962,6 +962,7 @@ def user_response():
 @app.route('/complete_story', methods=['POST'])
 @token_required
 def complete_story():
+    print("stage 0")
     try:
         resp_dict = {}
         story_data = request.get_json()
@@ -984,10 +985,14 @@ def complete_story():
         db.session.commit()
 
         # Trigger task
-        report_url = url_for('task_payload', uid=report_uid)
+        report_url = 'http://back-end-withreport-dev.us-west-1.elasticbeanstalk.com' + url_for('taskPayload', uid=report_uid)
+        print(report_url)
         run_task(report_url)
 
         resp_dict['status'] = 'success'
+        print('stage 5.5')
+        print(resp_dict)
+        print(resp_dict['status'])
         return jsonify(resp_dict), 200
     except Exception as e:
         resp_dict['status'] = 'fail'
@@ -996,6 +1001,7 @@ def complete_story():
 
 @app.route('/reports/<uid>/task_payload', methods=['GET'])
 def taskPayload(uid):
+    print("stage 6")
     try:
         report = Report.query.filter_by(uid=uid).first()
         if not report:
@@ -1026,16 +1032,23 @@ def taskPayload(uid):
                     data_dict = {}
                     data_dict['story_scene_speaker_id'] = speaker.id
                     for master_response in speaker.story_scene_master_responses:
-                        master = {'audio_filename': master_response.audio_filename,'audio_text' : master_response.audio_text}
+                        master = {
+                            'audio_filename': 'master_response_audio/' + master_response.audio_filename,
+                            'audio_text' : master_response.audio_text
+                        }
                         data_dict['master'] = master
                     user_response = Story_Scene_User_Response.query.filter(Story_Scene_User_Response.user_story_id == user_story.id, Story_Scene_User_Response.story_scene_speaker_id == speaker.id).first()
-                    user = {'audio_filename': user_response.audio_filename, 'story_scene_user_response_id' : user_response.id}
+                    user = {
+                        'audio_filename': 'user_response_audio/' + user_response.audio_filename,
+                        'story_scene_user_response_id' : user_response.id
+                    }
                     data_dict['user'] = user
 
                     story_scene_responses.append(data_dict)
 
         task_payload['story_scene_responses'] = story_scene_responses
-
+        print("stage 7")
+        print(task_payload)
         return jsonify(task_payload), 200
     except Exception as e:
         resp_dict['status'] = 'fail'

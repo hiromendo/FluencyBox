@@ -180,9 +180,10 @@ def get_ecs_client():
     return boto3.client('ecs', aws_access_key_id=S3_KEY, aws_secret_access_key=S3_SECRET, region_name=S3_REGION)
 
 def run_task(report_url):
+    print("stage 1")
     try:
         ecs_client = get_ecs_client()
-        
+        print("stage 2")
         response = ecs_client.run_task(
             cluster='generate-report-images',
             taskDefinition='generate-report-images',
@@ -211,12 +212,15 @@ def run_task(report_url):
                 }
             }
         )
-
-        if response['failures'] & len(response['failures']) > 0:
+        print("stage 3")
+        print(response)
+        print(response['failures'])
+        if len(response['failures']) > 0:
+            print("stage 4")
             print('Failed to run task for report_url {}. Failures {}' % (report_url, response['failures']))
             return false
-
-        return true
+        print("stage 5")
+        return True
     except Exception as e:
         print(str(e))
-        return false
+        return False
