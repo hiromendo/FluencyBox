@@ -27,7 +27,7 @@ class SingleStoryPage extends React.Component {
   }
 
   render() {
-    const { name, image_url, description, difficulty, length, genre, uid } = this.props
+    const { name, image_url, description, difficulty, length, genre } = this.props
     return (
       <div id="story" className="page">
         <div className="story-info-container">

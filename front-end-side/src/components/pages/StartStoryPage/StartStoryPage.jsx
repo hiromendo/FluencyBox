@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMicrophone } from '@fortawesome/free-solid-svg-icons'
+import ReactLoading from 'react-loading';
 
-import { getStoryStarted, removeStoryContents, resetStoryStatus, pauseAudio, getAsyncNextScene, getStoryContents, completeStory } from '../../../actions';
+import { getStoryStarted, removeStoryContents, resetStoryStatus, getAsyncNextScene, getStoryContents, completeStory } from '../../../actions';
 import ContentScreen from './components/ContentScreen';
 import './StartStoryPage.scss';
 
@@ -40,7 +41,6 @@ class StartStoryPage extends Component {
     this.playAudio = this.playAudio.bind(this);
     this.callBackAudio = this.callBackAudio.bind(this);
     this.state = {
-      isMobile: false,
       showSubtitle: false,
       showPrompt: false,
       audioStatus: 'initial',
@@ -56,7 +56,9 @@ class StartStoryPage extends Component {
       audioArray: [],
       audioIdx: 0,
       audioNode: new Audio(),
-      sceneKeyWords: []
+      sceneKeyWords: [],
+      isContinuePlay: false,
+      isDoneRendering: false
     }
     this.constraintObj = {
       audio: true 
@@ -64,6 +66,30 @@ class StartStoryPage extends Component {
     this.stream = '';
     this.wordTexts = React.createRef();
   }
+
+  static getDerivedStateFromProps(props) {
+    const { storyContent: { scene } } = props
+    if (props.loading.content === false) {
+      return {
+        sceneKeyWords: scene.scene_keywords,
+        isDoneRendering: true
+      }
+    } else {
+      return {
+        audioIdx: 0,
+        audioStatus: 'initial',
+        showSubtitle: false,
+        showPrompt: false,
+        sceneKeyWords: [],
+        audioArray: [],
+        isReadyToRecord: false,
+        isDiplayNextSceneButton: false,
+        isDisplayContentImage: false,
+        isDoneRendering: false
+      }
+    }
+  }
+    
 
   /*TODO: there should be a spinning gif here to indicate the story is being loaded */
   async componentDidMount() {
@@ -77,19 +103,14 @@ class StartStoryPage extends Component {
         story_uid: uid
       }
       this.props.getStoryStarted(payloadObj)
-    }
-
+    } 
+    
     try {
-      const { storyContent: { scene } } = this.props
       const mediaStreamObj = await navigator.mediaDevices.getUserMedia(this.constraintObj)
       if (this._isMounted) {
         this.setState({
           micPermissionStatus: true,
           mediaStreamObj,
-          sceneKeyWords: scene.scene_keywords
-        }, () => {
-          this.handleAudioRecording();
-          this.handleSettingAudioNodesArray()
         })
       }
     } catch(error) {
@@ -102,7 +123,20 @@ class StartStoryPage extends Component {
       }
     }
   }
-    
+
+  componentDidUpdate(prevProps, prevState){
+    const { loading } = this.props;
+    const { isContinuePlay, isDoneRendering } = this.state;
+    if (prevProps.loading.content !== loading.content) {
+      this.handleAudioRecording();
+      this.handleSettingAudioNodesArray();
+    }
+
+    if ((prevState.isDoneRendering !== isDoneRendering) && isContinuePlay ) {
+      this.handleContentAudioStatus();
+    }
+  }
+
   componentWillUnmount() {
     this._isMounted = false;
     if (this.stream) {
@@ -154,6 +188,8 @@ class StartStoryPage extends Component {
       }, () => {
         this.startAudioSequences()
       })
+    } else if (this.state.audioStatus === 'finished') {
+      return null
     } else {
       this.setState({
         audioStatus: 'playing',
@@ -325,6 +361,10 @@ class StartStoryPage extends Component {
       }
       this.props.completeStory(objPayload)
     }
+
+    this.setState({
+      isContinuePlay: true
+    })
   }
 
   startAudioSequences() {
@@ -381,7 +421,7 @@ class StartStoryPage extends Component {
   }
 
   displayDesktopLayout() {
-    const { uid } = this.props
+    const { uid } = this.props;
     const { listeningText, sceneKeyWords, requestNextSceneOrder, isDiplayNextSceneButton } = this.state;
     const isKeyWordsAvailable = sceneKeyWords.length > 0;
     return (
@@ -409,7 +449,8 @@ class StartStoryPage extends Component {
           micPermissionStatus={this.state.micPermissionStatus}
           handleContentAudioStatus={this.handleContentAudioStatus}
           audioIdx={this.state.audioIdx}
-          storyContent={this.props.storyContent} />
+          storyContent={this.props.storyContent} 
+        />
 
         <div className="bottom-buttons">
           <div className={`btn ${isKeyWordsAvailable ? '' : 'hide' }`}>
@@ -432,6 +473,14 @@ class StartStoryPage extends Component {
   }
 
   render() {
+    const { loading } = this.props;
+    if (loading.content) {
+      return (
+        <div className="react-spinner-container ">
+          <ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105}  />
+        </div>
+      )
+    }
     return (
       <div id="story-media">
         {this.displayDesktopLayout()}
@@ -440,18 +489,18 @@ class StartStoryPage extends Component {
   }
 }
 
-const mapStateToProps = ({ authInfo, storiesInfo, storyContent, storyStatus }) => ({
+const mapStateToProps = ({ authInfo, storiesInfo, storyContent, storyStatus, loading }) => ({
   authInfo,
   storiesInfo,
   storyContent,
-  storyStatus
+  storyStatus,
+  loading
 })
 
 const mapDispatchToProps = {
   getStoryStarted,
   removeStoryContents,
   resetStoryStatus,
-  pauseAudio,
   getAsyncNextScene,
   getStoryContents,
   completeStory

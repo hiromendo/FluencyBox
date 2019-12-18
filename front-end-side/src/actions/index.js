@@ -1,6 +1,8 @@
 
-export const START_LOADING = 'START_LOADING';
+export const START_LOADING = 'START_LOADING'; //loading for page
 export const END_LOADING = 'END_LOADING';
+export const START_LOADING_CONTENT = 'START_LOADING_CONTENT'; //loading for content
+export const END_LOADING_CONTENT = 'END_LOADING_CONTENT'; //loading for content
 
 export const GET_LOGIN = 'GET_LOGIN';
 export const SEND_REGISTER = 'SEND_REGISTER';
@@ -34,9 +36,6 @@ export const STORY_CONTENT_LOADED = 'STORY_CONTENT_LOADED';
 export const SET_USER_STORY_ID = 'SET_USER_STORY_ID';
 
 export const RESET_STORY_STATUS = 'RESET_STORY_STATUS';
-export const AUDIO_PLAY = 'AUDIO_PLAY';
-export const PAUSE_AUDIO = 'PAUSE_AUDIO';
-export const UPDATE_STATUS_SUBTITLE = 'UPDATE_STATUS_SUBTITLE';
 
 export const GET_NEXT_SCENE_ASYNC = 'GET_NEXT_SCENE_ASYNC'
 export const COMPLETE_STORY = 'COMPLETE_STORY'
@@ -154,25 +153,9 @@ export const getStoryContents = payload => ({
 export const removeStoryContents = () => ({
   type: REMOVE_STORY_CONTENTS
 })
-
-/////////////////////////////////
-
 export const resetStoryStatus = () => ({
   type: RESET_STORY_STATUS
 })
-
-export const audioPlay = () => ({
-  type: AUDIO_PLAY
-})
-export const pauseAudio = () => ({
-  type: PAUSE_AUDIO
-})
-
-export const updateSubtitleDisplay = payload => ({
-  type: UPDATE_STATUS_SUBTITLE,
-  payload
-})
-
 ///////////////////////////////////
 export const getAsyncNextScene = payload => ({
   type: GET_NEXT_SCENE_ASYNC,

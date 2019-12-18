@@ -17,6 +17,8 @@ import { loginUserAPI,
 import {
   START_LOADING,
   END_LOADING,
+  START_LOADING_CONTENT,
+  END_LOADING_CONTENT,
   SET_CURRENT_USER,
   REGISTER_CLEAR,
   DISPLAY_ERROR_LOGIN,
@@ -181,7 +183,10 @@ export function* removeUserAsync() {
 
 export function* getStoryStartedAsync({ payload }) {
   //TODO: you must handle on scenario where story is started first time...
-  yield put({ type: START_LOADING });
+  yield put({ type: START_LOADING_CONTENT });
+  // debugger
+  const isFromStartPage = payload.history.location.pathname.includes('/start');
+  if (payload.history.action === 'PUSH' && !isFromStartPage && payload.history) { yield payload.history.push(`/story/${payload.story_uid}/start`) }
   try {
     const serverResponse = yield call(getStoryData, payload);
     if (serverResponse.pending_story) {
@@ -202,41 +207,41 @@ export function* getStoryStartedAsync({ payload }) {
       const { user_story_uid } = serverResponse;
       yield put({ type: SET_USER_STORY_ID, payload: user_story_uid})
       yield payload.history.push(`/story/${payload.story_uid}/start`);
-      yield put({ type: END_LOADING });
+
+      yield put({ type: END_LOADING_CONTENT });
     }
   } catch (error) {
     console.error(error);
     yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
-    yield put({ type: END_LOADING });
+    yield put({ type: END_LOADING_CONTENT });
   }
 }
 
 export function* getStoryContentAsync({ payload }) {
-  yield put({ type: START_LOADING });
+  yield put({ type: START_LOADING_CONTENT });
   try {
     const serverResponse = yield call(getStorySceneAPI, payload);
     yield put(({ type: STORY_CONTENT_LOADED }))
-    if (payload.history) { yield payload.history.push(`/story/${payload.story_uid}/start`) }
     yield put({ type: SET_STORY_CONTENTS, payload: serverResponse })
-    yield put({ type: END_LOADING });
+    yield put({ type: END_LOADING_CONTENT });
   } catch (error) {
     console.error(error);
     yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
-    yield put({ type: END_LOADING });
+    yield put({ type: END_LOADING_CONTENT });
   }
 }
 
 export function* getNextSceneAsync({ payload }) {
-  yield put({ type: START_LOADING });
+  yield put({ type: START_LOADING_CONTENT });
   try {
     const serverResponse = yield call(getNextSceneAPI, payload);
     yield put(({ type: STORY_CONTENT_LOADED }))
     yield put({ type: SET_STORY_CONTENTS, payload: serverResponse })
-    yield put({ type: END_LOADING });
+    yield put({ type: END_LOADING_CONTENT });
   } catch (error) {
     console.error(error);
     yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
-    yield put({ type: END_LOADING });
+    yield put({ type: END_LOADING_CONTENT });
   }
 }
 

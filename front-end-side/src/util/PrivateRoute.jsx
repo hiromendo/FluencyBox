@@ -5,7 +5,7 @@ import ReactLoading from 'react-loading';
 
 const PrivateRoute = ({ component: Component, authInfo, loading, ...rest }) => {
   
-  if (loading) {
+  if (loading.page) {
     return <div className="react-spinner-container "><ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105}  /></div>
   }
 

@@ -35,7 +35,7 @@ class UpdatePicturePage extends React.Component {
   render() {
     return (
       <>
-        {this.props.loading ? (
+        {this.props.loading.page ? (
           <div className="react-spinner-container"><ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105} /></div>
         ) : (
           <div id="update-picture" className="login">

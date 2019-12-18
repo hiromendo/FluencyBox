@@ -27,7 +27,7 @@ class ResetPasswordPage extends React.Component {
   render() {
     return (
       <>
-        {this.props.loading ? (
+        {this.props.loading.page ? (
           <div className="react-spinner-container"><ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105} /></div>
         ) : (
           <div id="reset-password" className="login page">

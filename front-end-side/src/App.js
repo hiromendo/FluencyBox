@@ -101,7 +101,7 @@ class App extends React.Component {
         <header>
           {(location.pathname !== "/login" && location.pathname !=='/resetpassword') ? <NavBar logOffUser={this.logOffUser} /> : null}
         </header>
-        {loading ? this.renderSpinnerLoading() :
+        {loading.page ? this.renderSpinnerLoading() :
         <main>
           <TransitionGroup>
             <CSSTransition
