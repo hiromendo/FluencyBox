@@ -9,22 +9,33 @@ from fluencybox import app, db
 import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
+from dateutil.relativedelta import relativedelta
 import datetime
 from functools import wraps
 from fluencybox.models import User, User_Schema, Story, Story_Schema, Story_Scene, Story_Scene_Schema, \
 Scene_Keyword, Scene_Keyword_Schema, Story_Scene_Speaker, Story_Scene_Speaker_Schema, \
 Story_Scene_Master_Response, Story_Scene_Master_Response_Schema, User_Story, User_Story_Schema, \
 Story_Scene_User_Response, Story_Scene_User_Response_Schema, Report, Report_Schema, \
-Report_Images, Report_Images_Schema, Story_Purchase, Story_Purchase_Schema, User_Purchase, User_Purchase_Schema
+Report_Images, Report_Images_Schema, Story_Purchase, Story_Purchase_Schema, User_Purchase, User_Purchase_Schema, \
+Credit_Cards, Subscriptions, Subscription_Contracts, Current_Subscription_Contracts
 from fluencybox.S3AssetManager import get_bucket, get_resource, save_avatar, save_story_object, delete_avatar, \
 delete_story_object, generate_presigned_url, run_task
 from fluencybox.mailer import send_reset_email, send_report_complete_email
 from fluencybox.helper import insert_story, insert_story_scene, insert_scene_keyword, insert_story_scene_speaker, \
 insert_story_scene_master_responses, validate_user_name, validate_email_address, get_paginated_list, upload_story_zip, \
 upload_story_json, get_scene, generate_tokens, generate_public_url
+from fluencybox.stripe_manager import create_customer, create_payment_token, create_card, create_subscription, get_invoice
 from io import BytesIO
 from zipfile import ZipFile
 from urllib.request import urlopen
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.ERROR)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+file_handler = logging.FileHandler('api.log')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 # @app.route('/')
 # def index():
@@ -1332,3 +1343,111 @@ def upload_story():
         return jsonify(resp_dict), 500
 
 
+
+@app.route('/subscriptions', methods=['POST'])
+#@token_required
+def subscription():
+    try:
+        resp_dict = {}
+        sub_data = request.get_json()
+        #Check if all fields are present in JSON request 
+        if not 'user_uid' in sub_data:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user uid in request'
+            return jsonify(resp_dict),400
+            
+        # Uncomment when F.E sends token
+        # if not 'payment_token' in sub_data:
+        #     resp_dict['status'] = 'fail'
+        #     resp_dict['message'] = 'No payment token in request'
+        #     return jsonify(resp_dict),400
+        # Uncomment when F.E sends token
+
+        user_uid = sub_data['user_uid'].strip() 
+        
+        # Uncomment when F.E sends token
+        # payment_token = sub_data['payment_token']
+    
+        user = User.query.filter_by(uid = user_uid).first()
+        if not user:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user found'
+            return jsonify(resp_dict),404
+
+        create_customer_response = create_customer(user)
+        if create_customer_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = create_customer_response['message']
+            return jsonify(resp_dict), 500
+        customer = create_customer_response['message']
+    
+        #Temp use - real payment token will be received from F.E - comment this out
+        create_payment_token_response = create_payment_token()
+        if create_payment_token_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = create_payment_token_response['message']
+            return jsonify(resp_dict), 500
+        payment_token = create_payment_token_response['message']
+        #Temp use - real payment token will be received from F.E - comment this out
+
+        create_card_response = create_card(customer.id, payment_token.id)
+        if create_card_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = create_card_response['message']
+            return jsonify(resp_dict), 500
+        card = create_card_response['message']
+
+        new_card = Credit_Cards(user_id = user.id, stripe_card_id = card.id, brand = card.brand, last_four = card.last4, exp_month = card.exp_month, exp_year = card.exp_year)
+        db.session.add(new_card)
+
+        new_subscription = Subscriptions(user_id = user.id, stripe_customer_id = customer.id, status = 'active')
+        db.session.add(new_subscription)
+
+        period_start = datetime.date.today()
+        period_end = period_start + relativedelta(months=1)
+
+        new_subscription_contract = Subscription_Contracts(subscription = new_subscription, stripe_plan_id =  app.config.get('HANASU_PLAN_ID'), amount = 999,  credit_card = new_card, period_start = period_start, period_end = period_end)
+        db.session.add(new_subscription_contract)
+
+        new_current_subscription_contracts = Current_Subscription_Contracts(subscription = new_subscription, subscription_contract = new_subscription_contract)
+        db.session.add(new_current_subscription_contracts)
+
+        create_subscription_response = create_subscription(customer.id, card.id)
+        if create_subscription_response['status'] != 'success':
+            db.session.rollback()
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = create_subscription_response['message']
+            return jsonify(resp_dict), 500
+        
+        subscription = create_subscription_response['message']
+
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+    try:
+        #Update the stripe subscription id
+        new_subscription.stripe_subscription_id = subscription.id
+
+        #Update charge id, start/end periods & invoice id
+        new_subscription_contract.stripe_invoice_id = subscription.latest_invoice
+
+        #Get the invoice to get the charge id
+        get_invoice_response = get_invoice(subscription.latest_invoice)
+        if get_invoice_response['status'] == 'success':
+            invoice = get_invoice_response['message']
+            new_subscription_contract.stripe_charge_id = invoice.charge
+
+        new_subscription_contract.period_start = datetime.datetime.fromtimestamp(int(subscription.current_period_start)).strftime('%Y-%m-%d %H:%M:%S')
+        new_subscription_contract.period_end = datetime.datetime.fromtimestamp(int(subscription.current_period_end)).strftime('%Y-%m-%d %H:%M:%S')
+        db.session.commit()
+
+        resp_dict['status'] = 'success'
+        return jsonify(resp_dict), 201
+    except Exception as e:
+        resp_dict['status'] = 'success'
+        logger.exception('Error occurred: ' + str(e))
+        return jsonify(resp_dict), 201

@@ -245,5 +245,44 @@ class Story_Schema(ma.ModelSchema):
         fields = ("uid", "name", "description", "length", "image_filename", "difficulty", "genre", "is_demo")
         model = Story
         
+class Subscriptions(db.Model):
+    __tablename__ = 'subscriptions'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
+    stripe_customer_id = db.Column(db.String(255), nullable=False, unique=True)
+    stripe_subscription_id = db.Column(db.String(255), unique=True)
+    status = db.Column(db.String(255), nullable=False)
+    subscription_contract = db.relationship('Subscription_Contracts', backref = 'subscription')
+    current_subscription_contract = db.relationship('Current_Subscription_Contracts', backref = 'subscription')
 
-db.create_all()
+class Subscription_Contracts(db.Model):
+    __tablename__ = 'subscription_contracts'
+    id = db.Column(db.Integer, primary_key=True)
+    subscription_id = db.Column(db.Integer, db.ForeignKey('subscriptions.id'), nullable=False, unique=True)
+    stripe_plan_id = db.Column(db.String(255), nullable=False)
+    amount =  db.Column(db.Float, nullable=False)
+    stripe_invoice_id = db.Column(db.String(255), unique=True)
+    stripe_charge_id = db.Column(db.String(255), unique=True)
+    credit_card_id = db.Column(db.Integer, db.ForeignKey('credit_cards.id'), nullable=False, unique=True)
+    period_start = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    period_end = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    current_subscription_contract = db.relationship('Current_Subscription_Contracts', backref = 'subscription_contract')
+
+class Credit_Cards(db.Model):
+    __tablename__ = 'credit_cards'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    stripe_card_id = db.Column(db.String(255), nullable=False, unique=True)
+    brand = db.Column(db.String(100), nullable=False)
+    last_four = db.Column(db.String(25), nullable=False)
+    exp_month = db.Column(db.String(25), nullable=False)
+    exp_year = db.Column(db.String(25), nullable=False)
+    subscription_contract = db.relationship('Subscription_Contracts', backref = 'credit_card')
+
+class Current_Subscription_Contracts(db.Model):
+    __tablename__ = 'current_subscription_contracts'
+    id = db.Column(db.Integer, primary_key=True)
+    subscription_id = db.Column(db.Integer, db.ForeignKey('subscriptions.id'), nullable=False, unique=True)
+    subscription_contract_id = db.Column(db.Integer, db.ForeignKey('subscription_contracts.id'), nullable=False, unique=True)
+
+#db.create_all()
