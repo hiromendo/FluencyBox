@@ -69,7 +69,7 @@ class StartStoryPage extends Component {
 
   static getDerivedStateFromProps(props) {
     const { storyContent: { scene } } = props
-    if (props.loading.content === false) {
+    if (props.loading.content === false && scene) {
       return {
         sceneKeyWords: scene.scene_keywords,
         isDoneRendering: true
