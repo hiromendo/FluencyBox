@@ -48,6 +48,10 @@ export const endLoading = () => ({
   type: END_LOADING
 })
 
+export const startLoadingContent = () => ({
+  type: START_LOADING_CONTENT
+})
+
 export const getCurrentUser = userInfo => ({
   type: GET_CURRENT_USER,
   userInfo

@@ -57,7 +57,7 @@ class StartStoryPage extends Component {
       audioIdx: 0,
       audioNode: new Audio(),
       sceneKeyWords: [],
-      isContinuePlay: false,
+      isContinuePlay: true,
       isDoneRendering: false
     }
     this.constraintObj = {
@@ -78,7 +78,6 @@ class StartStoryPage extends Component {
       return {
         audioIdx: 0,
         audioStatus: 'initial',
-        showSubtitle: false,
         showPrompt: false,
         sceneKeyWords: [],
         audioArray: [],
@@ -102,8 +101,9 @@ class StartStoryPage extends Component {
         history,
         story_uid: uid
       }
-      this.props.getStoryStarted(payloadObj)
+      this.props.getStoryStarted(payloadObj);
     } 
+
     
     try {
       const mediaStreamObj = await navigator.mediaDevices.getUserMedia(this.constraintObj)

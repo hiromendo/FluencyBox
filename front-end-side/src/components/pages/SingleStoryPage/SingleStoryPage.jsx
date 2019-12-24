@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import { getStoryStarted } from '../../../actions';
+import { startLoadingContent } from '../../../actions';
 import './SingleStoryPage.scss';
 
 class SingleStoryPage extends React.Component {
@@ -16,14 +16,9 @@ class SingleStoryPage extends React.Component {
 
   handleInitiatingStory(event) {
     event.preventDefault();
-    const { authInfo: { serverResponse: { user }}, uid, routeProps: { history } } = this.props;
-    const payloadObj = {
-      user_uid: user.uid,
-      history,
-      story_uid: uid
-    }
-
-    this.props.getStoryStarted(payloadObj)
+    const { uid, routeProps: { history } } = this.props;
+    this.props.startLoadingContent()
+    history.push(`/story/${uid}/start`)
   }
 
   render() {
@@ -62,7 +57,7 @@ const mapStateToProps = ({ authInfo }) => ({
 })
 
 const mapDispatchToProps = {
-  getStoryStarted
+  startLoadingContent
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(SingleStoryPage);
