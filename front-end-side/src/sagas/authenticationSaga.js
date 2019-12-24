@@ -249,8 +249,8 @@ export function* completeStoryAsync( { payload }) {
   yield put({ type: START_LOADING });
   try {
     const serverResponse = yield call(completeStoryAPI, payload);
-    console.log(serverResponse, 'this is server response!');
-    console.log('go to report page?')
+    console.log(serverResponse, 'this is server response');
+    yield payload.history.push(`/app`);
     yield delay(450);
     yield put({ type: END_LOADING });
   } catch (error) {

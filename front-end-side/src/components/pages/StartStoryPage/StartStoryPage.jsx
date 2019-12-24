@@ -333,7 +333,7 @@ class StartStoryPage extends Component {
   handleButtonNextScene() {
     const { requestNextSceneOrder } = this.state;
     if (!requestNextSceneOrder) return
-    const { storyContent, storyStatus } = this.props
+    const { storyContent, storyStatus, routeProps: { history } } = this.props
     const keywords = storyContent.scene.scene_keywords;
     const lastSpokenSpeakerIndex = storyContent.scene.story_scene_speakers.length - 1;
     if (keywords.length) {
@@ -357,7 +357,8 @@ class StartStoryPage extends Component {
     } else {
       console.log('the end')
       const objPayload = {
-        user_story_uid: storyStatus.userStoryID
+        user_story_uid: storyStatus.userStoryID,
+        history
       }
       this.props.completeStory(objPayload)
     }
