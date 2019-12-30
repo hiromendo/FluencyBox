@@ -1033,20 +1033,15 @@ def taskPayload(uid):
                     data_dict = {}
                     data_dict['story_scene_speaker_id'] = speaker.id
                     for master_response in speaker.story_scene_master_responses:
-                        master_response_audio_filename = app.config.get('MASTER_RESPONSE_AUDIO_DIR') + '/' + master_response.audio_filename
                         master = {
-                            'audio_filename': master_response_audio_filename,
+                            'audio_filename': 'master_response_audio/' + master_response.audio_filename,
                             'audio_text' : master_response.audio_text
                         }
                         data_dict['master'] = master
                     user_response = Story_Scene_User_Response.query.filter(Story_Scene_User_Response.user_story_id == user_story.id, Story_Scene_User_Response.story_scene_speaker_id == speaker.id).first()
-                    #To cater for non existent user response
-                    if not user_response:
-                        print('No User Response for user_story.id = ', user_story.id, ' & story_scene_speaker_id = ', speaker.id)
-                    else:
-                        user_response_audio_filename = app.config.get('USER_RESPONSE_AUDIO_DIR') + '/' + user_response.audio_filename
+                    if user_response:
                         user = {
-                            'audio_filename': user_response_audio_filename,
+                            'audio_filename': 'user_response_audio/' + user_response.audio_filename,
                             'story_scene_user_response_id' : user_response.id
                         }
                         data_dict['user'] = user
