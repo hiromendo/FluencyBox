@@ -17,7 +17,7 @@ Story_Scene_Master_Response, Story_Scene_Master_Response_Schema, User_Story, Use
 Story_Scene_User_Response, Story_Scene_User_Response_Schema, Report, Report_Schema, \
 Report_Images, Report_Images_Schema, Story_Purchase, Story_Purchase_Schema, User_Purchase, User_Purchase_Schema
 from fluencybox.S3AssetManager import get_bucket, get_resource, save_avatar, save_story_object, delete_avatar, \
-delete_story_object, generate_presigned_url, trigger_sqs
+delete_story_object, generate_presigned_url, run_task
 from fluencybox.mailer import send_reset_email, send_report_complete_email
 from fluencybox.helper import insert_story, insert_story_scene, insert_scene_keyword, insert_story_scene_speaker, \
 insert_story_scene_master_responses, validate_user_name, validate_email_address, get_paginated_list, upload_story_zip, \
@@ -962,6 +962,7 @@ def user_response():
 @app.route('/complete_story', methods=['POST'])
 @token_required
 def complete_story():
+    print("stage 0")
     try:
         resp_dict = {}
         story_data = request.get_json()
@@ -983,12 +984,42 @@ def complete_story():
         db.session.add(new_report)
         db.session.commit()
 
-        #Trigger SQS
-        sqs_payload = {}
-        sqs_payload['s3_bucket'] = app.config.get('S3_BUCKET')
-        sqs_payload['report_uid'] = report_uid
-        sqs_payload['callback_url'] = url_for('reports', uid = report_uid, api_key = app.config.get('S3_KEY'), _external=True)
-        sqs_payload['user_story_uid'] = story_data['user_story_uid'].strip()
+        # Trigger task
+        report_url = 'http://back-end-withreport-dev.us-west-1.elasticbeanstalk.com' + url_for('taskPayload', uid=report_uid)
+        print(report_url)
+        run_task(report_url)
+
+        resp_dict['status'] = 'success'
+        print('stage 5.5')
+        print(resp_dict)
+        print(resp_dict['status'])
+        return jsonify(resp_dict), 200
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+@app.route('/reports/<uid>/task_payload', methods=['GET'])
+def taskPayload(uid):
+    print("stage 6")
+    try:
+        report = Report.query.filter_by(uid=uid).first()
+        if not report:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No report found'
+            return jsonify(resp_dict), 404
+
+        user_story = User_Story.query.filter_by(id = report.user_story_id).first()
+        if not user_story:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user story found'
+            return jsonify(resp_dict), 404
+
+        task_payload = {}
+        task_payload['s3_bucket'] = app.config.get('S3_BUCKET')
+        task_payload['report_uid'] = uid
+        task_payload['callback_url'] = url_for('reports', uid = uid, api_key = app.config.get('S3_KEY'), _external=True)
+        task_payload['user_story_uid'] = user_story.uid
         
         #Get 'specific_response' scenes for this story
         story_scene = Story_Scene.query.filter(Story_Scene.story_id == user_story.story_id, Story_Scene.type == 'specific_response').all()
@@ -997,30 +1028,35 @@ def complete_story():
         story_scene_responses = []
         for scene in story_scene:
             for speaker in scene.story_scene_speakers:
-                #To cater for speakers that don't have a master response
+                # To cater for speakers that don't have a master response
                 if speaker.story_scene_master_responses.__len__()>0: 
                     data_dict = {}
                     data_dict['story_scene_speaker_id'] = speaker.id
                     for master_response in speaker.story_scene_master_responses:
-                        master = {'audio_filename': master_response.audio_filename,'audio_text' : master_response.audio_text}
+                        master_response_audio_filename = app.config.get('MASTER_RESPONSE_AUDIO_DIR') + '/' + master_response.audio_filename
+                        master = {
+                            'audio_filename': master_response_audio_filename,
+                            'audio_text' : master_response.audio_text
+                        }
                         data_dict['master'] = master
                     user_response = Story_Scene_User_Response.query.filter(Story_Scene_User_Response.user_story_id == user_story.id, Story_Scene_User_Response.story_scene_speaker_id == speaker.id).first()
                     #To cater for non existent user response
                     if not user_response:
                         print('No User Response for user_story.id = ', user_story.id, ' & story_scene_speaker_id = ', speaker.id)
                     else:
-                        user = {'audio_filename': user_response.audio_filename, 'story_scene_user_response_id' : user_response.id}
+                        user_response_audio_filename = app.config.get('USER_RESPONSE_AUDIO_DIR') + '/' + user_response.audio_filename
+                        user = {
+                            'audio_filename': user_response_audio_filename,
+                            'story_scene_user_response_id' : user_response.id
+                        }
                         data_dict['user'] = user
 
                     story_scene_responses.append(data_dict)
 
-        sqs_payload['story_scene_responses'] = story_scene_responses #json.dumps(story_scene_responses)
-        #Send ECS command to run a task
-        
-        #resp_dict['status'] = 'success'
-        resp_dict['sqs_payload'] = sqs_payload
-        
-        return jsonify(resp_dict), 200
+        task_payload['story_scene_responses'] = story_scene_responses
+        print("stage 7")
+        print(task_payload)
+        return jsonify(task_payload), 200
     except Exception as e:
         resp_dict['status'] = 'fail'
         resp_dict['message'] = str(e)
