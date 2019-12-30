@@ -1050,7 +1050,6 @@ def taskPayload(uid):
                             'story_scene_user_response_id' : user_response.id
                         }
                         data_dict['user'] = user
-
                     story_scene_responses.append(data_dict)
 
         task_payload['story_scene_responses'] = story_scene_responses
