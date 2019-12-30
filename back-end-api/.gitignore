@@ -1,1 +1,7 @@
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+../backend/
 fluencybox/__pycache__/
+!.elasticbeanstalk/*.global.yml
