@@ -1039,12 +1039,11 @@ def taskPayload(uid):
                         }
                         data_dict['master'] = master
                     user_response = Story_Scene_User_Response.query.filter(Story_Scene_User_Response.user_story_id == user_story.id, Story_Scene_User_Response.story_scene_speaker_id == speaker.id).first()
-                    if user_response:
-                        user = {
-                            'audio_filename': 'user_response_audio/' + user_response.audio_filename,
-                            'story_scene_user_response_id' : user_response.id
-                        }
-                        data_dict['user'] = user
+                    user = {
+                        'audio_filename': 'user_response_audio/' + user_response.audio_filename,
+                        'story_scene_user_response_id' : user_response.id
+                    }
+                    data_dict['user'] = user
                     story_scene_responses.append(data_dict)
 
         task_payload['story_scene_responses'] = story_scene_responses
