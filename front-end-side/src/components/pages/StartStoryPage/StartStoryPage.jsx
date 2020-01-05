@@ -125,9 +125,9 @@ class StartStoryPage extends Component {
   }
 
   componentDidUpdate(prevProps, prevState){
-    const { loading } = this.props;
+    const { loading, storyContent } = this.props;
     const { isContinuePlay, isDoneRendering } = this.state;
-    if (prevProps.loading.content !== loading.content) {
+    if ((prevProps.loading.content !== loading.content) && storyContent.scene) {
       this.handleAudioRecording();
       this.handleSettingAudioNodesArray();
     }
