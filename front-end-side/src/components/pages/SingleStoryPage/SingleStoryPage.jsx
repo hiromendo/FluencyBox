@@ -13,7 +13,7 @@ class SingleStoryPage extends React.Component {
     this.handleToken = this.handleToken.bind(this);
     this.state = {
       isStoryStarted: false,
-      price: 1, //USD dollar,
+      price: 5, //USD dollar,
       BASE_URL: 'http://127.0.0.1:5000'
     }
   }
@@ -72,7 +72,7 @@ class SingleStoryPage extends React.Component {
           </div>
 
           <div className="buttons-container">
-            {is_demo === false ? 
+            {is_demo ? 
               <button onClick={this.handleInitiatingStory} className="btn btn-blue">
                 Start
               </button>
@@ -85,7 +85,7 @@ class SingleStoryPage extends React.Component {
                 description="this is description"
                 >
                   <button className="btn btn-blue">
-                    Buy Story
+                    Subscribe To Play
                   </button>
               </StripeCheckout>
 
