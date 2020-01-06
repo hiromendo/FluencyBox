@@ -32,6 +32,8 @@ class SingleStoryPage extends React.Component {
     const jwtToken = localStorage.getItem('access_token')
     console.log(token, 'this is token');
     headers.set('x-access-token', jwtToken);
+    headers.set('Accept', 'application/json');
+    headers.set('Content-Type', 'application/json; charset=UTF-8');
 
     const obj = {
       user_uid: user.uid,
