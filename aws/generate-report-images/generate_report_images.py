@@ -82,7 +82,8 @@ def parse_audio(context, audio_filename, audio_system_filename, transcript, tran
     phonemes = run_gentle_forced_aligner(context, audio_system_filename, transcript_filename)
 
     phoneme_words = phonemes['words']
-
+    print("PHONEME_WORDS")
+    print(phoneme_words)
     ## this cuts the audio in to the words we are analysing
     loadAudioStart = time.time()
 
@@ -102,7 +103,7 @@ def parse_audio(context, audio_filename, audio_system_filename, transcript, tran
 
     elapsed = time.time() - start
     print('Elapsed time for parse audio: {:.3f} key:{} report_uid:{} user_story_uid:{} request_id:{}'.format(elapsed, audio_filename, context['report_uid'], context['user_story_uid'], context['request_id']))
-    
+    print(start_end_times)
     return start_end_times
 
 def generate_stress_image(context, master_audio_heights, user_audio_heights, transcript, textSize, font, user_audio_filename):
