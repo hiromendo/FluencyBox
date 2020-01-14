@@ -299,7 +299,7 @@ export const resetPasswordAPI = request => {
 
 export const getAllStoriesAPI = () => {
   try {
-    const GET_ALL_STORIES_ENDPOINT = `${BASE_URL}/story?page=1&per_page=10`; /* we can custome the query params later... */
+    const GET_ALL_STORIES_ENDPOINT = `${BASE_URL}/story?page=1&per_page=20`; /* we can custome the query params later... */
     const jwtToken = localStorage.getItem('access_token');
     let headers = new Headers();
     headers.set('x-access-token', jwtToken);
