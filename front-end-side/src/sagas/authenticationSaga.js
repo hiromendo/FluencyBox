@@ -182,13 +182,11 @@ export function* removeUserAsync() {
 }
 
 export function* getStoryStartedAsync({ payload }) {
-  //TODO: you must handle on scenario where story is started first time...
-  yield put({ type: START_LOADING_CONTENT });
-  // debugger
   const isFromStartPage = payload.history.location.pathname.includes('/start');
   if (payload.history.action === 'PUSH' && !isFromStartPage && payload.history) { yield payload.history.push(`/story/${payload.story_uid}/start`) }
   try {
     const serverResponse = yield call(getStoryData, payload);
+    // The first if statement handles when user has pending story. The else statement handles first time users
     if (serverResponse.pending_story) {
       const { user_story_uid, next_scene_order } = serverResponse;
       yield put({ type: SET_USER_STORY_ID, payload: user_story_uid})
@@ -203,11 +201,11 @@ export function* getStoryStartedAsync({ payload }) {
       }
       yield getStoryContentAsync(objPayloadScene)
     } else {
-      //TODO: handle situation here
-      const { user_story_uid } = serverResponse;
+      yield put({ type: START_LOADING_CONTENT });
+      const { user_story_uid, scene_data } = serverResponse;
+      const objScene = { scene: scene_data }
       yield put({ type: SET_USER_STORY_ID, payload: user_story_uid})
-      yield payload.history.push(`/story/${payload.story_uid}/start`);
-
+      yield put({ type: SET_STORY_CONTENTS, payload: objScene })
       yield put({ type: END_LOADING_CONTENT });
     }
   } catch (error) {

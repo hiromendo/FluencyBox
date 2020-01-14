@@ -387,7 +387,7 @@ class StartStoryPage extends Component {
   callBackAudio(event) {
     const arr = this.state.audioArray;
     event.target.removeEventListener('ended', this.callBackAudio)
-    if (this.state.audioIdx >= this.props.storyContent.scene.story_scene_speakers.length - 1) {
+    if ((this.props.storyContent.scene) && this.state.audioIdx >= this.props.storyContent.scene.story_scene_speakers.length - 1) {
       this.setState({
         audioStatus: 'finished',
         isReadyToRecord: true,
