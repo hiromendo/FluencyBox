@@ -2,7 +2,7 @@ import base64 from 'base-64';
 
 //const BASE_URL = 'http://127.0.0.1:5000';//'http://back-end-withreport-dev.us-west-1.elasticbeanstalk.com';//http://back-end-api-dev4.us-west-1.elasticbeanstalk.com;  //'http://127.0.0.1:5000';//
 //const BASE_URL = 'https://back-end-withreport-dev.us-west-1.elasticbeanstalk.com'
-const BASE_URL = 'https://api.fluencybox.com'
+const BASE_URL = 'http://127.0.0.1:5000'
 export const updateUserInfo = (request, uid) => {
   const { userInfo } = request
   try {
@@ -298,8 +298,9 @@ export const resetPasswordAPI = request => {
 }
 
 export const getAllStoriesAPI = () => {
+  const uid = localStorage.getItem('uid');
   try {
-    const GET_ALL_STORIES_ENDPOINT = `${BASE_URL}/story?page=1&per_page=20`; /* we can custome the query params later... */
+    const GET_ALL_STORIES_ENDPOINT = `${BASE_URL}/story?uid=${uid}&page=1&per_page=20`; /* we can custome the query params later... */
     const jwtToken = localStorage.getItem('access_token');
     let headers = new Headers();
     headers.set('x-access-token', jwtToken);
