@@ -54,7 +54,6 @@ class SingleStoryPage extends React.Component {
 
   render() {
     const { name, image_url, description, difficulty, length, genre, is_demo, is_visible } = this.props;
-    console.log(is_visible, 'is_visible')
     return (
       <div id="story" className="page">
         <div className="story-info-container">
@@ -73,7 +72,7 @@ class SingleStoryPage extends React.Component {
           </div>
 
           <div className="buttons-container">
-            {is_visible === 'true' ? 
+            {is_visible ? 
               <button onClick={this.handleInitiatingStory} className="btn btn-blue">
                 Start
               </button>
