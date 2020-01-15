@@ -8,6 +8,6 @@ COPY . /app
 
 RUN npm install
 
-CMD npm start
+CMD npm start --production
 
 EXPOSE 3000
