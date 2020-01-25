@@ -962,7 +962,6 @@ def user_response():
 @app.route('/complete_story', methods=['POST'])
 @token_required
 def complete_story():
-    print("stage 0")
     try:
         resp_dict = {}
         story_data = request.get_json()
@@ -986,13 +985,9 @@ def complete_story():
 
         # Trigger task
         report_url = 'http://back-end-withreport-dev.us-west-1.elasticbeanstalk.com' + url_for('taskPayload', uid=report_uid)
-        print(report_url)
         run_task(report_url)
 
         resp_dict['status'] = 'success'
-        print('stage 5.5')
-        print(resp_dict)
-        print(resp_dict['status'])
         return jsonify(resp_dict), 200
     except Exception as e:
         resp_dict['status'] = 'fail'
@@ -1001,7 +996,6 @@ def complete_story():
 
 @app.route('/reports/<uid>/task_payload', methods=['GET'])
 def taskPayload(uid):
-    print("stage 6")
     try:
         report = Report.query.filter_by(uid=uid).first()
         if not report:
@@ -1047,8 +1041,6 @@ def taskPayload(uid):
                     story_scene_responses.append(data_dict)
 
         task_payload['story_scene_responses'] = story_scene_responses
-        print("stage 7")
-        print(task_payload)
         return jsonify(task_payload), 200
     except Exception as e:
         resp_dict['status'] = 'fail'
