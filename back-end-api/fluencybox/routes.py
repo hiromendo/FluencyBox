@@ -1039,6 +1039,7 @@ def taskPayload(uid):
                         }
                         data_dict['master'] = master
                     user_response = Story_Scene_User_Response.query.filter(Story_Scene_User_Response.user_story_id == user_story.id, Story_Scene_User_Response.story_scene_speaker_id == speaker.id).first()
+                
 
                     user = {
                         'audio_filename': 'user_response_audio/' + user_response.audio_filename,
