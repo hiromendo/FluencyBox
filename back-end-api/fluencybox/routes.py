@@ -1024,6 +1024,7 @@ def taskPayload(uid):
         #Get 'specific_response' scenes for this story
         story_scene = Story_Scene.query.filter(Story_Scene.story_id == user_story.story_id, Story_Scene.type == 'specific_response').all()
 
+        
         story_scene_responses = []
         for scene in story_scene:
             for speaker in scene.story_scene_speakers:
@@ -1038,6 +1039,7 @@ def taskPayload(uid):
                         }
                         data_dict['master'] = master
                     user_response = Story_Scene_User_Response.query.filter(Story_Scene_User_Response.user_story_id == user_story.id, Story_Scene_User_Response.story_scene_speaker_id == speaker.id).first()
+
                     user = {
                         'audio_filename': 'user_response_audio/' + user_response.audio_filename,
                         'story_scene_user_response_id' : user_response.id
@@ -1050,6 +1052,24 @@ def taskPayload(uid):
         print("stage 7")
         print(task_payload)
         return jsonify(task_payload), 200
+
+        #             #To cater for non existent user response
+        #             if not user_response:
+        #                 print('No User Response for user_story.id = ', user_story.id, ' & story_scene_speaker_id = ', speaker.id)
+        #             else:
+        #                 user = {'audio_filename': user_response.audio_filename, 'story_scene_user_response_id' : user_response.id}
+        #                 data_dict['user'] = user
+
+        #             story_scene_responses.append(data_dict)
+
+        # sqs_payload['story_scene_responses'] = story_scene_responses #json.dumps(story_scene_responses)
+        # #Send ECS command to run a task
+        
+        # #resp_dict['status'] = 'success'
+        # resp_dict['sqs_payload'] = sqs_payload
+        
+        # return jsonify(resp_dict), 200
+
     except Exception as e:
         resp_dict['status'] = 'fail'
         resp_dict['message'] = str(e)
@@ -1146,13 +1166,25 @@ def get_single_report(uid):
         
         report_details['uid'] = report.uid
         report_details['name'] = report.user_story.story.name + " speech report"
+        report_details['score'] = report.score
 
         for report_image in report.report_images:
-            image_url = generate_public_url('report_image', report_image.filename)
+            master_response = Story_Scene_Master_Response.query.filter(Story_Scene_Master_Response.story_scene_speaker_id == report_image.story_scene_user_response.story_scene_speaker_id).first()
+            report_image_url = generate_public_url('report_image', report_image.filename)
+            master_audio_url = generate_public_url('master_audio', master_response.audio_filename)
+            user_response_audio_url = generate_public_url('user_audio', report_image.story_scene_user_response.audio_filename)
+            speaker_audio_url = generate_public_url('speaker_audio', master_response.story_scene_speaker.audio_filename)
+            
             report_images.append({
-                'user_audio_text' : report_image.story_scene_user_response.audio_text,
-                'image_url' : image_url, 
-                'image_type' : report_image.image_type
+                'master_audio_url' : master_audio_url,
+                'user_response_audio_url' : user_response_audio_url,
+                'speaker_audio_url' : speaker_audio_url,
+                
+                'speaker_audio_text' : master_response.story_scene_speaker.audio_text,
+                'user_response_audio_text' : report_image.story_scene_user_response.audio_text,
+                
+                'report_image_url' : report_image_url, 
+                'report_image_type' : report_image.image_type
                 })
 
         report_details['report_images'] = report_images
