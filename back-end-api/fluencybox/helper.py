@@ -44,6 +44,63 @@ def validate_email_address(email_address):
     else:
         return False
 
+def get_paginated_story(page_object, subscription_status):
+    try:
+        resp_dict = {}
+        output = []
+        pagination = {}
+
+        if subscription_status == 'active':
+            for story in page_object.items:
+                image_url = generate_public_url('story_image', story.image_filename)
+                output.append({
+                'uid' : story.uid, 
+                'name' : story.name,
+                'description' : story.description,
+                'length' : story.length,
+                'image_url' : image_url,
+                'difficulty' : story.difficulty,
+                'genre' : story.genre,
+                'is_demo': story.is_demo,
+                'is_visible' : 'true' 
+                })
+        else:
+            for story in page_object.items:
+                image_url = generate_public_url('story_image', story.image_filename)
+                output.append({
+                'uid' : story.uid, 
+                'name' : story.name,
+                'description' : story.description,
+                'length' : story.length,
+                'image_url' : image_url,
+                'difficulty' : story.difficulty,
+                'genre' : story.genre,
+                'is_demo': story.is_demo,
+                'is_visible' : story.is_demo
+                })
+
+        pagination['has_next'] = page_object.has_next
+        pagination['has_prev'] = page_object.has_prev
+        pagination['next_num'] = page_object.next_num
+        pagination['page'] = page_object.page
+        pagination['pages'] = page_object.pages
+        pagination['per_page'] = page_object.per_page
+        pagination['prev_num'] = page_object.prev_num
+        pagination['total'] = page_object.total
+
+        resp_dict['status'] = 'success'
+        resp_dict['paginated_list'] = output
+        resp_dict['pagination'] = pagination  
+        return resp_dict
+
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+
+
+
 def get_paginated_list(page_object, object_type):
     try:
         resp_dict = {}

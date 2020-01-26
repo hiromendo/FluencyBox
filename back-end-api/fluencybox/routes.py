@@ -9,22 +9,34 @@ from fluencybox import app, db
 import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
+from dateutil.relativedelta import relativedelta
 import datetime
 from functools import wraps
 from fluencybox.models import User, User_Schema, Story, Story_Schema, Story_Scene, Story_Scene_Schema, \
 Scene_Keyword, Scene_Keyword_Schema, Story_Scene_Speaker, Story_Scene_Speaker_Schema, \
 Story_Scene_Master_Response, Story_Scene_Master_Response_Schema, User_Story, User_Story_Schema, \
 Story_Scene_User_Response, Story_Scene_User_Response_Schema, Report, Report_Schema, \
-Report_Images, Report_Images_Schema, Story_Purchase, Story_Purchase_Schema, User_Purchase, User_Purchase_Schema
+Report_Images, Report_Images_Schema, Story_Purchase, Story_Purchase_Schema, User_Purchase, User_Purchase_Schema, \
+Credit_Cards, Credit_Cards_Schema, Subscriptions, Subscriptions_Schema, Subscription_Contracts, Subscription_Contracts_Schema, \
+Current_Subscription_Contracts, Current_Subscription_Contracts_Schema
 from fluencybox.S3AssetManager import get_bucket, get_resource, save_avatar, save_story_object, delete_avatar, \
 delete_story_object, generate_presigned_url, run_task
 from fluencybox.mailer import send_reset_email, send_report_complete_email
 from fluencybox.helper import insert_story, insert_story_scene, insert_scene_keyword, insert_story_scene_speaker, \
 insert_story_scene_master_responses, validate_user_name, validate_email_address, get_paginated_list, upload_story_zip, \
-upload_story_json, get_scene, generate_tokens, generate_public_url
+upload_story_json, get_scene, generate_tokens, generate_public_url, get_paginated_story
+from fluencybox.stripe_manager import create_customer, create_payment_token, create_card, create_subscription, get_invoice
 from io import BytesIO
 from zipfile import ZipFile
 from urllib.request import urlopen
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.ERROR)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+file_handler = logging.FileHandler('api.log')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 # @app.route('/')
 # def index():
@@ -663,10 +675,23 @@ def get_all_story():
         resp_dict = {}
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
-        story_list = Story.query.paginate(page = page, per_page = per_page)
+        user_uid = request.args.get('uid', type=str)
         
-        paginated_list = get_paginated_list(story_list, 'story')
+        user = User.query.filter_by(uid = user_uid).first()
+        if not user:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user found'
+            return jsonify(resp_dict),404
+        
+        subscription = Subscriptions.query.filter_by(user_id = user.id).first()
+        if not subscription:
+            subscription_status = 'inactive'
+        else:
+            subscription_status = subscription.status
 
+        story_list = Story.query.paginate(page = page, per_page = per_page)
+        paginated_list = get_paginated_story(story_list, subscription_status)
+        
         if paginated_list['status'] == 'success':
             resp_dict['status'] = 'success'
             resp_dict['story'] = paginated_list['paginated_list']
@@ -718,6 +743,13 @@ def get_filtered_story():
         genre  = request.args.get('genre', None)
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
+        user_uid = request.args.get('uid', type=str)
+        
+        user = User.query.filter_by(uid = user_uid).first()
+        if not user:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user found'
+            return jsonify(resp_dict),404
 
         if difficulty and genre:
             story_list = Story.query.filter(Story.difficulty == difficulty, Story.genre == genre).paginate(page = page, per_page = per_page)
@@ -734,8 +766,14 @@ def get_filtered_story():
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No story found'
             return jsonify(resp_dict),404
+        
+        subscription = Subscriptions.query.filter_by(user_id = user.id).first()
+        if not subscription:
+            subscription_status = 'inactive'
+        else:
+            subscription_status = subscription.status
 
-        paginated_list = get_paginated_list(story_list, 'story')
+        paginated_list = get_paginated_story(story_list, subscription_status)
 
         if paginated_list['status'] == 'success':
             resp_dict['status'] = 'success'
@@ -782,6 +820,23 @@ def start_story():
             resp_dict['message'] = 'No user found'
             return jsonify(resp_dict),404
         
+        #Check if story is demo story
+        if not story.is_demo:
+            print(story.is_demo)
+            #Check if user has an active subscription
+            subscription = Subscriptions.query.filter_by(user_id = user.id).first()
+            if not subscription:
+                subscription_status = 'inactive'
+            else:
+                subscription_status = subscription.status
+
+            print(subscription_status)
+            if subscription_status != 'active':
+                resp_dict['status'] = 'fail'
+                resp_dict['message'] = 'user subscription is inactive'
+                return jsonify(resp_dict),400
+
+
         user_story = User_Story.query.filter(User_Story.user_id == user.id, User_Story.story_id == story.id, User_Story.completed == 0).order_by(User_Story.created_at.desc()).first()
         if user_story:
             #If user has incomplete story, send back next scene order & existing user_story_uid
@@ -1364,4 +1419,256 @@ def upload_story():
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
 
+
+
+@app.route('/subscriptions', methods=['POST'])
+#@token_required
+def subscription():
+    try:
+        resp_dict = {}
+        sub_data = request.get_json()
+        #Check if all fields are present in JSON request 
+        if not 'user_uid' in sub_data:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user uid in request'
+            return jsonify(resp_dict),400
+            
+        # Uncomment when F.E sends token
+        # if not 'payment_token' in sub_data:
+        #     resp_dict['status'] = 'fail'
+        #     resp_dict['message'] = 'No payment token in request'
+        #     return jsonify(resp_dict),400
+        # Uncomment when F.E sends token
+
+        user_uid = sub_data['user_uid'].strip() 
+        
+        # Uncomment when F.E sends token
+        # payment_token = sub_data['payment_token']
+    
+        user = User.query.filter_by(uid = user_uid).first()
+        if not user:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user found'
+            return jsonify(resp_dict),404
+
+        create_customer_response = create_customer(user)
+        if create_customer_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = create_customer_response['message']
+            return jsonify(resp_dict), 500
+        customer = create_customer_response['message']
+    
+        #Temp use - real payment token will be received from F.E - comment this out
+        create_payment_token_response = create_payment_token()
+        if create_payment_token_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = create_payment_token_response['message']
+            return jsonify(resp_dict), 500
+        payment_token = create_payment_token_response['message']
+        #Temp use - real payment token will be received from F.E - comment this out
+
+        create_card_response = create_card(customer.id, payment_token.id)
+        if create_card_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = create_card_response['message']
+            return jsonify(resp_dict), 500
+        card = create_card_response['message']
+
+        new_card = Credit_Cards(user_id = user.id, stripe_card_id = card.id, brand = card.brand, last_four = card.last4, exp_month = card.exp_month, exp_year = card.exp_year)
+        db.session.add(new_card)
+
+        new_subscription = Subscriptions(user_id = user.id, stripe_customer_id = customer.id, status = 'active')
+        db.session.add(new_subscription)
+
+        period_start = datetime.date.today()
+        period_end = period_start + relativedelta(months=1)
+
+        new_subscription_contract = Subscription_Contracts(subscription = new_subscription, stripe_plan_id =  app.config.get('HANASU_PLAN_ID'), amount = 999,  credit_card = new_card, period_start = period_start, period_end = period_end)
+        db.session.add(new_subscription_contract)
+
+        new_current_subscription_contracts = Current_Subscription_Contracts(subscription = new_subscription, subscription_contract = new_subscription_contract)
+        db.session.add(new_current_subscription_contracts)
+
+        create_subscription_response = create_subscription(customer.id, card.id)
+        if create_subscription_response['status'] != 'success':
+            db.session.rollback()
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = create_subscription_response['message']
+            return jsonify(resp_dict), 500
+        
+        subscription = create_subscription_response['message']
+
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+    try:
+        #Update the stripe subscription id
+        new_subscription.stripe_subscription_id = subscription.id
+
+        #Update charge id, start/end periods & invoice id
+        new_subscription_contract.stripe_invoice_id = subscription.latest_invoice
+
+        #Get the invoice to get the charge id
+        get_invoice_response = get_invoice(subscription.latest_invoice)
+        if get_invoice_response['status'] == 'success':
+            invoice = get_invoice_response['message']
+            new_subscription_contract.stripe_charge_id = invoice.charge
+
+        new_subscription_contract.period_start = datetime.datetime.fromtimestamp(int(subscription.current_period_start)).strftime('%Y-%m-%d %H:%M:%S')
+        new_subscription_contract.period_end = datetime.datetime.fromtimestamp(int(subscription.current_period_end)).strftime('%Y-%m-%d %H:%M:%S')
+        db.session.commit()
+
+        resp_dict['status'] = 'success'
+        return jsonify(resp_dict), 201
+    except Exception as e:
+        resp_dict['status'] = 'success'
+        logger.exception('Error occurred: ' + str(e))
+        return jsonify(resp_dict), 201
+
+#Get a users cards
+@app.route('/users/<uid>/credit_cards',methods=['GET'])
+@token_required
+def get_user_cards(uid):
+    try:
+        resp_dict = {}
+        user = User.query.filter_by(uid = uid).first()
+        
+        if not user:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user found'
+            return jsonify(resp_dict),404
+
+        credit_cards = Credit_Cards.query.filter_by(user_id = user.id).all()
+
+        credit_cards_schema = Credit_Cards_Schema()
+        credit_cards_data = credit_cards_schema.dump(credit_cards).data
+
+        resp_dict['status'] = 'success'
+        resp_dict['cards'] = credit_cards_data
+        
+        return jsonify(resp_dict)
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+#Get a users cards
+@app.route('/credit_cards',methods=['POST'])
+@token_required
+def add_credit_card():
+    try:
+        resp_dict = {}
+        data = request.get_json()
+        #Check if all fields are present in JSON request 
+        if not 'user_uid' in data:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user uid in request'
+            return jsonify(resp_dict),400
+        user_uid = data['user_uid'].strip() 
+
+        # Uncomment when F.E sends token
+        # if not 'payment_token' in sub_data:
+        #     resp_dict['status'] = 'fail'
+        #     resp_dict['message'] = 'No payment token in request'
+        #     return jsonify(resp_dict),400
+        # Uncomment when F.E sends token
+        
+        user = User.query.filter_by(uid = user_uid).first()
+        
+        if not user:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user found'
+            return jsonify(resp_dict),404
+
+
+        users_schema = User_Schema()
+        user_data = users_schema.dump(user).data
+
+        resp_dict['status'] = 'success'
+        resp_dict['user'] = user_data
+        
+        return jsonify(resp_dict)
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+
+#Delete a users cards
+@app.route('/credit_cards/<id>',methods=['DELETE'])
+@token_required
+def delete_user_card(id):
+    try:
+        resp_dict = {}
+        ## F.E should check if the user has more than 1 card, only then should it be able to send a delee request to the API.
+        ## Once the Card ID is received, confirm from database that the user has another card on file
+        ##https://stripe.com/docs/api/cards/delete
+        card = User.query.filter_by(uid = id).first()
+        
+        if not card:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No card found'
+            return jsonify(resp_dict),404
+
+
+        resp_dict['status'] = 'success'
+        resp_dict['cards'] = 'user_data'
+        
+        return jsonify(resp_dict)
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+
+#Get a users subscriptions
+@app.route('/subscriptions/<id>/subscription_contracts',methods=['GET'])
+@token_required
+def get_user_subscriptions(uid):
+    try:
+        resp_dict = {}
+        #Paginated list of contracts order by period_start DESC
+
+        user = User.query.filter_by(uid = uid).first()
+        
+        if not user:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No user found'
+            return jsonify(resp_dict),404
+
+
+        users_schema = User_Schema()
+        user_data = users_schema.dump(user).data
+
+        resp_dict['status'] = 'success'
+        resp_dict['cards'] = user_data
+        
+        return jsonify(resp_dict)
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
+
+
+
+#Delete a users subscription
+@app.route('/subscriptions/<id>',methods=['DELETE'])
+@token_required
+def delete_subscription(id):
+    try:
+        resp_dict = {}
+        ##https://stripe.com/docs/api/subscriptions/cancel
+       
+        resp_dict['status'] = 'success'
+        resp_dict['cards'] = 'user_data'
+        
+        return jsonify(resp_dict)
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
 
