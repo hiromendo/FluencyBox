@@ -30,7 +30,7 @@ def create_payment_token():
         resp_dict = {}
         stripe = get_stripe()
 
-        payment_token = stripe.Token.create(card={"number": "4242424242424242", "exp_month": 12, "exp_year": 2020, "cvc": "314"})
+        payment_token = stripe.Token.create(card={"number": "5555555555554444", "exp_month": 12, "exp_year": 2020, "cvc": "314"})
 
         resp_dict['status'] = 'success'
         resp_dict['message'] = payment_token
@@ -80,6 +80,36 @@ def get_invoice(invoice_id):
 
         resp_dict['status'] = 'success'
         resp_dict['message'] = invoice
+        return resp_dict
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return resp_dict
+
+def delete_card(customer_id, card_id):
+    try:
+        resp_dict = {}
+        stripe = get_stripe()
+
+        delete_response = stripe.Customer.delete_source(customer_id, card_id)
+
+        resp_dict['status'] = 'success'
+        resp_dict['message'] = stripe
+        return resp_dict
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return resp_dict
+
+def cancel_subscription(subscription_id):
+    try:
+        resp_dict = {}
+        stripe = get_stripe()
+
+        cancel_response = stripe.Subscription.delete_source(subscription_id)
+
+        resp_dict['status'] = 'success'
+        resp_dict['message'] = cancel_response
         return resp_dict
     except Exception as e:
         resp_dict['status'] = 'fail'

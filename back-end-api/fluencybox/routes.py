@@ -25,7 +25,8 @@ from fluencybox.mailer import send_reset_email, send_report_complete_email
 from fluencybox.helper import insert_story, insert_story_scene, insert_scene_keyword, insert_story_scene_speaker, \
 insert_story_scene_master_responses, validate_user_name, validate_email_address, get_paginated_list, upload_story_zip, \
 upload_story_json, get_scene, generate_tokens, generate_public_url, get_paginated_story
-from fluencybox.stripe_manager import create_customer, create_payment_token, create_card, create_subscription, get_invoice
+from fluencybox.stripe_manager import create_customer, create_payment_token, create_card, create_subscription, get_invoice, \
+delete_card, cancel_subscription
 from io import BytesIO
 from zipfile import ZipFile
 from urllib.request import urlopen
@@ -1389,7 +1390,7 @@ def upload_story():
 
 
 @app.route('/subscriptions', methods=['POST'])
-#@token_required
+@token_required
 def subscription():
     try:
         resp_dict = {}
@@ -1508,12 +1509,17 @@ def get_user_cards(uid):
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No user found'
             return jsonify(resp_dict),404
-
+        
         credit_cards = Credit_Cards.query.filter_by(user_id = user.id).all()
-
-        credit_cards_schema = Credit_Cards_Schema()
+        
+        if not credit_cards:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No cards found for user'
+            return jsonify(resp_dict),404
+        
+        credit_cards_schema = Credit_Cards_Schema(many = True)
         credit_cards_data = credit_cards_schema.dump(credit_cards).data
-
+        
         resp_dict['status'] = 'success'
         resp_dict['cards'] = credit_cards_data
         
@@ -1523,7 +1529,7 @@ def get_user_cards(uid):
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
 
-#Get a users cards
+#add a card
 @app.route('/credit_cards',methods=['POST'])
 @token_required
 def add_credit_card():
@@ -1543,20 +1549,38 @@ def add_credit_card():
         #     resp_dict['message'] = 'No payment token in request'
         #     return jsonify(resp_dict),400
         # Uncomment when F.E sends token
-        
+
+        # Uncomment when F.E sends token
+        # payment_token = sub_data['payment_token']
+
         user = User.query.filter_by(uid = user_uid).first()
-        
         if not user:
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No user found'
             return jsonify(resp_dict),404
 
+        #Temp use - real payment token will be received from F.E - comment this out
+        create_payment_token_response = create_payment_token()
+        if create_payment_token_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = create_payment_token_response['message']
+            return jsonify(resp_dict), 500
+        payment_token = create_payment_token_response['message']
+        #Temp use - real payment token will be received from F.E - comment this out
 
-        users_schema = User_Schema()
-        user_data = users_schema.dump(user).data
+        subscription = Subscriptions.query.filter_by(user_id = user.id).first()
 
+        create_card_response = create_card(subscription.stripe_customer_id, payment_token.id)
+        if create_card_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = create_card_response['message']
+            return jsonify(resp_dict), 500
+        card = create_card_response['message']
+
+        new_card = Credit_Cards(user_id = user.id, stripe_card_id = card.id, brand = card.brand, last_four = card.last4, exp_month = card.exp_month, exp_year = card.exp_year)
+        db.session.add(new_card)
+        db.session.commit()
         resp_dict['status'] = 'success'
-        resp_dict['user'] = user_data
         
         return jsonify(resp_dict)
     except Exception as e:
@@ -1571,19 +1595,28 @@ def add_credit_card():
 def delete_user_card(id):
     try:
         resp_dict = {}
-        ## F.E should check if the user has more than 1 card, only then should it be able to send a delee request to the API.
-        ## Once the Card ID is received, confirm from database that the user has another card on file
-        ##https://stripe.com/docs/api/cards/delete
-        card = User.query.filter_by(uid = id).first()
-        
-        if not card:
-            resp_dict['status'] = 'fail'
-            resp_dict['message'] = 'No card found'
-            return jsonify(resp_dict),404
+      
+        #First get card using card id sent from F.E
+        credit_card = Credit_Cards.query.filter_by(stripe_card_id = id).first()
+        #Get all cards belonging to that user
+        credit_cards = Credit_Cards.query.filter_by(user_id = credit_card.user_id).all()
 
+        if credit_cards.__len__()<2:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'Only one card on file, cannot delete card'
+            return jsonify(resp_dict),400
+        
+        subscriptions = Subscriptions.query.filter_by(user_id = credit_card.user_id).first()
+        delete_card_response = delete_card(subscriptions.stripe_customer_id, id)
+        if delete_card_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = delete_card_response['message']
+            return jsonify(resp_dict), 500
+
+        Credit_Cards.query.filter_by(stripe_card_id = id).delete()
+        db.session.commit()
 
         resp_dict['status'] = 'success'
-        resp_dict['cards'] = 'user_data'
         
         return jsonify(resp_dict)
     except Exception as e:
@@ -1607,7 +1640,7 @@ def get_user_subscriptions(uid):
             resp_dict['message'] = 'No user found'
             return jsonify(resp_dict),404
 
-
+        # subscription_contracts = Subscription_Contracts.query.filer_by()
         users_schema = User_Schema()
         user_data = users_schema.dump(user).data
 

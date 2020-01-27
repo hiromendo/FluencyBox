@@ -304,7 +304,7 @@ class Credit_Cards(db.Model):
 
 class Credit_Cards_Schema(ma.ModelSchema):
     class Meta:
-        fields = ("id", "user_id", "stripe_card_id", "brand", "last_four", "exp_month", "exp_year", "subscription_contract")
+        fields = ("id", "user_id", "stripe_card_id", "brand", "last_four", "exp_month", "exp_year")
         model = Credit_Cards
 
 #db.create_all()
