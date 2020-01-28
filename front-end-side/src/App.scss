@@ -34,7 +34,7 @@ nav {
     list-style: none;
     display: flex;
     align-items: center;
-    justify-content: space-around;
+    justify-content: space-evenly;
     li {
       .brand-text {
         font-size: 33px;
@@ -49,14 +49,11 @@ nav {
       a {
         color: $white-color;
         text-decoration: none;
-        &:visited {
-          text-decoration: none;
-          color: $white-color;
-        }
+      }
+      a.active {
+        font-weight: 900;
       }
       font-size: 13px;
-      // width: 100%;
-      // width: 10%;
     }
   }
 }

@@ -13,7 +13,8 @@ import { HomePage,
   updateProfileInfoPage, 
   updatePasswordPage, 
   UpdatePicturePage, 
-  resetPasswordPage 
+  resetPasswordPage,
+  ReportDashBoard
 } from './components/pages';
 
 import PrivateRoute from './util/PrivateRoute';
@@ -118,6 +119,7 @@ class App extends React.Component {
                 <PrivateRoute path='/updateprofileinfo' component={updateProfileInfoPage} />
                 <PrivateRoute path='/updatePassword' component={updatePasswordPage} />
                 <PrivateRoute path='/updatePicture' component={UpdatePicturePage} />
+                <PrivateRoute path='/reports' component={ReportDashBoard} />
                 {this.renderAllStoriesLinks()}
                 {this.renderAllStartStoriesLinks()}
                 <Route path="*" component={() => "404 not found" } />

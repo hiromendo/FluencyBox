@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { slide as Menu } from 'react-burger-menu';
 
 import './NavBar.scss';
@@ -79,31 +79,34 @@ class NavBar extends React.Component {
       <nav id="top-nav">
         <ul id="desktop-nav">
           <li>
-            <Link to="/app"><img className="logo-brand" src="https://uploads-ssl.webflow.com/5d40e2a7625e7f495119ba08/5d78bd2c584e14d8417c6306_hanasulogo2.png" alt="logo" />
-            </Link>
+            <NavLink to="/app"><img className="logo-brand" src="https://uploads-ssl.webflow.com/5d40e2a7625e7f495119ba08/5d78bd2c584e14d8417c6306_hanasulogo2.png" alt="logo" />
+            </NavLink>
           </li>
           <li>
-          <Link to="/app">Dashboard</Link>
+            <NavLink to="/app">Dashboard</NavLink>
           </li>
           <li>
-            <Link to="/userprofile">UserProfile</Link>
+            <NavLink to="/reports">Reports</NavLink>
           </li>
           <li>
-            <Link onClick={() => this.beforeSigningOff()} to="/login">Logout</Link>
+            <NavLink to="/userprofile">UserProfile</NavLink>
+          </li>
+          <li>
+            <NavLink onClick={() => this.beforeSigningOff()} to="/login">Logout</NavLink>
           </li>
         </ul>
         <div id="mobile-nav">
           <div className="logo-container">
-            <Link to="/app" onClick={this.closeMenu}>
+            <NavLink to="/app" onClick={this.closeMenu}>
               <img className="logo-brand" src="https://uploads-ssl.webflow.com/5d40e2a7625e7f495119ba08/5d78bd2c584e14d8417c6306_hanasulogo2.png" alt="logo" />
-            </Link>
+            </NavLink>
           </div>
           
           <Menu width={220} isOpen={this.state.menuOpen} onStateChange={(state) => this.handleStateChange(state)}>
-            <Link onClick={this.closeMenu} to="/app">Dashboard</Link>
-            <Link onClick={this.closeMenu} to="/userprofile">UserProfile</Link>
-            <Link onClick={this.closeMenu} to="/aboutus">About Us</Link>
-            <Link onClick={() => this.beforeSigningOff()} to="/login">Logout</Link>
+            <NavLink onClick={this.closeMenu} to="/app">Dashboard</NavLink>
+            <NavLink onClick={this.closeMenu} to="/userprofile">UserProfile</NavLink>
+            <NavLink onClick={this.closeMenu} to="/aboutus">About Us</NavLink>
+            <NavLink onClick={() => this.beforeSigningOff()} to="/login">Logout</NavLink>
           </Menu>
         </div>
       </nav>
