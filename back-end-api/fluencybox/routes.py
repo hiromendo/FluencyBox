@@ -1225,23 +1225,38 @@ def get_single_report(uid):
         report_details['score'] = report.score
 
         for report_image in report.report_images:
-            master_response = Story_Scene_Master_Response.query.filter(Story_Scene_Master_Response.story_scene_speaker_id == report_image.story_scene_user_response.story_scene_speaker_id).first()
-            report_image_url = generate_public_url('report_image', report_image.filename)
-            master_audio_url = generate_public_url('master_audio', master_response.audio_filename)
-            user_response_audio_url = generate_public_url('user_audio', report_image.story_scene_user_response.audio_filename)
-            speaker_audio_url = generate_public_url('speaker_audio', master_response.story_scene_speaker.audio_filename)
-            
-            report_images.append({
-                'master_audio_url' : master_audio_url,
-                'user_response_audio_url' : user_response_audio_url,
-                'speaker_audio_url' : speaker_audio_url,
+            if report_image.image_type == 'stress':
+                filename_stress = report_image.filename
+                filename_uid = filename_stress.split("_stress.jpg")[0]
+                filename_rhythm = filename_uid + "_rhythm.jpg"
+
+                master_response = Story_Scene_Master_Response.query.filter(Story_Scene_Master_Response.story_scene_speaker_id == report_image.story_scene_user_response.story_scene_speaker_id).first()
+                report_image_url_stress = generate_public_url('report_image', filename_stress)
+                report_image_url_rhythm = generate_public_url('report_image', filename_rhythm)
+
+                master_audio_url = generate_public_url('master_audio', master_response.audio_filename)
+                user_response_audio_url = generate_public_url('user_audio', report_image.story_scene_user_response.audio_filename)
+                speaker_audio_url = generate_public_url('speaker_audio', master_response.story_scene_speaker.audio_filename)
                 
-                'speaker_audio_text' : master_response.story_scene_speaker.audio_text,
-                'user_response_audio_text' : report_image.story_scene_user_response.audio_text,
-                
-                'report_image_url' : report_image_url, 
-                'report_image_type' : report_image.image_type
-                })
+                report_images.append({
+                    'master_audio_url' : master_audio_url,
+                    'user_response_audio_url' : user_response_audio_url,
+                    'speaker_audio_url' : speaker_audio_url,
+                    
+                    'speaker_audio_text' : master_response.story_scene_speaker.audio_text,
+                    'user_response_audio_text' : report_image.story_scene_user_response.audio_text,
+                    
+                    'report_image_type_stress' : report_image.image_type,
+                    'report_image_url_stress' : report_image_url_stress, 
+                    
+                    'report_image_type_rhythm' : 'rhythm',
+                    'report_image_url_rhythm' : report_image_url_rhythm, 
+                    
+                    #New keys added
+                    'master_response_text' : master_response.audio_text,
+                    'scene_number' : master_response.story_scene_speaker.story_scene.order,
+                    'scene_user_response_score' : report_image.scene_user_response_score
+                    })
 
         report_details['report_images'] = report_images
         

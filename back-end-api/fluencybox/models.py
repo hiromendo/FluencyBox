@@ -10,6 +10,7 @@ class Report_Images(db.Model):
     report_id = db.Column(db.Integer, db.ForeignKey('report.id'), nullable=False)
     filename = db.Column(db.String(255))
     scene_user_response_id = db.Column(db.Integer, db.ForeignKey('story_scene_user_response.id'), nullable=False)
+    scene_user_response_score = db.Column(db.Float) #Added
     image_type = db.Column(db.String(50))
 
     def __repr__(self):
