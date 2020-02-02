@@ -11,7 +11,8 @@ import { loginUserAPI,
   getStoryData,
   getStorySceneAPI,
   getNextSceneAPI,
-  completeStoryAPI
+  completeStoryAPI,
+  getAllReportsAPI
 } from './../util/api'
 
 import {
@@ -28,7 +29,10 @@ import {
   REMOVE_CURRENT_USER,
   STORY_CONTENT_LOADED,
   SET_STORY_CONTENTS,
-  SET_USER_STORY_ID
+  SET_USER_STORY_ID,
+  GET_ALL_REPORTS,
+  UPDATE_FETCHING_REPORTS,
+  SET_ALL_REPORTS
  } from '../actions'
 
 export function* getAllStoriesAsync() {
@@ -256,4 +260,21 @@ export function* completeStoryAsync( { payload }) {
     yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
     yield put({ type: END_LOADING });
   }
+}
+
+export function* getAllReportsAsync({ payload }) {
+  yield put({ type: UPDATE_FETCHING_REPORTS, payload: true } );
+  try {
+    const serverResponse = yield call(getAllReportsAPI, payload);
+    console.log(serverResponse, 'this is serverreponse')
+    yield put({ type: SET_ALL_REPORTS, payload: serverResponse});
+    yield put({ type: UPDATE_FETCHING_REPORTS, payload: false } );
+
+  } catch (error) {
+    console.error(error);
+    // yield put({ type: DISPLAY_ERROR_UPDATE, payload: { errorMessage: error, status: 'error' } })
+    // yield put({ type: END_LOADING });
+  }
+  yield delay(2050);
+  // yield put({ type: END_LOADING_CONTENT });
 }

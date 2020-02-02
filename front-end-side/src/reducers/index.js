@@ -4,14 +4,16 @@ import authReducer from './reducer_auth';
 import registerCacheReducer from './reducer_registerCache';
 import storiesReducer from './reducer_stories';
 import storyContentsReducer from './reducer_storycontents';
-import storyStatusReducer from './reducer_storystatus'
+import storyStatusReducer from './reducer_storystatus';
+import reportsStatus from './reducer_reports';
 const rootReducer = combineReducers({
   loading: loadingReducer,
   authInfo: authReducer,
   registerCache: registerCacheReducer,
   storiesInfo: storiesReducer,
   storyContent: storyContentsReducer,
-  storyStatus: storyStatusReducer
+  storyStatus: storyStatusReducer,
+  reportsStatus: reportsStatus
 })
 
 export default rootReducer;

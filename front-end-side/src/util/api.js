@@ -446,3 +446,34 @@ export const completeStoryAPI = request => {
     throw Error(error)
   }
 }
+
+export const getAllReportsAPI = uid => {
+  console.log(uid)
+  try {
+    const GET_ALL_REPORTS_ENDPOINT = `${BASE_URL}/reports?uid=${uid}&page=1&per_page10`;
+    const jwtToken = localStorage.getItem('access_token');
+    let headers = new Headers();
+    headers.set('x-access-token', jwtToken);
+
+    const parameters = {
+      method: 'GET',
+      headers
+    }
+
+    return fetch(GET_ALL_REPORTS_ENDPOINT, parameters)
+    .then(response => {
+      switch (response.status) {
+        case 400: {
+          return response.json().then(data => {
+            return Promise.reject(`${data.message}`)
+          })
+        }
+        default: 
+          return response.json();
+      }
+    })
+  } catch (error) {
+    console.error(error);
+    throw Error(error)
+  }
+}

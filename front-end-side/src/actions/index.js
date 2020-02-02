@@ -40,6 +40,11 @@ export const RESET_STORY_STATUS = 'RESET_STORY_STATUS';
 export const GET_NEXT_SCENE_ASYNC = 'GET_NEXT_SCENE_ASYNC'
 export const COMPLETE_STORY = 'COMPLETE_STORY'
 
+//Report Dashboard Actions
+export const GET_ALL_REPORTS = 'GET_ALL_REPORTS';
+export const UPDATE_FETCHING_REPORTS = 'UPDATE_FETCHING_REPORTS';
+export const SET_ALL_REPORTS = 'SET_ALL_REPORTS';
+
 export const startLoading = () => ({
   type: START_LOADING
 })
@@ -168,5 +173,11 @@ export const getAsyncNextScene = payload => ({
 
 export const completeStory = payload => ({
   type: COMPLETE_STORY,
+  payload
+})
+
+/* Report Dashboard */
+export const getAllReports = payload => ({
+  type: GET_ALL_REPORTS,
   payload
 })
