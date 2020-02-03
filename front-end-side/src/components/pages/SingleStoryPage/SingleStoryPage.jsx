@@ -30,7 +30,6 @@ class SingleStoryPage extends React.Component {
     const STRIPE_ENDPOINT = `${this.state.BASE_URL}/subscriptions`;
     let headers = new Headers();
     const jwtToken = localStorage.getItem('access_token')
-    console.log(token, 'this is token');
     headers.set('x-access-token', jwtToken);
     headers.set('Accept', 'application/json');
     headers.set('Content-Type', 'application/json; charset=UTF-8');

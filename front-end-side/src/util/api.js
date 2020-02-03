@@ -215,7 +215,6 @@ export const updatePassWordAPI = request => {
 
 export const updateProfilePictureAPI = request => {
   const { uid, data } = request;
-  console.log(data, 'this is data')
   try {
     const UPDATE_PROFILE_PIC_ENDPOINT = `${BASE_URL}/users/${uid}/profile_picture`;
     const jwtToken = localStorage.getItem('access_token');
@@ -448,7 +447,6 @@ export const completeStoryAPI = request => {
 }
 
 export const getAllReportsAPI = uid => {
-  console.log(uid)
   try {
     const GET_ALL_REPORTS_ENDPOINT = `${BASE_URL}/reports?uid=${uid}&page=1&per_page10`;
     const jwtToken = localStorage.getItem('access_token');

@@ -4,6 +4,7 @@ import ReactLoading from 'react-loading';
 
 
 import { getAllReports } from '../../actions';
+import './ReportDashBoard.scss'
 
 class ReportDashBoard extends Component {
 
@@ -16,6 +17,40 @@ class ReportDashBoard extends Component {
     this.props.getAllReports(user.uid)
   }
 
+  renderReportsTable() {
+    const { reports } = this.props.reportsStatus;
+    reports.forEach( report => {
+      console.log(report, 'this is report')
+    })
+    // let 
+    return (
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Uploaded</th>
+            <th>Score</th>
+            <th>Genre</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Body content 1</td>
+            <td>Body content 2</td>
+            <td>Body content 3</td>
+            <td>Body content 4</td>
+          </tr>
+          <tr>
+            <td>Body Kenzo 1</td>
+            <td>Body Kenzo 2</td>
+            <td>Body Kenzo 3</td>
+            <td>Body Kenzo 4</td>
+          </tr>
+        </tbody>
+      </table>
+    )
+  }
+
   render() {
     const { isFetchingReports } = this.props.reportsStatus
     if (isFetchingReports) {
@@ -26,9 +61,7 @@ class ReportDashBoard extends Component {
       )
     }
     return (
-      <div>
-        Hey you
-      </div>
+      this.renderReportsTable()
     )
   }
 }
