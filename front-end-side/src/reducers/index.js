@@ -6,6 +6,7 @@ import storiesReducer from './reducer_stories';
 import storyContentsReducer from './reducer_storycontents';
 import storyStatusReducer from './reducer_storystatus';
 import reportsStatus from './reducer_reports';
+import reportContent from './reducer_reportContent';
 const rootReducer = combineReducers({
   loading: loadingReducer,
   authInfo: authReducer,
@@ -13,7 +14,8 @@ const rootReducer = combineReducers({
   storiesInfo: storiesReducer,
   storyContent: storyContentsReducer,
   storyStatus: storyStatusReducer,
-  reportsStatus: reportsStatus
+  reportsStatus: reportsStatus,
+  reportContent: reportContent
 })
 
 export default rootReducer;

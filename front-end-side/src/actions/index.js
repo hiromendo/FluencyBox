@@ -45,6 +45,13 @@ export const GET_ALL_REPORTS = 'GET_ALL_REPORTS';
 export const UPDATE_FETCHING_REPORTS = 'UPDATE_FETCHING_REPORTS';
 export const SET_ALL_REPORTS = 'SET_ALL_REPORTS';
 
+export const GET_REPORT_CONTENTS = 'GET_REPORT_CONTENTS';
+export const SET_REPORT_CONTENTS = 'SET_REPORT_CONTENTS';
+export const REMOVE_REPORT_CONTENTS = 'REMOVE_REPORT_CONTENTS';
+export const REPORT_CONTENT_LOADED = 'REPORT_CONTENT_LOADED';
+export const RESET_REPORT_CONTENTS = 'RESET_REPORT_CONTENTS';
+
+
 export const startLoading = () => ({
   type: START_LOADING
 })
@@ -180,4 +187,13 @@ export const completeStory = payload => ({
 export const getAllReports = payload => ({
   type: GET_ALL_REPORTS,
   payload
+})
+
+export const getReportContents = payload => ({
+  type: GET_REPORT_CONTENTS,
+  payload
+})
+
+export const resetReportContents = () => ({
+  type: RESET_REPORT_CONTENTS
 })

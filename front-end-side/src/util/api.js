@@ -475,3 +475,33 @@ export const getAllReportsAPI = uid => {
     throw Error(error)
   }
 }
+
+export const getSingleReportAPI = payload => {
+  try {
+    const GET_SINGLE_REPORTS_ENDPOINT = `${BASE_URL}/reports/${payload.report_uid}`;
+    const jwtToken = localStorage.getItem('access_token');
+    let headers = new Headers();
+    headers.set('x-access-token', jwtToken);
+
+    const parameters = {
+      method: 'GET',
+      headers
+    }
+
+    return fetch(GET_SINGLE_REPORTS_ENDPOINT, parameters)
+    .then(response => {
+      switch (response.status) {
+        case 400: {
+          return response.json().then(data => {
+            return Promise.reject(`${data.message}`)
+          })
+        }
+        default: 
+          return response.json();
+      }
+    })
+  } catch (error) {
+    console.error(error);
+    throw Error(error)
+  }
+}

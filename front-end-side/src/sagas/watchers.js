@@ -14,7 +14,8 @@ import { getLoginAsync,
   getStoryContentAsync,
   getNextSceneAsync,
   completeStoryAsync,
-  getAllReportsAsync
+  getAllReportsAsync,
+  getReportContentsAsync
 } from './authenticationSaga';
 
 import * as types from './../actions';
@@ -36,6 +37,7 @@ function* actionWatcher() {
   yield takeLatest(types.COMPLETE_STORY, completeStoryAsync);
   // Report Scores
   yield takeLatest(types.GET_ALL_REPORTS, getAllReportsAsync);
+  yield takeLatest(types.GET_REPORT_CONTENTS, getReportContentsAsync);
 }
 
 export default function* rootSaga() {

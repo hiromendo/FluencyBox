@@ -12,7 +12,8 @@ import { loginUserAPI,
   getStorySceneAPI,
   getNextSceneAPI,
   completeStoryAPI,
-  getAllReportsAPI
+  getAllReportsAPI,
+  getSingleReportAPI
 } from './../util/api'
 
 import {
@@ -31,7 +32,9 @@ import {
   SET_STORY_CONTENTS,
   SET_USER_STORY_ID,
   UPDATE_FETCHING_REPORTS,
-  SET_ALL_REPORTS
+  SET_ALL_REPORTS,
+  SET_REPORT_CONTENTS,
+  REPORT_CONTENT_LOADED
  } from '../actions'
 
 export function* getAllStoriesAsync() {
@@ -265,7 +268,6 @@ export function* getAllReportsAsync({ payload }) {
   yield put({ type: UPDATE_FETCHING_REPORTS, payload: true } );
   try {
     const serverResponse = yield call(getAllReportsAPI, payload);
-    console.log(serverResponse, 'this is serverreponse')
     yield put({ type: SET_ALL_REPORTS, payload: serverResponse});
     yield put({ type: UPDATE_FETCHING_REPORTS, payload: false } );
 
@@ -276,4 +278,15 @@ export function* getAllReportsAsync({ payload }) {
   }
   yield delay(2050);
   // yield put({ type: END_LOADING_CONTENT });
+}
+
+export function* getReportContentsAsync({ payload } ) {
+  // yield put({ type: UPDATE_FETCHING_REPORTS, payload: true } );
+  try {
+    const serverResponse = yield call(getSingleReportAPI, payload);
+    yield put({ type: SET_REPORT_CONTENTS, payload: serverResponse});
+    yield put({ type: REPORT_CONTENT_LOADED });
+  } catch (error) {
+    console.error(error)
+  }
 }
