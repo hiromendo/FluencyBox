@@ -20,7 +20,8 @@ import { HomePage,
 import PrivateRoute from './util/PrivateRoute';
 import SingleStoryPage from './components/pages/SingleStoryPage/SingleStoryPage';
 import StartStoryPage from './components/pages/StartStoryPage/StartStoryPage';
-import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert, getAllStories } from './actions';
+import ReportCard from './components/reportCard/ReportCard';
+import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert, getAllStories, getAllReports } from './actions';
 
 import "./App.scss";
 
@@ -29,7 +30,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.logOffUser = this.logOffUser.bind(this);
-    this.handleStoriesInfo = this.handleStoriesInfo.bind(this);
+    this.renderAllReportsLinks = this.renderAllReportsLinks.bind(this);
     this.renderAllStoriesLinks = this.renderAllStoriesLinks.bind(this);
     this.renderAllStartStoriesLinks = this.renderAllStartStoriesLinks.bind(this);
     this.renderSpinnerLoading = this.renderSpinnerLoading.bind(this);
@@ -41,6 +42,7 @@ class App extends React.Component {
       infoObjToken.uid = localStorage.uid;
       this.props.getCurrentUser(infoObjToken);
       this.props.getAllStories();
+      this.props.getAllReports(infoObjToken.uid)
     } else if (localStorage.refresh_token) {
       this.props.getAccessToken(localStorage.refresh_token);
     } else {
@@ -48,8 +50,19 @@ class App extends React.Component {
     }
   }
 
-  handleStoriesInfo() {
-    
+  renderAllReportsLinks() {
+    const { reports } = this.props.reportsStatus;
+    const listReportCardsRoutes = reports.map(info => {
+      return (
+        <Route
+          exact
+          path={`/report/${info.uid}`}
+          key={info.uid}
+          render={(props) => <ReportCard {...info} routeProps={props} />} />
+      )
+    })
+
+    return listReportCardsRoutes
   }
 
   logOffUser() {
@@ -122,6 +135,7 @@ class App extends React.Component {
                 <PrivateRoute path='/reports' component={ReportDashBoard} />
                 {this.renderAllStoriesLinks()}
                 {this.renderAllStartStoriesLinks()}
+                {this.renderAllReportsLinks()}
                 <Route path="*" component={() => "404 not found" } />
               </Switch>
             </CSSTransition>
@@ -134,9 +148,10 @@ class App extends React.Component {
   }
 }
 
-const mapStateToProps = ({ storiesInfo, loading }) => ({
+const mapStateToProps = ({ storiesInfo, loading, reportsStatus }) => ({
   storiesInfo,
-  loading
+  loading,
+  reportsStatus
 })
 
 const mapDispatchToProps = {
@@ -145,7 +160,8 @@ const mapDispatchToProps = {
   getAccessToken,
   removeCurrentUser,
   resetAlert,
-  getAllStories
+  getAllStories,
+  getAllReports
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));

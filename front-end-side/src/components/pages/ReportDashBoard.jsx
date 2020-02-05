@@ -1,28 +1,33 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux';
 import ReactLoading from 'react-loading';
-
+import { Link } from 'react-router-dom';
 
 import { getAllReports } from '../../actions';
 import './ReportDashBoard.scss'
 
 class ReportDashBoard extends Component {
 
-  state = {
-    isDoneLoading: false
-  }
-
-  componentDidMount() {
-    const { serverResponse: { user }} = this.props.authInfo;
-    this.props.getAllReports(user.uid)
-  }
-
   renderReportsTable() {
     const { reports } = this.props.reportsStatus;
-    reports.forEach( report => {
-      console.log(report, 'this is report')
+    let rows = [];
+    reports.forEach( (report, idx) => {
+      let cells = [];
+      cells.push(
+        <td 
+          key={`${report.uid}-${report.name}`}>
+            <Link to={`/report/${report.uid}`}>
+              {report.name}
+            </Link>
+        </td>
+      )
+
+      cells.push(<td key={`${report.uid}-${report.uploaded_at}`}>{report.uploaded_at}</td>)
+      cells.push(<td key={`${report.uid}-${report.score}`}>{report.score}/100</td>)
+      cells.push(<td key={`${report.uid}-${report.genre}`}>{report.genre}</td>)
+      rows.push(<tr key={`${report.uid}-${idx}`}>{cells}</tr>)
     })
-    // let 
+
     return (
       <table>
         <thead>
@@ -34,18 +39,7 @@ class ReportDashBoard extends Component {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Body content 1</td>
-            <td>Body content 2</td>
-            <td>Body content 3</td>
-            <td>Body content 4</td>
-          </tr>
-          <tr>
-            <td>Body Kenzo 1</td>
-            <td>Body Kenzo 2</td>
-            <td>Body Kenzo 3</td>
-            <td>Body Kenzo 4</td>
-          </tr>
+          {rows}
         </tbody>
       </table>
     )
@@ -60,8 +54,11 @@ class ReportDashBoard extends Component {
         </div>
       )
     }
+
     return (
-      this.renderReportsTable()
+      <div>
+        {this.renderReportsTable()}
+      </div>
     )
   }
 }
