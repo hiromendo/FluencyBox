@@ -29,20 +29,24 @@ class ReportCard extends Component {
       console.log(packet, 'this is packet')
       return (
         <React.Fragment key={`${packet.scene_number}-${idx}`}>
-          <div className="prompt-text">
-            {packet.speaker_audio_text}
+          <div className="prompt-container">
+            <div className="prompt-bubble prompt-text">
+              {packet.speaker_audio_text}
+            </div>
+            <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" />
           </div>
-          <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" />
+          <div className="prompt-container user-response">
+            <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" />
+            <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faVolumeUp} color="#5c8ae3" />
+            <div className="prompt-bubble user-prompt-text">
+              {packet.user_response_audio_text}
+            </div>
+          </div>
         </React.Fragment>
       )
     })
-    
-    return (
-      <div className="prompt-container">
-        {result}
-      </div>
 
-    )
+    return result;
   }
 
   render() {

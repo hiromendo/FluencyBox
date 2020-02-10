@@ -11,22 +11,38 @@
   }
 }
 
+.prompt-bubble {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 85px;
+  border-radius: 19px;
+  padding: 14px;
+  color: black;
+  font-weight: 700;
+  min-width: 200px;
+}
+
 .prompt-container {
   display: flex;
   align-items: center;
   .prompt-text {
     background: #b7b7b7;
-    color: black;
-    font-weight: 700;
-    height: 85px;
-    display: flex;
-    align-items: center;
-    border-radius: 19px;
-    padding: 14px;
+  }
+  .user-prompt-text {
+    background: #5c8ae3;
   }
   .prompt-icon-speaker {
     width: 80px;
     height: 100%;
     padding-left: 70px;
   }
+  .user-response-speaker {
+    padding-right: 70px;
+  }
+}
+
+.user-prompt-container {
+  display: flex;
+  align-items: center;
 }
