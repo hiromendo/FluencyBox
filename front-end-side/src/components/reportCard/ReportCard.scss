@@ -11,17 +11,6 @@
   }
 }
 
-.prompt-bubble {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 85px;
-  border-radius: 19px;
-  padding: 14px;
-  color: black;
-  font-weight: 700;
-  min-width: 200px;
-}
 
 .prompt-container {
   display: flex;
@@ -35,14 +24,33 @@
   .prompt-icon-speaker {
     width: 80px;
     height: 100%;
-    padding-left: 70px;
+    margin-left: 70px;
+    cursor: pointer;
+    &:hover {
+      color: rgb(223, 144, 144)
+    }
+  }
+  .playing-audio {
+    color: red;
   }
   .user-response-speaker {
-    padding-right: 70px;
+    margin-right: 70px;
   }
-}
 
-.user-prompt-container {
-  display: flex;
-  align-items: center;
+  .prompt-bubble {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 85px;
+    border-radius: 19px;
+    padding: 14px;
+    color: black;
+    font-weight: 700;
+    min-width: 200px;
+  }
+
+  .user-prompt-container {
+    display: flex;
+    align-items: center;
+  }
 }

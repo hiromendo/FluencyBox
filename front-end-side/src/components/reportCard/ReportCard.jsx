@@ -16,11 +16,34 @@ class ReportCard extends Component {
         report_uid: uid
       }
       await this.props.getReportContents(payloadObj)
+      this.onlyPlayOneIn(document.body)
     }
   }
 
   componentWillUnmount() {
+    const container = document.body;
+    container.removeEventListener('play', this.onlyPlayOneIn);
+    const audio_elements = container.getElementsByTagName('audio');
+    Array.from(audio_elements).forEach( audio => audio.pause())
     this.props.resetReportContents()
+  }
+
+  onlyPlayOneIn(container) {
+    container.addEventListener('play', event => {
+    const audio_elements = container.getElementsByTagName('audio')
+      for(let i=0; i < audio_elements.length; i++) {
+        let audio_element = audio_elements[i];
+        let svgIcon = audio_element.nextSibling;
+        if (audio_element !== event.target) {
+          audio_element.pause();
+          svgIcon.classList.remove('playing-audio')
+          audio_element.removeEventListener('playing', this.handleAddingPlayingClassName)
+          audio_element.removeEventListener('ended', this.handleRemovingPlayingClassName)
+          audio_element.currentTime = 0;
+        }
+      }
+    }, true);
+
   }
 
   handleDisplayingAudioPlayBacks() {
@@ -33,11 +56,15 @@ class ReportCard extends Component {
             <div className="prompt-bubble prompt-text">
               {packet.speaker_audio_text}
             </div>
-            <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" />
+            <audio id={`${packet.scene_number}-speaker-audio`} src={packet.speaker_audio_url}></audio>
+            <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-speaker-audio`)} />
           </div>
           <div className="prompt-container user-response">
-            <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" />
-            <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faVolumeUp} color="#5c8ae3" />
+            <audio id={`${packet.scene_number}-master-audio`} src={packet.master_audio_url}></audio>
+            <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-master-audio`)} />
+
+            <audio id={`${packet.scene_number}-user-response-audio`} src={packet.user_response_audio_url}></audio>
+            <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faVolumeUp} color="#5c8ae3" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-user-response-audio`)} />
             <div className="prompt-bubble user-prompt-text">
               {packet.user_response_audio_text}
             </div>
@@ -47,6 +74,25 @@ class ReportCard extends Component {
     })
 
     return result;
+  }
+
+  handleAddingPlayingClassName(event) {
+    const svgIcon = event.target.nextSibling
+    svgIcon.classList.add('playing-audio')
+  }
+
+  handleRemovingPlayingClassName(event) {
+    const svgIcon = event.target.nextSibling
+    svgIcon.classList.remove('playing-audio')
+  }
+
+  handleAudioPlayBack(idElement) {
+    const audioNode = document.getElementById(idElement);
+    audioNode.play()
+
+    audioNode.addEventListener('playing', this.handleAddingPlayingClassName)
+
+    audioNode.addEventListener('ended', this.handleRemovingPlayingClassName)
   }
 
   render() {
