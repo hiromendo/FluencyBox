@@ -56,7 +56,7 @@ class ReportDashBoard extends Component {
     }
 
     return (
-      <div>
+      <div className="page">
         {this.renderReportsTable()}
       </div>
     )

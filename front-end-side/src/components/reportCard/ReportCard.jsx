@@ -35,8 +35,8 @@ class ReportCard extends Component {
           <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" />
         </React.Fragment>
       )
-
     })
+    
     return (
       <div className="prompt-container">
         {result}
