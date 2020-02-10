@@ -138,13 +138,13 @@ nav {
 // CSS TRANSITION
 .page {
   position: absolute;
-  top: 90px;
+  top: 0;
   left: 0;
   right: 0;
   display: flex;
   flex-wrap: wrap;
   padding: 0 9%;
-  // border: 1px solid red;
+  margin-top: 8%
 }
 
 /* simple - enter transition 300ms, exit 150ms */

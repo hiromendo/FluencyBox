@@ -1,0 +1,32 @@
+
+.row-info {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  font-weight: 700;
+  .column {
+    display: flex;
+    width: 50%;
+    justify-content: space-evenly;
+  }
+}
+
+.prompt-container {
+  display: flex;
+  align-items: center;
+  .prompt-text {
+    background: #b7b7b7;
+    color: black;
+    font-weight: 700;
+    height: 85px;
+    display: flex;
+    align-items: center;
+    border-radius: 19px;
+    padding: 14px;
+  }
+  .prompt-icon-speaker {
+    width: 80px;
+    height: 100%;
+    padding-left: 70px;
+  }
+}

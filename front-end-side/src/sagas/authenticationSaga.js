@@ -67,6 +67,8 @@ export function* getLoginAsync (payload) {
     const userInfoResponse = yield call(getUserInfoAPI, loginResponse);
     yield getAllStoriesAsync(getAllStoriesAPI);
     yield settingUserInfo(userInfoResponse, history);
+    const payloadObj = { payload : userInfoResponse.user.uid }
+    yield getAllReportsAsync(payloadObj)
   } catch(error) {
     console.error(error)
     yield put({ type: DISPLAY_ERROR_LOGIN, payload: { errorMessage: error.message, status: 'error' } })
