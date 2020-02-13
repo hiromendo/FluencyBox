@@ -60,12 +60,16 @@ class ReportCard extends Component {
             <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-speaker-audio`)} />
           </div>
           <div className="prompt-container user-response">
-            <audio id={`${packet.scene_number}-master-audio`} src={packet.master_audio_url}></audio>
+            <audio id={`${packet.scene_number}-master-audio`} className="master-prompt-text" src={packet.master_audio_url}></audio>
             <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-master-audio`)} />
 
-            <audio id={`${packet.scene_number}-user-response-audio`} src={packet.user_response_audio_url}></audio>
+            <audio id={`${packet.scene_number}-user-response-audio`} className="user-prompt-text" src={packet.user_response_audio_url}></audio>
             <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faVolumeUp} color="#5c8ae3" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-user-response-audio`)} />
-            <div className="prompt-bubble user-prompt-text">
+
+            <div className="prompt-bubble master-prompt-text">
+              {packet.master_response_text}
+            </div>
+            <div className="prompt-bubble user-prompt-text hide-bubble">
               {packet.user_response_audio_text}
             </div>
           </div>
@@ -78,7 +82,13 @@ class ReportCard extends Component {
 
   handleAddingPlayingClassName(event) {
     const svgIcon = event.target.nextSibling
-    svgIcon.classList.add('playing-audio')
+    svgIcon.classList.add('playing-audio');
+
+    let bubbleType = event.target.classList[0];
+    if (bubbleType) {
+      event.target.parentElement.querySelector(`div.${bubbleType}`).classList.remove('hide-bubble')
+      event.target.parentElement.querySelector(`div:not(.${bubbleType})`).classList.add('hide-bubble')
+    }
   }
 
   handleRemovingPlayingClassName(event) {
