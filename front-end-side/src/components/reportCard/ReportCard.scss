@@ -11,20 +11,27 @@
   }
 }
 
+.page-report {
+  display: flex;
+  flex-direction: column;
+  margin: 29px auto;
+}
+
 
 .prompt-container {
   display: flex;
   align-items: center;
-  // .hide-bubble {
-  //   visibility: hidden;
-  // }
+  padding-bottom: 15px;
   .prompt-text {
+    color: black;
     background: #b7b7b7;
   }
   .user-prompt-text {
-    background: #5c8ae3;
+    color: white;
+    background: #1762A7;
   }
   .master-prompt-text {
+    color: black;
     background: #bcc1cb;
   }
   .prompt-icon-speaker {
@@ -50,8 +57,8 @@
     height: 85px;
     border-radius: 19px;
     padding: 14px;
-    color: black;
-    font-weight: 700;
+    line-height: 41px;
+    font-family: 'Open Sans';
     min-width: 200px;
   }
 

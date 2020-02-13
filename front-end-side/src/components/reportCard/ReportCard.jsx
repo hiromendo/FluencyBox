@@ -64,12 +64,12 @@ class ReportCard extends Component {
             <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-master-audio`)} />
 
             <audio id={`${packet.scene_number}-user-response-audio`} className="user-prompt-text" src={packet.user_response_audio_url}></audio>
-            <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faVolumeUp} color="#5c8ae3" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-user-response-audio`)} />
+            <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faVolumeUp} color="#1762A7" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-user-response-audio`)} />
 
-            <div className="prompt-bubble master-prompt-text">
+            <div className="prompt-bubble master-prompt-text hide-bubble">
               {packet.master_response_text}
             </div>
-            <div className="prompt-bubble user-prompt-text hide-bubble">
+            <div className="prompt-bubble user-prompt-text">
               {packet.user_response_audio_text}
             </div>
           </div>
@@ -127,7 +127,7 @@ class ReportCard extends Component {
             <div>Show Bottom Scores</div>
           </div>
         </div>
-        <div>
+        <div className="page-report">
           {this.handleDisplayingAudioPlayBacks()}
         </div>
       </div>
