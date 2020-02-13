@@ -13,7 +13,7 @@ from dateutil.relativedelta import relativedelta
 import datetime
 from functools import wraps
 from fluencybox.models import User, User_Schema, Story, Story_Schema, Story_Scene, Story_Scene_Schema, \
-Scene_Keyword, Scene_Keyword_Schema, Story_Scene_Speaker, Story_Scene_Speaker_Schema, \
+Scene_Keyword, Scene_Keyword_Schema, Story_Scene_Speaker, Story_Scene_Speaker_Schema, Story_Scene_Speaker_Report_Schema, \
 Story_Scene_Master_Response, Story_Scene_Master_Response_Schema, User_Story, User_Story_Schema, \
 Story_Scene_User_Response, Story_Scene_User_Response_Schema, Report, Report_Schema, \
 Report_Images, Report_Images_Schema, Story_Purchase, Story_Purchase_Schema, User_Purchase, User_Purchase_Schema, \
@@ -1223,6 +1223,7 @@ def get_single_report(uid):
         report_details['uid'] = report.uid
         report_details['name'] = report.user_story.story.name + " speech report"
         report_details['score'] = report.score
+        story_scene_speaker_schema = Story_Scene_Speaker_Report_Schema(many= True)
 
         for report_image in report.report_images:
             if report_image.image_type == 'stress':
@@ -1231,19 +1232,21 @@ def get_single_report(uid):
                 filename_rhythm = filename_uid + "_rhythm.jpg"
 
                 master_response = Story_Scene_Master_Response.query.filter(Story_Scene_Master_Response.story_scene_speaker_id == report_image.story_scene_user_response.story_scene_speaker_id).first()
+                story_scene_speakers = Story_Scene_Speaker.query.filter_by(story_scene_id = master_response.story_scene_speaker.story_scene.id).all()
+                story_scene_speakers_data = story_scene_speaker_schema.dump(story_scene_speakers).data
+                for speaker in story_scene_speakers_data:
+                    speaker['audio_filename'] = generate_public_url('speaker_audio', speaker['audio_filename'])
+                    
                 report_image_url_stress = generate_public_url('report_image', filename_stress)
                 report_image_url_rhythm = generate_public_url('report_image', filename_rhythm)
 
                 master_audio_url = generate_public_url('master_audio', master_response.audio_filename)
                 user_response_audio_url = generate_public_url('user_audio', report_image.story_scene_user_response.audio_filename)
-                speaker_audio_url = generate_public_url('speaker_audio', master_response.story_scene_speaker.audio_filename)
                 
                 report_images.append({
                     'master_audio_url' : master_audio_url,
                     'user_response_audio_url' : user_response_audio_url,
-                    'speaker_audio_url' : speaker_audio_url,
                     
-                    'speaker_audio_text' : master_response.story_scene_speaker.audio_text,
                     'user_response_audio_text' : report_image.story_scene_user_response.audio_text,
                     
                     'report_image_type_stress' : report_image.image_type,
@@ -1255,7 +1258,8 @@ def get_single_report(uid):
                     #New keys added
                     'master_response_text' : master_response.audio_text,
                     'scene_number' : master_response.story_scene_speaker.story_scene.order,
-                    'scene_user_response_score' : report_image.scene_user_response_score
+                    'scene_user_response_score' : report_image.scene_user_response_score,
+                    'story_scene_speakers' : story_scene_speakers_data 
                     })
 
         report_details['report_images'] = report_images

@@ -187,6 +187,12 @@ class Story_Scene_Speaker_Schema(ma.ModelSchema):
         fields = ("id", "order", "image_filename", "audio_filename", "audio_text", "prompt")
         model = Story_Scene_Speaker
 
+class Story_Scene_Speaker_Report_Schema(ma.ModelSchema):
+    class Meta:
+        fields = ( "order", "audio_filename", "audio_text")
+        model = Story_Scene_Speaker
+
+
 class Scene_Keyword(db.Model):
     __tablename__ = 'scene_keyword'
     id = db.Column(db.Integer, primary_key=True)
