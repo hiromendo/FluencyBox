@@ -52,6 +52,7 @@ class ReportCard extends Component {
       console.log(packet, 'this is packet')
       return (
         <React.Fragment key={`${packet.scene_number}-${idx}`}>
+          <div className="scene-number">{packet.scene_number}</div>
           <div className="prompt-container">
             <div className="prompt-bubble prompt-text">
               {packet.speaker_audio_text}
@@ -72,7 +73,12 @@ class ReportCard extends Component {
             <div className="prompt-bubble user-prompt-text">
               {packet.user_response_audio_text}
             </div>
+
           </div>
+          <div className="img-report-container">
+              <img src={packet.report_image_url_rhythm} alt="rhythm" />
+              <img src={packet.report_image_url_stress} alt="tension" />
+            </div>
         </React.Fragment>
       )
     })

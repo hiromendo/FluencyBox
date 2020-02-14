@@ -17,6 +17,9 @@
   margin: 29px auto;
 }
 
+.scene-number {
+  font-weight: bold;
+}
 
 .prompt-container {
   display: flex;
@@ -54,10 +57,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 85px;
+    height: 38px;
     border-radius: 19px;
     padding: 14px;
-    line-height: 41px;
+    line-height: 15px;
     font-family: 'Open Sans';
     min-width: 200px;
   }
@@ -69,4 +72,9 @@
 }
 .prompt-bubble.hide-bubble {
   display: none;
+}
+
+.img-report-container {
+    display: flex;
+    justify-content: center;
 }
