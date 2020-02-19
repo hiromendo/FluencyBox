@@ -1207,7 +1207,7 @@ def get_all_reports():
         return jsonify(resp_dict), 500
 
 @app.route('/reports/<uid>',methods=['GET'])
-@token_required
+#@token_required
 def get_single_report(uid):
     try:
         resp_dict = {}
@@ -1258,6 +1258,7 @@ def get_single_report(uid):
                     #New keys added
                     'master_response_text' : master_response.audio_text,
                     'scene_number' : master_response.story_scene_speaker.story_scene.order,
+                    'response_type' : master_response.story_scene_speaker.story_scene.type,
                     'scene_user_response_score' : report_image.scene_user_response_score,
                     'story_scene_speakers' : story_scene_speakers_data 
                     })
