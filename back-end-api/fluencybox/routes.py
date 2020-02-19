@@ -1207,7 +1207,7 @@ def get_all_reports():
         return jsonify(resp_dict), 500
 
 @app.route('/reports/<uid>',methods=['GET'])
-#@token_required
+@token_required
 def get_single_report(uid):
     try:
         resp_dict = {}
