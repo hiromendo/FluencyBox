@@ -21,7 +21,7 @@ class AppLayOut extends React.Component {
   render() {
     const stories = this.renderAllStories()
     return (
-      <div className="page">
+      <div className="dashboard page">
         {stories}
       </div>
     )
