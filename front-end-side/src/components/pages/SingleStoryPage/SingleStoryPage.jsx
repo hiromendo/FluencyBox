@@ -56,40 +56,53 @@ class SingleStoryPage extends React.Component {
     return (
       <div id="story" className="page">
         <div className="story-info-container">
-          <div className="kenzo">
-            <div>
-              <h2>{name}</h2>
+          <div className="content-container">
+            <h2>{name}</h2>
+            <hr />
+            <div className="content-description">
               <div>{description}</div>
-              <div>Difficulty Level: {difficulty}</div>
-              <div>Length Time: {length}</div>
-              <div>Genre: {genre}</div>
               <br />
+              <div>Difficulty Level: {difficulty}</div>
+              <br />
+              <div>Length Time: {length}</div>
+              <br />
+              <div>Genre: {genre}</div>
             </div>
+            <br />
+          </div>
+
+          <div className="interaction-container">
             <div>
               <img className='story-cover' src={image_url} alt="story-cover" />
             </div>
-          </div>
+            <div className="buttons-container">
+              {is_visible ? 
+                <button onClick={this.handleInitiatingStory} className="btn btn-green">
+                  Start
+                </button>
+                :
+                <StripeCheckout 
+                  token={this.handleToken}
+                  stripeKey="pk_test_mJHbhp4HBDDMBpIfhhzZ9THz00JcFeKvRA"
+                  amount={this.state.price * 100}
+                  name={name}
+                  description="this is description"
+                  >
+                    <button className="btn btn-green">
+                      Subscribe To Play
+                    </button>
+                </StripeCheckout>
 
-          <div className="buttons-container">
-            {is_visible ? 
-              <button onClick={this.handleInitiatingStory} className="btn btn-blue">
-                Start
-              </button>
-              :
-              <StripeCheckout 
-                token={this.handleToken}
-                stripeKey="pk_test_mJHbhp4HBDDMBpIfhhzZ9THz00JcFeKvRA"
-                amount={this.state.price * 100}
-                name={name}
-                description="this is description"
-                >
-                  <button className="btn btn-blue">
-                    Subscribe To Play
-                  </button>
-              </StripeCheckout>
-
-            }
-            <Link className="cancel" to="/app">Cancel</Link>
+              }
+              
+              <Link className="cancel" to="/app">
+                <button className="btn btn-red">Cancel</button>
+              </Link>
+              
+              {/* <button className="btn btn-red">
+                <Link className="cancel" to="/app">Cancel</Link>
+              </button> */}
+            </div>
           </div>
 
         </div>

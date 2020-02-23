@@ -66,10 +66,11 @@ nav {
   align-items: center;
   font-size: 0.94rem;
   padding: 6px 4px;
-  min-width: 65px;
+  min-width: 115px;
   max-width: 170px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 4px;
+  height: 38px;
   transition: all 250ms ease-in-out;
   cursor: pointer;
   text-decoration: none;
@@ -105,7 +106,16 @@ nav {
   &:focus {
     outline: none;
   }
+}
 
+.btn-green {
+  background: #17A762;
+  color: white;
+}
+
+.btn-red {
+  background: rgba(255, 92, 47, 0.37);
+  color: white;
 }
 
 .btn-dark-blue-active {
