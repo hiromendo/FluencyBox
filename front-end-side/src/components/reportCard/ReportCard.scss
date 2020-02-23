@@ -8,6 +8,9 @@
     display: flex;
     width: 50%;
     justify-content: space-evenly;
+    .title {
+      flex: 1;
+    }
   }
 }
 

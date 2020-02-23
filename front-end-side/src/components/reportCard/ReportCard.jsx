@@ -143,13 +143,13 @@ class ReportCard extends Component {
       <div className="page">
         <div className="row-info">
           <div className="column">
-            <div>{report_details.name} </div>
-            <div>Total Score: {report_details.score}</div>
+            <div className="title">{report_details.name} </div>
+            <div className="total-score">Total Score: {report_details.score}</div>
           </div>
-          <div className="column">
+          {/* <div className="column">
             <div>Show all Scores</div>
             <div>Show Bottom Scores</div>
-          </div>
+          </div> */}
         </div>
         <div className="page-report">
           {this.handleDisplayingAudioPlayBacks()}

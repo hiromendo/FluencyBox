@@ -16,7 +16,7 @@ class ReportDashBoard extends Component {
       cells.push(
         <td 
           key={`${report.uid}-${report.name}`}>
-            <Link to={`/report/${report.uid}`}>
+            <Link className="report-link" to={`/report/${report.uid}`}>
               {report.name}
             </Link>
         </td>
