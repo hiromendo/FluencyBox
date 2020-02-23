@@ -4,7 +4,9 @@ import ReactLoading from 'react-loading';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faVolumeUp } from '@fortawesome/free-solid-svg-icons'
 import { getReportContents, resetReportContents } from '../../actions';
-import './ReportCard.scss'
+import './ReportCard.scss' 
+import './assets/blue-speaker.svg'
+import BlueSpeakerSVG from './assets/blue-speaker'
 
 class ReportCard extends Component {
   
@@ -80,6 +82,8 @@ class ReportCard extends Component {
 
             <audio id={`${packet.scene_number}-user-response-audio`} className="user-prompt-text" src={packet.user_response_audio_url}></audio>
             <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faVolumeUp} color="#1762A7" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-user-response-audio`)} />
+
+            {/* <BlueSpeakerSVG />  */}
 
             <div className="prompt-bubble master-prompt-text hide-bubble">
               {packet.master_response_text}
