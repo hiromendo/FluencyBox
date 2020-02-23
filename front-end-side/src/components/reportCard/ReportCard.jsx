@@ -46,6 +46,21 @@ class ReportCard extends Component {
 
   }
 
+  renderPromptDialogs(promptDialogs) {
+    const result = promptDialogs.map((audioInfo, idx) => {
+      return (
+        <React.Fragment key={`${audioInfo.order}-${idx}`}>
+          <div className="prompt-bubble prompt-text">
+            {audioInfo.audio_text}
+          </div>
+          <audio id={`${audioInfo.order}-speaker-audio`} src={audioInfo.audio_filename}></audio>
+          <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" onClick={() => this.handleAudioPlayBack(`${audioInfo.order}-speaker-audio`)} />
+          </React.Fragment>
+      )
+    })
+    return result;
+  }
+
   handleDisplayingAudioPlayBacks() {
     const { reportContent: { report_details } } = this.props;
     const result = report_details.report_images.map((packet, idx) => {
@@ -53,13 +68,12 @@ class ReportCard extends Component {
       return (
         <React.Fragment key={`${packet.scene_number}-${idx}`}>
           <div className="scene-number">{packet.scene_number}</div>
+          {/* this is for the main prompt playback */}
           <div className="prompt-container">
-            <div className="prompt-bubble prompt-text">
-              {packet.speaker_audio_text}
-            </div>
-            <audio id={`${packet.scene_number}-speaker-audio`} src={packet.speaker_audio_url}></audio>
-            <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-speaker-audio`)} />
+            {this.renderPromptDialogs(packet.story_scene_speakers)}
           </div>
+          {/* ****************** */}
+          {/* This is for master and user response */}
           <div className="prompt-container user-response">
             <audio id={`${packet.scene_number}-master-audio`} className="master-prompt-text" src={packet.master_audio_url}></audio>
             <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-master-audio`)} />
@@ -73,7 +87,7 @@ class ReportCard extends Component {
             <div className="prompt-bubble user-prompt-text">
               {packet.user_response_audio_text}
             </div>
-
+          {/* ****************** */}
           </div>
           <div className="img-report-container">
               <img src={packet.report_image_url_rhythm} alt="rhythm" />
