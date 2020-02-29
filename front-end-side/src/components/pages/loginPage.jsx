@@ -14,8 +14,7 @@ class LoginPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isLogginActive: true,
-      redirectToReferrer: false
+      isLogginActive: true
     }
   }
 
@@ -36,7 +35,7 @@ class LoginPage extends React.Component {
 
   render() {
     const { isLogginActive } = this.state;
-    const current = isLogginActive ? "Register" : "Login";
+    const current = isLogginActive ? "Sign Up" : "Sign In";
     return (
       <>
         {this.props.loading.page ? (

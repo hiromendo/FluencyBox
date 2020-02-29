@@ -144,7 +144,7 @@ class Register extends React.Component {
 
     return (
       <div className="base-container" ref={this.props.containerRef}>
-        <div className="header">{reUpdateInfoProfile ? 'Update Profile Info' : 'Register'}</div> 
+        <div className="header">{reUpdateInfoProfile ? 'Update Profile Info' : 'Sign up'}</div> 
         <div className="content">
           <div className="image">
             <form onSubmit={this.handleSubmit} className="form">

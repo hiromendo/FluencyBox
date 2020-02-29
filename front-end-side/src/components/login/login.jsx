@@ -35,37 +35,34 @@ export class Login extends React.Component {
     const { userName, password } = this.state;
     return (
       <div className="base-container" ref={this.props.containerRef}>
-        <div className="header">Login</div> 
         <div className="content">
-          <div className="image">
-            <img src={loginImg} alt="login" />
-            <form onSubmit={this.handleSubmit} className="form">
-              <div className="form-group">
-                <label htmlFor="userName">User Name</label>
-                <input 
-                  type="text" 
-                  name="userName" 
-                  value={userName} 
-                  onChange={this.handleInputChange} 
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="password">Password</label>
-                <input 
-                  type="password" 
-                  name="password" 
-                  value={password} 
-                  onChange={this.handleInputChange} 
-                  required
-                />
-              </div>
-              <Link to="/resetpassword">Forgot Password?</Link>
-            <div className="footer">
-              <button type="submit" className="btn btn-blue">Login</button>
+          <div className="header">Sign in</div> 
+          <form onSubmit={this.handleSubmit} className="form">
+            <div className="form-group">
+              <input 
+                type="text" 
+                name="userName"
+                placeholder="email"
+                value={userName} 
+                onChange={this.handleInputChange} 
+                required
+              />
             </div>
-            </form>
-          </div>
+            <div className="form-group">
+              <input 
+                type="password" 
+                name="password"
+                placeholder="password"
+                value={password} 
+                onChange={this.handleInputChange} 
+                required
+              />
+            </div>
+            <div className="footer">
+              <button type="submit" className="btn btn-large btn-orange">Sign In</button>
+            </div>
+            <Link className="reset-password" to="/resetpassword">Forgot Password?</Link>
+          </form>
         </div>
       </div>
     )
