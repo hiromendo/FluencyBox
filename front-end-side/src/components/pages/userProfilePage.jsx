@@ -18,15 +18,17 @@ class UserProfilePage extends React.Component {
             <li>Email: <span>{email_address}</span></li>
           </ul>
           <div className="update-links-container">
-            <div className="btn btn-white">
-              <Link to="/updatePassword">Update Password</Link>
-            </div>
-            <div className="btn btn-white">
-              <Link to="/updateprofileinfo">Update Profile Info</Link>
-            </div>
-            <div className="btn btn-white">
-              <Link to="/updatePicture">Update Profile Picture</Link>
-            </div>
+            <Link to="/updatePassword">
+              <div className="btn btn-white">
+              Update Password
+              </div>
+            </Link>
+            <Link to="/updateprofileinfo">
+              <div className="btn btn-white">Update Profile Info</div>
+            </Link>
+            <Link to="/updatePicture">
+              <div className="btn btn-white">Update Profile Picture</div>
+            </Link>
           </div>
         </div>
       </main>
