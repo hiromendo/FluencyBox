@@ -25,6 +25,7 @@
     }
   }
   .interaction-container {
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -35,17 +36,21 @@
       width: 100%;
       justify-content: space-evenly;
       align-items: center;
-      a {
+      a.cancel {
         text-decoration: none;
+        position: absolute;
+        top: 0px;
+        right: 0px;
       }
     }
   }
 }
 
 img.story-cover {
-  max-width: 267px;
+  max-width: 297px;
   max-height: 350px;
   width: auto;
   height: auto;
   transition: .2s ease;
+  border-radius: 10px;
 }
