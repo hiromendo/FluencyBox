@@ -22,7 +22,10 @@ class AppLayOut extends React.Component {
     const stories = this.renderAllStories()
     return (
       <div className="dashboard page">
-        {stories}
+        <h1>Stories</h1>
+        <div className="story-cards-container">
+          {stories}
+        </div>
       </div>
     )
   }
