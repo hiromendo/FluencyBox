@@ -62,7 +62,7 @@ class UpdatePassWordForm extends React.Component {
     const { currentPassword, password, confirmPassword } = this.state;
     return (
       <div className="base-container" ref={this.props.containerRef}>
-        <div className="header">Update Password</div> 
+        <h2 className="header">Update Password</h2> 
         <div className="content">
 
           <form onSubmit={this.handleSubmit} className="form">
@@ -105,7 +105,7 @@ class UpdatePassWordForm extends React.Component {
               />
             </div>
             <div className="footer">
-              <button type="submit" className="btn btn-blue">Update</button>
+              <button type="submit" className="btn btn-green">Update</button>
               <Link className="cancel" to="/userprofile">Cancel</Link>
             </div>
           </form>

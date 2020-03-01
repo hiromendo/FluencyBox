@@ -7,6 +7,8 @@ import UpdatePassWordForm from '../updatePassword/updatePasswordForm';
 import { AlertMessage } from '../alertMessage/alertMessage';
 import { displayAlert, resetAlert } from '../../actions';
 
+import './updatePasswordPage.scss'
+
 class UpdatePasswordPage extends React.Component {
 
   componentDidMount() {
@@ -31,7 +33,7 @@ class UpdatePasswordPage extends React.Component {
         {this.props.loading.page ? (
           <div className="react-spinner-container"><ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105} /></div>
         ) : (
-          <div id="update-password" className="login">
+          <div id="update-password-page" className="update-password">
             <div className="container">
               {this.renderAlertMessage()}
               <UpdatePassWordForm />
