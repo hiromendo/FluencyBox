@@ -108,12 +108,12 @@ class Register extends React.Component {
       return (
         <>
           <div className="form-group">
-            <label htmlFor="password">Password <span>8 minimum characters</span></label>
             <input 
               type="password" 
               name="password"
               ref="passwordNode"
               value={password}
+              placeholder="password - 8 characters minimum"
               title="8 characters minimum"
               pattern=".{8,}"
               onChange={this.handleInputChange} 
@@ -121,10 +121,10 @@ class Register extends React.Component {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
             <input 
               type="password" 
               name="confirmPassword"
+              placeholder="confirm password"
               ref="confirmPasswordNode"
               value={confirmPassword}
               title="8 characters minimum"
@@ -139,68 +139,38 @@ class Register extends React.Component {
   }
 
   render() {
-    const { firstname, lastname, userName, phone, email } = this.state;
+    const { userName, email } = this.state;
     const { reUpdateInfoProfile } = this.props;
 
     return (
       <div className="base-container" ref={this.props.containerRef}>
-        <div className="header">{reUpdateInfoProfile ? 'Update Profile Info' : 'Sign up'}</div> 
         <div className="content">
-          <div className="image">
+          <div className="header">{reUpdateInfoProfile ? 'Update Profile Info' : 'Sign Up'}</div> 
+          <div>
             <form onSubmit={this.handleSubmit} className="form">
               <div className="form-group">
-                <label htmlFor="firstname">First Name</label>
                 <input 
                   type="text" 
-                  name="firstname" 
-                  value={firstname}
-                  onChange={this.handleInputChange} 
-                  required
-              />
-              </div>
-              <div className="form-group">
-                <label htmlFor="lastname">Last Name</label>
-                <input 
-                  type="text" 
-                  name="lastname" 
-                  value={lastname}
-                  onChange={this.handleInputChange} 
-                  required
-              />
-              </div>
-              <div className="form-group">
-                <label htmlFor="userName">User Name</label>
-                <input 
-                  type="text" 
-                  name="userName" 
+                  name="userName"
+                  placeholder="username"
                   value={userName}
                   onChange={this.handleInputChange} 
                   required
               />
               </div>
               <div className="form-group">
-                <label htmlFor="email">Email</label>
                 <input 
                   type="email" 
                   name="email" 
+                  placeholder="email"
                   value={email}
                   onChange={this.handleInputChange} 
                   required
                 />
               </div>
-              <div className="form-group">
-                <label htmlFor="phone">Phone Number</label>
-                <input 
-                  type="tel" 
-                  name="phone"
-                  value={phone}
-                  onChange={this.handleInputChange} 
-                  placeholder='Optional'
-                />
-              </div>
               {this.renderPassWordInputs()}
               <div className="footer">
-                <button type="submit" className="btn btn-blue">{reUpdateInfoProfile ? 'Update' : 'Register'}</button>
+                <button type="submit" className="btn btn-large btn-orange">{reUpdateInfoProfile ? 'Update' : 'Sign Up'}</button>
                 {reUpdateInfoProfile ? <Link className="cancel" to="/userprofile">Cancel</Link> : null }
               </div>
             </form>

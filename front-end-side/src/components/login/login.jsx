@@ -36,7 +36,7 @@ export class Login extends React.Component {
     return (
       <div className="base-container" ref={this.props.containerRef}>
         <div className="content">
-          <div className="header">Sign in</div> 
+          <div className="header">Sign In</div> 
           <form onSubmit={this.handleSubmit} className="form">
             <div className="form-group">
               <input 

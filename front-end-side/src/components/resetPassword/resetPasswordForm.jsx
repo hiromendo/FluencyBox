@@ -40,7 +40,6 @@ class ResetPasswordForm extends React.Component {
         <div className="header">Reset Password</div> 
         <div className="content">
           <div className="image">
-            <img src={loginImg} alt="login" />
             <form onSubmit={this.handleSubmit} className="form">
               <div className="form-group">
                 <label htmlFor="email">Email</label>
