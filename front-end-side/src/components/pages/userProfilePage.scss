@@ -1,12 +1,14 @@
 
 
 .profile-container {
+  margin: 14px auto;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-flow: column;
   padding: 20px;
-  background: rgba(63, 61, 87, 0.83);
+  background: #1762A7;
+  border-radius: 10px;
   -webkit-box-shadow: 0px 4px 5px 1px rgba(0,0,0,0.14);
   -moz-box-shadow: 0px 4px 5px 1px rgba(0,0,0,0.14);
   box-shadow: 0px 4px 5px 1px rgba(0,0,0,0.14);
@@ -17,8 +19,14 @@
   }
 
   #profile-info {
-    padding: 0;
+    background: #114F88;
+    border-radius: 10px;
+    width: 100%;
+    padding: 40px 10px 30px 10px;
     li {
+      span {
+        font-weight: 700;
+      }
       list-style: none;
       padding-bottom: 4px;
       &:last-child {
@@ -30,8 +38,15 @@
 }
 
 .update-links-container {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  .btn {
+    margin-bottom: 10px;
+  }
   a {
-    color: white;
+    color: black;
     text-decoration: none;
+    padding: 0px 16px;
   }
 }

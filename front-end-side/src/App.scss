@@ -122,6 +122,16 @@ nav {
   }
 }
 
+.btn-white {
+  background: white;
+  color: black;
+  font-weight: 600;
+  transition: all 200ms ease-in;
+  &:hover {
+    background: rgb(223, 223, 223);
+  }
+}
+
 .btn-green {
   background: #17A762;
   color: white;
