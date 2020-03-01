@@ -7,6 +7,8 @@ import UpdatePictureForm from '../updatePicture/updatePictureForm';
 import { AlertMessage } from '../alertMessage/alertMessage';
 import { displayAlert, resetAlert } from '../../actions';
 
+import './updatePicturePage.scss'
+
 class UpdatePicturePage extends React.Component {
   constructor(props) {
     super(props);
@@ -38,7 +40,7 @@ class UpdatePicturePage extends React.Component {
         {this.props.loading.page ? (
           <div className="react-spinner-container"><ReactLoading type={'spin'} color={'#51B2F3'} height={40} width={105} /></div>
         ) : (
-          <div id="update-picture" className="login">
+          <div id="update-picture" className="update-picture">
             <div className="container">
               {this.renderAlertMessage()}
               <UpdatePictureForm />
