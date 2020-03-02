@@ -20,6 +20,7 @@ import { HomePage,
 import PrivateRoute from './util/PrivateRoute';
 import SingleStoryPage from './components/pages/SingleStoryPage/SingleStoryPage';
 import StartStoryPage from './components/pages/StartStoryPage/StartStoryPage';
+import AboutPage from './components/pages/AboutPage/AboutPage';
 import ReportCard from './components/reportCard/ReportCard';
 import { endLoading, getCurrentUser, getAccessToken, removeCurrentUser, resetAlert, getAllStories, getAllReports } from './actions';
 
@@ -113,7 +114,7 @@ class App extends React.Component {
     return (
       <div className="App">
         <header>
-          {(location.pathname !== "/login" && location.pathname !=='/resetpassword') ? <NavBar logOffUser={this.logOffUser} /> : null}
+          <NavBar logOffUser={this.logOffUser} />
         </header>
         {loading.page ? this.renderSpinnerLoading() :
         <main>
@@ -127,6 +128,7 @@ class App extends React.Component {
                 <Route exact path="/" component={HomePage}/>
                 <Route exact path="/login" component={LoginPage}/>
                 <Route exact path="/resetpassword" component={resetPasswordPage}/>
+                <Route exact path="/about" component={AboutPage}/>
                 <PrivateRoute path='/app' component={AppLayOut} />
                 <PrivateRoute path='/userprofile' component={UserProfilePage} />
                 <PrivateRoute path='/updateprofileinfo' component={updateProfileInfoPage} />

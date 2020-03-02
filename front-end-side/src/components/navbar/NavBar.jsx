@@ -26,16 +26,16 @@ class NavBar extends React.Component {
   }
 
   beforeSigningOff() {
-    const bodyTag = document.querySelector('body');
-    const overLayBg = document.querySelector('.bm-overlay');
-    const overLayWrap = document.querySelector('.bm-menu-wrap');
+    // const bodyTag = document.querySelector('body');
+    // const overLayBg = document.querySelector('.bm-overlay');
+    // const overLayWrap = document.querySelector('.bm-menu-wrap');
   
-    /* workaround to have smooth animation transition */
-    setTimeout(() => {
-      overLayBg.classList.remove('bm-overlay-expand');
-      overLayWrap.classList.remove('bm-overlay-expand');
-    }, 0)
-    bodyTag.removeEventListener('touchmove', preventDefault, { passive: false })
+    // /* workaround to have smooth animation transition */
+    // setTimeout(() => {
+    //   overLayBg.classList.remove('bm-overlay-expand');
+    //   overLayWrap.classList.remove('bm-overlay-expand');
+    // }, 0)
+    // bodyTag.removeEventListener('touchmove', preventDefault, { passive: false })
 
     this.props.logOffUser();
   }
@@ -74,16 +74,17 @@ class NavBar extends React.Component {
     }
   }
 
-  render() {
-    return (
-      <nav id="top-nav">
+  renderNavList() {
+    const isLoggedIn = localStorage.access_token;
+    if (isLoggedIn) {
+      return (
         <ul id="desktop-nav">
-          <li>
+          <li className="logo-brand-container">
             <NavLink to="/app"><img className="logo-brand" src="https://uploads-ssl.webflow.com/5d40e2a7625e7f495119ba08/5d78bd2c584e14d8417c6306_hanasulogo2.png" alt="logo" />
             </NavLink>
           </li>
           <li>
-            <NavLink to="/app">Dashboard</NavLink>
+            <NavLink to="/app">Home</NavLink>
           </li>
           <li>
             <NavLink to="/reports">Reports</NavLink>
@@ -92,11 +93,36 @@ class NavBar extends React.Component {
             <NavLink to="/userprofile">UserProfile</NavLink>
           </li>
           <li>
-            <NavLink onClick={() => this.beforeSigningOff()} to="/login">Logout</NavLink>
+            <NavLink to ="/about">About</NavLink>
+          </li>
+          <li>
+            <NavLink onClick={() => this.beforeSigningOff()} to="/login">Logout</NavLink> 
           </li>
         </ul>
+      )
+    } else {
+      return (
+        <ul id="desktop-nav">
+          <li className="logo-brand-container">
+            <NavLink to="/app"><img className="logo-brand" src="https://uploads-ssl.webflow.com/5d40e2a7625e7f495119ba08/5d78bd2c584e14d8417c6306_hanasulogo2.png" alt="logo" />
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to ="/about">About</NavLink>
+          </li>
+        </ul>
+      )
+    }
+  }
+
+  render() {
+    const kenzo = window.location.pathname === "/login" || window.location.pathname ==='/resetpassword';
+
+    return (
+      <nav id="top-nav">
+        {this.renderNavList()}
         <div id="mobile-nav">
-          <div className="logo-container">
+          {/* <div className="logo-container">
             <NavLink to="/app" onClick={this.closeMenu}>
               <img className="logo-brand" src="https://uploads-ssl.webflow.com/5d40e2a7625e7f495119ba08/5d78bd2c584e14d8417c6306_hanasulogo2.png" alt="logo" />
             </NavLink>
@@ -107,7 +133,7 @@ class NavBar extends React.Component {
             <NavLink onClick={this.closeMenu} to="/userprofile">UserProfile</NavLink>
             <NavLink onClick={this.closeMenu} to="/aboutus">About Us</NavLink>
             <NavLink onClick={() => this.beforeSigningOff()} to="/login">Logout</NavLink>
-          </Menu>
+          </Menu> */}
         </div>
       </nav>
     )

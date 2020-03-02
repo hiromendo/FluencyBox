@@ -29,23 +29,26 @@ nav {
   #mobile-nav {
     display: none;
   }
-  ul {
-    padding: 0px 15px;
+  ul#desktop-nav {
+    padding: 30px 15px;
+    margin: 0 70px;
     list-style: none;
     display: flex;
     align-items: center;
-    justify-content: space-evenly;
-    li {
-      .brand-text {
-        font-size: 33px;
-        font-weight: 400;
-        text-transform: uppercase;
-      }
+    justify-content: flex-end;
+    position: relative;
+    li.logo-brand-container {
+      position: absolute;
+      top: 0px;
+      left: 30px;
       img.logo-brand {
         width: 245px;
-        flex-grow: 2;
       }
+    }
+    li {
       cursor: pointer;
+      // padding: 0px 35px;
+      padding-right: 50px;
       a {
         color: $white-color;
         text-decoration: none;
@@ -135,6 +138,9 @@ nav {
 .btn-green {
   background: #17A762;
   color: white;
+  &:hover {
+    background: rgb(75, 211, 75);
+  }
 }
 
 .btn-red {
@@ -157,7 +163,6 @@ nav {
   display: flex;
   align-items: center;
   justify-content: space-evenly;
-  // width: 250px;
   width: 100%;
   .cancel {
     margin-left: 23px;
@@ -178,9 +183,8 @@ nav {
   right: 0;
   display: flex;
   flex-wrap: wrap;
-  // padding: 0 9%;
   padding: 0 16%;
-  margin-top: 8%
+  margin-top: 6%
 }
 
 /* simple - enter transition 300ms, exit 150ms */
