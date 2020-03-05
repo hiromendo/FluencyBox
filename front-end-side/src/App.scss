@@ -87,6 +87,11 @@ nav {
   width: 100%;
 }
 
+.btn-small {
+  padding: 0px 6px;
+  border-radius: 10px;
+}
+
 .btn-blue {
   background-color: #3498db;
   color: #fff;
@@ -103,10 +108,27 @@ nav {
 
 .btn-dark-blue {
   background-color: #333;
-  color: #68a2e6;
-  border: 2px solid #3267a6;
+  color: white;
+  font-weight: 700;
+  border: 2px solid #1762A7;
   a {
-    color: #68a2e6;
+    color: white;
+  }
+  &:hover {
+    background-color: rgb(18, 18, 18);
+  }
+  &:focus {
+    outline: none;
+  }
+}
+
+.btn-dark-orange {
+  background-color: #333;
+  color: white;
+  font-weight: 700;
+  border: 2px solid #FF5C2F;
+  a {
+    color: white;
   }
   &:hover {
     background-color: rgb(18, 18, 18);

@@ -58,7 +58,8 @@ class StartStoryPage extends Component {
       audioNode: new Audio(),
       sceneKeyWords: [],
       isContinuePlay: true,
-      isDoneRendering: false
+      isDoneRendering: false,
+      displayUserResponseText: false
     }
     this.constraintObj = {
       audio: true 
@@ -84,7 +85,9 @@ class StartStoryPage extends Component {
         isReadyToRecord: false,
         isDiplayNextSceneButton: false,
         isDisplayContentImage: false,
-        isDoneRendering: false
+        isDoneRendering: false,
+        displayUserResponseText: false, 
+        listeningText: false
       }
     }
   }
@@ -203,6 +206,13 @@ class StartStoryPage extends Component {
 
   updateAudioStatus(newAudioState) {
     if (this.state.audioStatus === 'initial') return
+    // Not sure if this is desirable...
+    // if (newAudioState === 'repeat') {
+    //   this.setState({
+    //     displayUserResponseText: false, 
+    //     listeningText: false
+    //   })
+    // }
     this.setState({
       audioStatus: newAudioState
     }, () => {
@@ -222,7 +232,8 @@ class StartStoryPage extends Component {
     if (!this.state.isReadyToRecord) return
     if (!keywords.length) return 
     this.setState({
-      listeningText: !this.state.listeningText
+      listeningText: !this.state.listeningText,
+      displayUserResponseText: true
     }, this.handleListen)
   }
 
@@ -421,15 +432,27 @@ class StartStoryPage extends Component {
     }
   }
 
+  displayUserResponse() {
+    const { displayUserResponseText, listeningText } = this.state
+    return (
+      <div className={ displayUserResponseText ? 'speech-text-container' : 'hide-element' }>
+        <div id="speech-to-text">
+          <span ref={this.wordTexts} className="word-texts"></span>
+        </div>
+        { listeningText ? null : <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#1762A7" onClick={() => document.getElementById('user-response').play()} />}
+      </div>
+    )
+  }
+
   displayDesktopLayout() {
-    const { uid } = this.props;
     const { listeningText, sceneKeyWords, requestNextSceneOrder, isDiplayNextSceneButton, audioIdx, showPrompt } = this.state;
     const isKeyWordsAvailable = sceneKeyWords.length > 0;
     const promptShowClassName = showPrompt ? 'show-prompt' : 'hide-prompt';
+    const nextSceneButtonClass = requestNextSceneOrder ? 'btn-green' : 'btn-orange'
     return (
       <div className="page">
         <div className="column first-column">
-          <div className={"btn btn-dark-blue"}>Restart</div>
+          <div className={"btn btn-small btn-dark-orange"}>Restart</div>
 
             <ContentScreen 
               isDisplayContentImage={this.state.isDisplayContentImage}
@@ -441,8 +464,8 @@ class StartStoryPage extends Component {
               storyContent={this.props.storyContent} 
             />
             <div className="button-container">
-              <div className="btn btn-dark-blue" onClick={() => this.updateAudioStatus('repeat')}>Repeat Audio</div>
-              <div className={`btn btn-dark-blue ${this.state.showSubtitle ? 'btn-dark-blue-active' : ''}`} onClick={this.handleShowSubtitleDialog}>{this.state.showSubtitle ? 'Hide Subtitles': 'Show Subtitles'}</div>
+              <div className="btn btn-small btn-dark-orange" onClick={() => this.updateAudioStatus('repeat')}>Repeat Audio</div>
+              <div className={`btn btn-small btn-dark-blue ${this.state.showSubtitle ? 'btn-dark-blue-active' : ''}`} onClick={this.handleShowSubtitleDialog}>{this.state.showSubtitle ? 'Hide Subtitles': 'Show Subtitles'}</div>
             </div>
           </div>
         <div className="column second-column">
@@ -466,18 +489,11 @@ class StartStoryPage extends Component {
             </button>
           </div>
 
-          <div className="speech-text-container">
-            <div id="speech-to-text">
-              <span ref={this.wordTexts} className="word-texts"></span>
-            </div>
-            <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#1762A7" onClick={() => document.getElementById('user-response').play()} />
-          </div>
-          <audio id="user-response" className="sound-clips">
-          </audio>
-
+          {this.displayUserResponse()}
+          <audio id="user-response" className="sound-clips"></audio>
 
           <div className="bottom-buttons">
-            {isDiplayNextSceneButton ? <div onClick={this.handleButtonNextScene} className="btn btn-dark-blue">{requestNextSceneOrder ? 'Next Scene' : 'Try Record Again!'}</div> : null }
+            {isDiplayNextSceneButton ? <div onClick={this.handleButtonNextScene} className={`btn btn-small ${nextSceneButtonClass}`}>{requestNextSceneOrder ? 'Next Scene' : 'Record Again'}</div> : null }
           </div>
         </div>
 
