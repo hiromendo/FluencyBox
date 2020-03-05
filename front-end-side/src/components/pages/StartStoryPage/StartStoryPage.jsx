@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMicrophone } from '@fortawesome/free-solid-svg-icons'
+import { faMicrophone, faVolumeUp } from '@fortawesome/free-solid-svg-icons'
 import ReactLoading from 'react-loading';
 
 import { getStoryStarted, removeStoryContents, resetStoryStatus, getAsyncNextScene, getStoryContents, completeStory } from '../../../actions';
@@ -423,52 +423,64 @@ class StartStoryPage extends Component {
 
   displayDesktopLayout() {
     const { uid } = this.props;
-    const { listeningText, sceneKeyWords, requestNextSceneOrder, isDiplayNextSceneButton } = this.state;
+    const { listeningText, sceneKeyWords, requestNextSceneOrder, isDiplayNextSceneButton, audioIdx, showPrompt } = this.state;
     const isKeyWordsAvailable = sceneKeyWords.length > 0;
+    const promptShowClassName = showPrompt ? 'show-prompt' : 'hide-prompt';
     return (
       <div className="page">
-        <div className="top-buttons">
-          <div>
-            <div className="btn btn-dark-blue" onClick={() => this.updateAudioStatus('repeat')}>Repeat Audio</div>
+        <div className="column first-column">
+          <div className={"btn btn-dark-blue"}>Restart</div>
+
+            <ContentScreen 
+              isDisplayContentImage={this.state.isDisplayContentImage}
+              showSubtitle={this.state.showSubtitle}
+              showPrompt={this.state.showPrompt}
+              micPermissionStatus={this.state.micPermissionStatus}
+              handleContentAudioStatus={this.handleContentAudioStatus}
+              audioIdx={this.state.audioIdx}
+              storyContent={this.props.storyContent} 
+            />
+            <div className="button-container">
+              <div className="btn btn-dark-blue" onClick={() => this.updateAudioStatus('repeat')}>Repeat Audio</div>
+              <div className={`btn btn-dark-blue ${this.state.showSubtitle ? 'btn-dark-blue-active' : ''}`} onClick={this.handleShowSubtitleDialog}>{this.state.showSubtitle ? 'Hide Subtitles': 'Show Subtitles'}</div>
+            </div>
           </div>
-          <div>
-            <div className={`btn btn-dark-blue ${this.state.showSubtitle ? 'btn-dark-blue-active' : ''}`} onClick={this.handleShowSubtitleDialog}>Hide Subtitles</div>
-          </div>
-          <div>
-            <div className={"btn btn-dark-blue"}>Restart</div>
-          </div>
-          <div>
+        <div className="column second-column">
+
+          {/* <div>
             <div className="btn btn-dark-blue">
               <Link to={`/story/${uid}`}>Home</Link>
             </div>
+          </div> */}
+          <div className="instruction">
+            Read and record your response to go to the next scene
           </div>
-        </div>
-        <ContentScreen 
-          isDisplayContentImage={this.state.isDisplayContentImage}
-          showSubtitle={this.state.showSubtitle}
-          showPrompt={this.state.showPrompt}
-          micPermissionStatus={this.state.micPermissionStatus}
-          handleContentAudioStatus={this.handleContentAudioStatus}
-          audioIdx={this.state.audioIdx}
-          storyContent={this.props.storyContent} 
-        />
+          <div className={promptShowClassName}>
+            {this.props.storyContent.scene.story_scene_speakers[audioIdx].prompt || 'Click Next Scene'}
+          </div>
+          
 
-        <div className="bottom-buttons">
           <div className={`btn ${isKeyWordsAvailable ? '' : 'hide' }`}>
             <button onClick={this.toggleListenSpeechToText} id="btnStartRecord" className={`btn-record ${listeningText ? 'Rec' : 'notRec'}`}>
-              Record Button
+            <FontAwesomeIcon className="mic-record-icon" icon={faMicrophone} color="white" />
             </button>
           </div>
-          {isDiplayNextSceneButton ? <div onClick={this.handleButtonNextScene} className="btn btn-dark-blue">{requestNextSceneOrder ? 'Next Scene' : 'Try Record Again!'}</div> : null }
-        </div>
-        <div className="speech-text-container">
-          <div id="speech-to-text">
-            <FontAwesomeIcon icon={faMicrophone} color="green" />
-            <span ref={this.wordTexts} className="word-texts"></span>
+
+          <div className="speech-text-container">
+            <div id="speech-to-text">
+              <span ref={this.wordTexts} className="word-texts"></span>
+            </div>
+            <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#1762A7" onClick={() => document.getElementById('user-response').play()} />
+          </div>
+          <audio id="user-response" className="sound-clips">
+          </audio>
+
+
+          <div className="bottom-buttons">
+            {isDiplayNextSceneButton ? <div onClick={this.handleButtonNextScene} className="btn btn-dark-blue">{requestNextSceneOrder ? 'Next Scene' : 'Try Record Again!'}</div> : null }
           </div>
         </div>
-        <audio className="sound-clips">
-        </audio>
+
       </div>
     )
   }
