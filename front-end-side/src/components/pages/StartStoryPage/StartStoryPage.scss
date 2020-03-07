@@ -17,6 +17,7 @@
 	border: 0;
   outline: none;
   cursor: pointer;
+  border: white 2px solid;
   transition: all .3s ease-in-out;
 }
 
@@ -25,7 +26,6 @@
 	height: 35px;
   border-radius: 35px;
   background-color: darkred;
-  border: white 2px solid;
   .mic-record-icon {
     width: 100%;
     height: 20px;
@@ -35,7 +35,7 @@
 .Rec{
   width: 35px;
 	height: 35px;
-  border-radius: 0px;
+  border-radius: 30px;
 	animation-name: pulse;
 	animation-duration: 1.5s;
 	animation-iteration-count: infinite;
@@ -153,7 +153,7 @@
   }
 }
 
-@keyframes pulse{
+@keyframes pulse {
 	0%{
 		box-shadow: 0px 0px 5px 0px rgba(173,0,0,.3);
 	}
