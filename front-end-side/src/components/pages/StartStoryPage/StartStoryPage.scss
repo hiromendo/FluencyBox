@@ -47,10 +47,15 @@
 }
 
 .first-column {
+  margin-top: 1%;
   text-align: center;
   .button-container {
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
+    margin-top: 22px;
+  }
+  .btn {
+    margin-bottom: 22px;
   }
 }
 
@@ -73,6 +78,7 @@
     visibility: hidden;
   }
   .show-prompt {
+    padding: 12px;
     margin-top: 20px;
     display: flex;
     align-items: center;
@@ -114,6 +120,7 @@
   }
   img {
     // width: 100%;
+    cursor: pointer;
     width: 330px;
     height: 100%;
   }

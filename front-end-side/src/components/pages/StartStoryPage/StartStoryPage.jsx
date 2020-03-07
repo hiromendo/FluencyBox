@@ -450,7 +450,7 @@ class StartStoryPage extends Component {
     const promptShowClassName = showPrompt ? 'show-prompt' : 'hide-prompt';
     const nextSceneButtonClass = requestNextSceneOrder ? 'btn-green' : 'btn-orange'
     return (
-      <div className="page">
+      <div className="page media-content">
         <div className="column first-column">
           <div className={"btn btn-small btn-dark-orange"}>Restart</div>
 

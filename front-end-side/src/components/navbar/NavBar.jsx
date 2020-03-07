@@ -90,13 +90,13 @@ class NavBar extends React.Component {
             <NavLink to="/reports">Reports</NavLink>
           </li>
           <li>
-            <NavLink to="/userprofile">UserProfile</NavLink>
+            <NavLink to="/userprofile">Profile</NavLink>
           </li>
           <li>
             <NavLink to ="/about">About</NavLink>
           </li>
           <li>
-            <NavLink onClick={() => this.beforeSigningOff()} to="/login">Logout</NavLink> 
+            <NavLink onClick={() => this.beforeSigningOff()} to="/login">Sign Out</NavLink> 
           </li>
         </ul>
       )
@@ -116,8 +116,6 @@ class NavBar extends React.Component {
   }
 
   render() {
-    const kenzo = window.location.pathname === "/login" || window.location.pathname ==='/resetpassword';
-
     return (
       <nav id="top-nav">
         {this.renderNavList()}
