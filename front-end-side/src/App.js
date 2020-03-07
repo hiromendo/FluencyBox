@@ -125,7 +125,7 @@ class App extends React.Component {
               classNames="fade"
             >
               <Switch location={location}>
-                <Route exact path="/" component={HomePage}/>
+                <Route exact path="/" component={LoginPage}/>
                 <Route exact path="/login" component={LoginPage}/>
                 <Route exact path="/resetpassword" component={resetPasswordPage}/>
                 <Route exact path="/about" component={AboutPage}/>

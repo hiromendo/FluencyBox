@@ -103,6 +103,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 20px;
+  cursor: pointer;
 
   .subtitle-caption {
     position: absolute;
@@ -120,7 +121,6 @@
   }
   img {
     // width: 100%;
-    cursor: pointer;
     width: 330px;
     height: 100%;
   }
