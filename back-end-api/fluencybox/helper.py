@@ -1,3 +1,4 @@
+from flask import jsonify
 import uuid
 import re
 import base64
@@ -139,6 +140,18 @@ def get_paginated_list(page_object, object_type):
                     'uploaded_at' : report.uploaded_at,
                     'score' : report.score,
                     'genre' : report.user_story.story.genre
+                })
+        elif object_type == 'subscription_contracts':
+            for subscription_contract in page_object.items:
+                output.append({
+                    'subscription_id' : subscription_contract.subscription_id,
+                    'stripe_plan_id' : subscription_contract.stripe_plan_id,
+                    'amount' : subscription_contract.amount,
+                    'stripe_invoice_id' : subscription_contract.stripe_invoice_id,
+                    'stripe_charge_id' : subscription_contract.stripe_charge_id,
+                    'credit_card_id' : subscription_contract.credit_card_id,
+                    'period_start' : subscription_contract.period_start,
+                    'period_end' : subscription_contract.period_end
                 })
 
         pagination['has_next'] = page_object.has_next

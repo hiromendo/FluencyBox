@@ -26,7 +26,7 @@ from fluencybox.helper import insert_story, insert_story_scene, insert_scene_key
 insert_story_scene_master_responses, validate_user_name, validate_email_address, get_paginated_list, upload_story_zip, \
 upload_story_json, get_scene, generate_tokens, generate_public_url, get_paginated_story
 from fluencybox.stripe_manager import create_customer, create_payment_token, create_card, create_subscription, get_invoice, \
-delete_card, cancel_subscription
+delete_card, delete_subscription, webhook_event_handler
 from io import BytesIO
 from zipfile import ZipFile
 from urllib.request import urlopen
@@ -823,7 +823,7 @@ def start_story():
         
         #Check if story is demo story
         if not story.is_demo:
-            print(story.is_demo)
+            
             #Check if user has an active subscription
             subscription = Subscriptions.query.filter_by(user_id = user.id).first()
             if not subscription:
@@ -831,7 +831,7 @@ def start_story():
             else:
                 subscription_status = subscription.status
 
-            print(subscription_status)
+            
             if subscription_status != 'active':
                 resp_dict['status'] = 'fail'
                 resp_dict['message'] = 'user subscription is inactive'
@@ -1018,7 +1018,7 @@ def user_response():
 @app.route('/complete_story', methods=['POST'])
 @token_required
 def complete_story():
-    print("stage 0")
+    
     try:
         resp_dict = {}
         story_data = request.get_json()
@@ -1042,13 +1042,10 @@ def complete_story():
 
         # Trigger task
         report_url = 'http://back-end-withreport-dev.us-west-1.elasticbeanstalk.com' + url_for('taskPayload', uid=report_uid)
-        print(report_url)
+        
         run_task(report_url)
 
         resp_dict['status'] = 'success'
-        print('stage 5.5')
-        print(resp_dict)
-        print(resp_dict['status'])
         return jsonify(resp_dict), 200
     except Exception as e:
         resp_dict['status'] = 'fail'
@@ -1057,7 +1054,6 @@ def complete_story():
 
 @app.route('/reports/<uid>/task_payload', methods=['GET'])
 def taskPayload(uid):
-    print("stage 6")
     try:
         report = Report.query.filter_by(uid=uid).first()
         if not report:
@@ -1103,8 +1099,6 @@ def taskPayload(uid):
                     story_scene_responses.append(data_dict)
 
         task_payload['story_scene_responses'] = story_scene_responses
-        print("stage 7")
-        print(task_payload)
         return jsonify(task_payload), 200
     except Exception as e:
         resp_dict['status'] = 'fail'
@@ -1626,12 +1620,13 @@ def delete_user_card(id):
 
 
 #Get a users subscriptions
-@app.route('/subscriptions/<id>/subscription_contracts',methods=['GET'])
+@app.route('/subscriptions/<uid>/subscription_contracts',methods=['GET'])
 @token_required
 def get_user_subscriptions(uid):
     try:
         resp_dict = {}
-        #Paginated list of contracts order by period_start DESC
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
 
         user = User.query.filter_by(uid = uid).first()
         
@@ -1639,14 +1634,23 @@ def get_user_subscriptions(uid):
             resp_dict['status'] = 'fail'
             resp_dict['message'] = 'No user found'
             return jsonify(resp_dict),404
-
-        # subscription_contracts = Subscription_Contracts.query.filer_by()
-        users_schema = User_Schema()
-        user_data = users_schema.dump(user).data
-
-        resp_dict['status'] = 'success'
-        resp_dict['cards'] = user_data
         
+        my_subscription = Subscriptions.query.filter_by(user_id = user.id).first()
+
+        subscription_contracts_list = Subscription_Contracts.query.filter(Subscription_Contracts.subscription_id == my_subscription.id).order_by(Subscription_Contracts.period_start.desc()).paginate(page = page, per_page = per_page)
+
+        paginated_list = get_paginated_list(subscription_contracts_list, 'subscription_contracts')
+
+        if paginated_list['status'] == 'success':
+            resp_dict['status'] = 'success'
+            resp_dict['subscription_contracts'] = paginated_list['paginated_list']
+            resp_dict['pagination'] = paginated_list['pagination']
+            return jsonify(resp_dict), 200
+        else:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = paginated_list['message']
+            return jsonify(resp_dict), 500
+
         return jsonify(resp_dict)
     except Exception as e:
         resp_dict['status'] = 'fail'
@@ -1654,21 +1658,52 @@ def get_user_subscriptions(uid):
         return jsonify(resp_dict), 500
 
 
-
-#Delete a users subscription
+#Cancel a users subscription
 @app.route('/subscriptions/<id>',methods=['DELETE'])
 @token_required
-def delete_subscription(id):
+def cancel_subscription(id):
     try:
         resp_dict = {}
-        ##https://stripe.com/docs/api/subscriptions/cancel
-       
-        resp_dict['status'] = 'success'
-        resp_dict['cards'] = 'user_data'
         
+        cancel_subscription_response = delete_subscription(id)
+        if cancel_subscription_response['status'] != 'success':
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = cancel_subscription_response['message']
+            return jsonify(resp_dict), 500
+            
+        my_subscription = Subscriptions.query.filter_by(stripe_subscription_id = id).first()
+        my_subscription.status = 'inactive'
+        db.session.commit()
+
+        resp_dict['status'] = 'success'
+        resp_dict['message'] = 'subscription cancelled successfully'
         return jsonify(resp_dict)
     except Exception as e:
         resp_dict['status'] = 'fail'
         resp_dict['message'] = str(e)
         return jsonify(resp_dict), 500
 
+#Webhooks
+#http://127.0.0.1:5000/stripe/webhook?api_key=sk_test_h1Nc5jxArm8Vuxq8k3V9gluF00BIyU1r08
+@app.route('/stripe/webhook', methods=['POST'])
+def webhook():
+    try:
+        resp_dict = {}
+        api_key = request.args.get('api_key', type=str)
+        
+        if api_key == app.config.get('STRIPE_API_KEY'):
+            payload = request.json
+            
+            event_response = webhook_event_handler(json.dumps(payload))
+            if event_response['status'] != 'success':
+                resp_dict['status'] = 'fail'
+                resp_dict['message'] = event_response['message']
+                return jsonify(resp_dict), 500
+            
+            resp_dict['status'] = 'success'
+            return jsonify(resp_dict),200
+        
+    except Exception as e:
+        resp_dict['status'] = 'fail'
+        resp_dict['message'] = str(e)
+        return jsonify(resp_dict), 500
