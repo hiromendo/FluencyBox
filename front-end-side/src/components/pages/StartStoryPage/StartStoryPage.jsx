@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMicrophone, faVolumeUp, faStop } from '@fortawesome/free-solid-svg-icons'
+import { faMicrophone, faPlay, faStop } from '@fortawesome/free-solid-svg-icons'
 import ReactLoading from 'react-loading';
 
 import { getStoryStarted, removeStoryContents, resetStoryStatus, getAsyncNextScene, getStoryContents, completeStory } from '../../../actions';
@@ -436,7 +436,7 @@ class StartStoryPage extends Component {
     return (
       <div className={ displayUserResponseText ? 'speech-text-container' : 'hide-element' }>
         <button className={`users-prompt-audio ${listeningText ? 'hide-prompt' : ''}`} onClick={() => document.getElementById('user-response').play()}>
-          <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="black" />
+          <FontAwesomeIcon className="prompt-icon-speaker" icon={faPlay} color="black" />
         </button>
           <div id="speech-to-text">
           <span ref={this.wordTexts} className="word-texts"></span>
