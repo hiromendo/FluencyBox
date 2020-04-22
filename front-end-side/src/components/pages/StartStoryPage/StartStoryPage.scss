@@ -156,10 +156,12 @@
     border-radius: 30px;
     margin-left: 4px;
     margin-right: 7px;
+    background: #333;
+    border: 2px solid white;
     cursor: pointer;
     .prompt-icon-speaker {
-      width: 1.04rem;
-      height: 19px;
+      width: 1.2rem;
+      height: 16px;
     &:hover {
       .prompt-icon-speaker {
         color: rgb(223, 144, 144)

@@ -436,7 +436,7 @@ class StartStoryPage extends Component {
     return (
       <div className={ displayUserResponseText ? 'speech-text-container' : 'hide-element' }>
         <button className={`users-prompt-audio ${listeningText ? 'hide-prompt' : ''}`} onClick={() => document.getElementById('user-response').play()}>
-          <FontAwesomeIcon className="prompt-icon-speaker" icon={faPlay} color="black" />
+          <FontAwesomeIcon className="prompt-icon-speaker" icon={faPlay} color="white" />
         </button>
           <div id="speech-to-text">
           <span ref={this.wordTexts} className="word-texts"></span>
