@@ -439,7 +439,7 @@ class StartStoryPage extends Component {
           <FontAwesomeIcon className="prompt-icon-speaker" icon={faPlay} color="white" />
         </button>
           <div id="speech-to-text">
-          <span ref={this.wordTexts} className="word-texts"></span>
+            <div ref={this.wordTexts} className="word-texts"></div>
         </div>
       </div>
     )
