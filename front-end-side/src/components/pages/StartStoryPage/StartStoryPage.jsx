@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMicrophone, faVolumeUp } from '@fortawesome/free-solid-svg-icons'
+import { faMicrophone, faVolumeUp, faStop } from '@fortawesome/free-solid-svg-icons'
 import ReactLoading from 'react-loading';
 
 import { getStoryStarted, removeStoryContents, resetStoryStatus, getAsyncNextScene, getStoryContents, completeStory } from '../../../actions';
@@ -436,10 +435,12 @@ class StartStoryPage extends Component {
     const { displayUserResponseText, listeningText } = this.state
     return (
       <div className={ displayUserResponseText ? 'speech-text-container' : 'hide-element' }>
-        <div id="speech-to-text">
+        <button className={`users-prompt-audio ${listeningText ? 'hide-prompt' : ''}`} onClick={() => document.getElementById('user-response').play()}>
+          <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="black" />
+        </button>
+          <div id="speech-to-text">
           <span ref={this.wordTexts} className="word-texts"></span>
         </div>
-        { listeningText ? null : <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#1762A7" onClick={() => document.getElementById('user-response').play()} />}
       </div>
     )
   }
@@ -475,18 +476,19 @@ class StartStoryPage extends Component {
               <Link to={`/story/${uid}`}>Home</Link>
             </div>
           </div> */}
-          <div className="instruction">
-            Read and record your response to go to the next scene
+          <div className={showPrompt ? 'instruction' : 'hide-prompt'}>
+            Hit record and read the following message:
           </div>
-          <div className={promptShowClassName}>
-            {this.props.storyContent.scene.story_scene_speakers[audioIdx].prompt || 'Click Next Scene'}
-          </div>
-          
+          <div className={showPrompt ? 'container-prompt' : 'hide-prompt'}>
+            <div className={`btn btn-record-container ${isKeyWordsAvailable ? '' : 'hide' }`}>
+              <button onClick={this.toggleListenSpeechToText} id="btnStartRecord" className={`btn-record ${listeningText ? 'Rec' : 'notRec'}`}>
+                {listeningText ? <FontAwesomeIcon className="mic-record-icon" icon={faStop} color="red" /> : <FontAwesomeIcon className="mic-record-icon" icon={faMicrophone} color="white" />}
+              </button>
+            </div>
 
-          <div className={`btn ${isKeyWordsAvailable ? '' : 'hide' }`}>
-            <button onClick={this.toggleListenSpeechToText} id="btnStartRecord" className={`btn-record ${listeningText ? 'Rec' : 'notRec'}`}>
-            <FontAwesomeIcon className="mic-record-icon" icon={faMicrophone} color="white" />
-            </button>
+            <div className={promptShowClassName}>
+              {this.props.storyContent.scene.story_scene_speakers[audioIdx].prompt || 'Click Next Scene'}
+            </div>
           </div>
 
           {this.displayUserResponse()}
