@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux';
 import ReactLoading from 'react-loading';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faVolumeUp } from '@fortawesome/free-solid-svg-icons'
+import { faPlay, faStop } from '@fortawesome/free-solid-svg-icons'
 import { getReportContents, resetReportContents } from '../../actions';
 import './ReportCard.scss' 
 import './assets/blue-speaker.svg'
@@ -38,7 +38,7 @@ class ReportCard extends Component {
         let svgIcon = audio_element.nextSibling;
         if (audio_element !== event.target) {
           audio_element.pause();
-          svgIcon.classList.remove('playing-audio')
+          // svgIcon.classList.remove('playing-audio')
           audio_element.removeEventListener('playing', this.handleAddingPlayingClassName)
           audio_element.removeEventListener('ended', this.handleRemovingPlayingClassName)
           audio_element.currentTime = 0;
@@ -52,12 +52,15 @@ class ReportCard extends Component {
     const result = promptDialogs.map((audioInfo, idx) => {
       return (
         <React.Fragment key={`${audioInfo.order}-${idx}`}>
+          <br/>
+          <audio id={`${audioInfo.order}-speaker-audio`} src={audioInfo.audio_filename}></audio>
+          <button className="button-fa-container button-fa-container-master" onClick={() => this.handleAudioPlayBack(`${audioInfo.order}-speaker-audio`)}>
+            <FontAwesomeIcon className="prompt-icon-speaker" icon={faPlay} color="#1762A7" />
+          </button>
           <div className="prompt-bubble prompt-text">
             {audioInfo.audio_text}
           </div>
-          <audio id={`${audioInfo.order}-speaker-audio`} src={audioInfo.audio_filename}></audio>
-          <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" onClick={() => this.handleAudioPlayBack(`${audioInfo.order}-speaker-audio`)} />
-          </React.Fragment>
+        </React.Fragment>
       )
     })
     return result;
@@ -71,32 +74,38 @@ class ReportCard extends Component {
         <React.Fragment key={`${packet.scene_number}-${idx}`}>
           <div className="scene-number">{packet.scene_number}</div>
           {/* this is for the main prompt playback */}
+          <div className="prompt-type-header">Story Prompt</div>
           <div className="prompt-container">
             {this.renderPromptDialogs(packet.story_scene_speakers)}
           </div>
           {/* ****************** */}
           {/* This is for master and user response */}
-          <div className="prompt-container user-response">
-            <audio id={`${packet.scene_number}-master-audio`} className="master-prompt-text" src={packet.master_audio_url}></audio>
-            <FontAwesomeIcon className="prompt-icon-speaker" icon={faVolumeUp} color="#b7b7b7" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-master-audio`)} />
+   
+          <div className="prompt-container user-response-container">
+            <div className="prompts-message">
+              <audio id={`${packet.scene_number}-master-audio`} className="master-prompt-text" src={packet.master_audio_url}></audio>
+              <button className="button-fa-container" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-master-audio`)}>
+                <FontAwesomeIcon className="prompt-icon-speaker" icon={faPlay} color="#b7b7b7" />
+              </button>
 
-            <audio id={`${packet.scene_number}-user-response-audio`} className="user-prompt-text" src={packet.user_response_audio_url}></audio>
-            <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faVolumeUp} color="#1762A7" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-user-response-audio`)} />
 
-            {/* <BlueSpeakerSVG />  */}
-
-            <div className="prompt-bubble master-prompt-text hide-bubble">
-              {packet.master_response_text}
+              <div className="prompt-bubble master-prompt-text">
+                {packet.master_response_text}
+              </div>
             </div>
-            <div className="prompt-bubble user-prompt-text">
-              {packet.user_response_audio_text}
+
+            <div className="prompts-message">
+              <audio id={`${packet.scene_number}-user-response-audio`} className="user-prompt-text" src={packet.user_response_audio_url}></audio>
+              <button className="button-fa-container" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-user-response-audio`)}>
+                <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faPlay} color="#bcc1cb" />
+              </button>
+              <div className="prompt-bubble user-prompt-text">
+                {packet.user_response_audio_text}
+              </div>
             </div>
+
           {/* ****************** */}
           </div>
-          <div className="img-report-container">
-              <img src={packet.report_image_url_rhythm} alt="rhythm" />
-              <img src={packet.report_image_url_stress} alt="tension" />
-            </div>
         </React.Fragment>
       )
     })
@@ -106,18 +115,18 @@ class ReportCard extends Component {
 
   handleAddingPlayingClassName(event) {
     const svgIcon = event.target.nextSibling
-    svgIcon.classList.add('playing-audio');
+    // svgIcon.classList.add('playing-audio');
 
     let bubbleType = event.target.classList[0];
-    if (bubbleType) {
-      event.target.parentElement.querySelector(`div.${bubbleType}`).classList.remove('hide-bubble')
-      event.target.parentElement.querySelector(`div:not(.${bubbleType})`).classList.add('hide-bubble')
-    }
+    // if (bubbleType) {
+    //   event.target.parentElement.querySelector(`div.${bubbleType}`).classList.remove('hide-bubble')
+    //   event.target.parentElement.querySelector(`div:not(.${bubbleType})`).classList.add('hide-bubble')
+    // }
   }
 
   handleRemovingPlayingClassName(event) {
     const svgIcon = event.target.nextSibling
-    svgIcon.classList.remove('playing-audio')
+    // svgIcon.classList.remove('playing-audio')
   }
 
   handleAudioPlayBack(idElement) {
@@ -146,10 +155,6 @@ class ReportCard extends Component {
             <div className="title">{report_details.name} </div>
             <div className="total-score">Total Score: {report_details.score}</div>
           </div>
-          {/* <div className="column">
-            <div>Show all Scores</div>
-            <div>Show Bottom Scores</div>
-          </div> */}
         </div>
         <div className="page-report">
           {this.handleDisplayingAudioPlayBacks()}
