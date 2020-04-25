@@ -111,13 +111,13 @@
   .prompts-message {
     display: flex;
     flex-direction: column;
-    .title-header {
+    .title-header, .user-score {
       margin-left: 60px;
       padding: 10px 0px;
     }
     // align-items: center;
     // width: 50%;
-    .kenzo {
+    .bubble-container {
       display: flex;
       align-items: center;
     }

@@ -6,7 +6,6 @@ import { faPlay, faStop } from '@fortawesome/free-solid-svg-icons'
 import { getReportContents, resetReportContents } from '../../actions';
 import './ReportCard.scss' 
 import './assets/blue-speaker.svg'
-import BlueSpeakerSVG from './assets/blue-speaker'
 
 class ReportCard extends Component {
   
@@ -83,7 +82,7 @@ class ReportCard extends Component {
           <div className="prompt-container user-response-container">
             <div className="prompts-message">
               <div className="title-header">Native Speaker</div>
-              <div className="kenzo">
+              <div className="bubble-container">
                 <audio id={`${packet.scene_number}-master-audio`} className="master-prompt-text" src={packet.master_audio_url}></audio>
                 <button className="button-fa-container" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-master-audio`)}>
                   <FontAwesomeIcon className="prompt-icon-speaker" icon={faPlay} color="#b7b7b7" />
@@ -96,7 +95,7 @@ class ReportCard extends Component {
 
             <div className="prompts-message">
               <div className="title-header">Your Response</div>
-              <div className="kenzo">
+              <div className="bubble-container">
                 <audio id={`${packet.scene_number}-user-response-audio`} className="user-prompt-text" src={packet.user_response_audio_url}></audio>
                 <button className="button-fa-container" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-user-response-audio`)}>
                   <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faPlay} color="#bcc1cb" />
@@ -105,6 +104,7 @@ class ReportCard extends Component {
                   {packet.user_response_audio_text}
                 </div>
               </div>
+              <div className="user-score">{`Score: ${packet.scene_user_response_score || 'N/A'}`}</div>
             </div>
 
           {/* ****************** */}
