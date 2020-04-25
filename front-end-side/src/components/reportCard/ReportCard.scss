@@ -108,6 +108,7 @@
 
 .user-response-container {
   justify-content: space-between;
+  align-items: baseline;
   .prompts-message {
     display: flex;
     flex-direction: column;

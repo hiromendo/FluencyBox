@@ -104,7 +104,8 @@ class ReportCard extends Component {
                   {packet.user_response_audio_text}
                 </div>
               </div>
-              <div className="user-score">{`Score: ${packet.scene_user_response_score || 'N/A'}`}</div>
+              {packet.scene_user_response_score? <div className="user-score">{`Score: ${packet.scene_user_response_score}`}</div> : null}
+              
             </div>
 
           {/* ****************** */}
