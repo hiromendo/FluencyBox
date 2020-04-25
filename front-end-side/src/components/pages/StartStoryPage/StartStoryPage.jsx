@@ -453,7 +453,7 @@ class StartStoryPage extends Component {
     return (
       <div className="page media-content">
         <div className="column first-column">
-          <div className={"btn btn-small btn-dark-orange"}>Restart</div>
+          {/* <div className={"btn btn-small btn-dark-orange"}>Restart</div> */}
 
             <ContentScreen 
               isDisplayContentImage={this.state.isDisplayContentImage}

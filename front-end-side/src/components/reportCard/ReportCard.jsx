@@ -52,7 +52,6 @@ class ReportCard extends Component {
     const result = promptDialogs.map((audioInfo, idx) => {
       return (
         <React.Fragment key={`${audioInfo.order}-${idx}`}>
-          <br/>
           <audio id={`${audioInfo.order}-speaker-audio`} src={audioInfo.audio_filename}></audio>
           <button className="button-fa-container button-fa-container-master" onClick={() => this.handleAudioPlayBack(`${audioInfo.order}-speaker-audio`)}>
             <FontAwesomeIcon className="prompt-icon-speaker" icon={faPlay} color="#1762A7" />
@@ -95,10 +94,13 @@ class ReportCard extends Component {
             </div>
 
             <div className="prompts-message">
-              <audio id={`${packet.scene_number}-user-response-audio`} className="user-prompt-text" src={packet.user_response_audio_url}></audio>
-              <button className="button-fa-container" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-user-response-audio`)}>
-                <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faPlay} color="#bcc1cb" />
-              </button>
+              <div>RAGE</div>
+              <div>
+                <audio id={`${packet.scene_number}-user-response-audio`} className="user-prompt-text" src={packet.user_response_audio_url}></audio>
+                <button className="button-fa-container" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-user-response-audio`)}>
+                  <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faPlay} color="#bcc1cb" />
+                </button>
+              </div>
               <div className="prompt-bubble user-prompt-text">
                 {packet.user_response_audio_text}
               </div>
