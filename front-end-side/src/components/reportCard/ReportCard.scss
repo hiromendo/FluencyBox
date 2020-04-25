@@ -110,8 +110,17 @@
   justify-content: space-between;
   .prompts-message {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    .title-header {
+      margin-left: 60px;
+      padding: 10px 0px;
+    }
+    // align-items: center;
     // width: 50%;
+    .kenzo {
+      display: flex;
+      align-items: center;
+    }
   }
 }
 

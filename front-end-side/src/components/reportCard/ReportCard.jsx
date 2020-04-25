@@ -82,27 +82,28 @@ class ReportCard extends Component {
    
           <div className="prompt-container user-response-container">
             <div className="prompts-message">
-              <audio id={`${packet.scene_number}-master-audio`} className="master-prompt-text" src={packet.master_audio_url}></audio>
-              <button className="button-fa-container" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-master-audio`)}>
-                <FontAwesomeIcon className="prompt-icon-speaker" icon={faPlay} color="#b7b7b7" />
-              </button>
-
-
-              <div className="prompt-bubble master-prompt-text">
-                {packet.master_response_text}
+              <div className="title-header">Native Speaker</div>
+              <div className="kenzo">
+                <audio id={`${packet.scene_number}-master-audio`} className="master-prompt-text" src={packet.master_audio_url}></audio>
+                <button className="button-fa-container" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-master-audio`)}>
+                  <FontAwesomeIcon className="prompt-icon-speaker" icon={faPlay} color="#b7b7b7" />
+                </button>
+                <div className="prompt-bubble master-prompt-text">
+                  {packet.master_response_text}
+                </div>
               </div>
             </div>
 
             <div className="prompts-message">
-              <div>RAGE</div>
-              <div>
+              <div className="title-header">Your Response</div>
+              <div className="kenzo">
                 <audio id={`${packet.scene_number}-user-response-audio`} className="user-prompt-text" src={packet.user_response_audio_url}></audio>
                 <button className="button-fa-container" onClick={() => this.handleAudioPlayBack(`${packet.scene_number}-user-response-audio`)}>
                   <FontAwesomeIcon className="prompt-icon-speaker user-response-speaker" icon={faPlay} color="#bcc1cb" />
                 </button>
-              </div>
-              <div className="prompt-bubble user-prompt-text">
-                {packet.user_response_audio_text}
+                <div className="prompt-bubble user-prompt-text">
+                  {packet.user_response_audio_text}
+                </div>
               </div>
             </div>
 
