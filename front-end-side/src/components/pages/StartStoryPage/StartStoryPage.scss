@@ -59,12 +59,13 @@
 }
 
 .first-column {
-  margin-top: 1%;
   text-align: center;
+  max-width: 500px;
   .button-container {
     display: flex;
     justify-content: space-between;
     margin-top: 22px;
+    // padding: 0 42px;
   }
   .btn {
     margin-bottom: 22px;
@@ -122,10 +123,11 @@
   justify-content: center;
   border-radius: 20px;
   cursor: pointer;
+  max-height: 622px;
 
   .subtitle-caption {
     position: absolute;
-    bottom: 0px;
+    bottom: 1px;
     background: #000000ba;
     padding: 11px 16px;
     // font-size: 1.2rem;
@@ -141,9 +143,10 @@
     font-size: 1.2rem;
   }
   img {
-    // width: 100%;
-    width: 330px;
-    height: 100%;
+    width: auto;
+    height: auto;
+    max-width: 500px;
+    max-height: 100%;
   }
 }
 .hide-element {
