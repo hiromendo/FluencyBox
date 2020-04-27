@@ -449,7 +449,9 @@ class StartStoryPage extends Component {
     const { listeningText, sceneKeyWords, requestNextSceneOrder, isDiplayNextSceneButton, audioIdx, showPrompt } = this.state;
     const isKeyWordsAvailable = sceneKeyWords.length > 0;
     const promptShowClassName = showPrompt ? 'show-prompt' : 'hide-prompt';
-    const nextSceneButtonClass = requestNextSceneOrder ? 'btn-green' : 'btn-orange'
+    const nextSceneButtonClass = requestNextSceneOrder ? 'btn-green' : 'btn-orange';
+    const isFinalScene = !this.props.storyContent.scene.story_scene_speakers[audioIdx].prompt;
+    const nextBtnText = isFinalScene ? 'Finish Test' : 'Next Scene';
     return (
       <div className="page media-content">
         <div className="column first-column">
@@ -495,7 +497,7 @@ class StartStoryPage extends Component {
           <audio id="user-response" className="sound-clips"></audio>
 
           <div className="bottom-buttons">
-            {isDiplayNextSceneButton ? <div onClick={this.handleButtonNextScene} className={`btn btn-small ${nextSceneButtonClass}`}>{requestNextSceneOrder ? 'Next Scene' : 'Record Again'}</div> : null }
+            {isDiplayNextSceneButton ? <div onClick={this.handleButtonNextScene} className={`btn btn-small ${nextSceneButtonClass}`}>{requestNextSceneOrder ? nextBtnText : 'Record Again'}</div> : null }
           </div>
         </div>
 
