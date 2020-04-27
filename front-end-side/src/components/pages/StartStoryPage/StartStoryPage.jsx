@@ -451,7 +451,7 @@ class StartStoryPage extends Component {
     const promptShowClassName = showPrompt ? 'show-prompt' : 'hide-prompt';
     const nextSceneButtonClass = requestNextSceneOrder ? 'btn-green' : 'btn-orange';
     const isFinalScene = !this.props.storyContent.scene.story_scene_speakers[audioIdx].prompt;
-    const nextBtnText = isFinalScene ? 'Finish Test' : 'Next Scene';
+    const nextBtnText = isFinalScene ? 'Finish' : 'Next Scene';
     return (
       <div className="page media-content">
         <div className="column first-column">
