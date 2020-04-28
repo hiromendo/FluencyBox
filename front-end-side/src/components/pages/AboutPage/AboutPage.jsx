@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
+import './AboutPage.scss';
 
 export default class AboutPage extends Component {
   render() {
     return (
-      <div className="page">
+      <div className="about-page page">
         <h1>About Us</h1>
         <p>Our mission is to redefine language education and become the platform people use to become conversationally fluent. We are making language immersion affordable and convenient. The founders felt all language learning apps were not effective in enabling speaking fluency.
         <br/>
