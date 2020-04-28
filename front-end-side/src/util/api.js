@@ -448,7 +448,7 @@ export const completeStoryAPI = request => {
 
 export const getAllReportsAPI = uid => {
   try {
-    const GET_ALL_REPORTS_ENDPOINT = `${BASE_URL}/reports?uid=${uid}&page=1&per_page10`;
+    const GET_ALL_REPORTS_ENDPOINT = `${BASE_URL}/reports?uid=${uid}&page=1&per_page=30`;
     const jwtToken = localStorage.getItem('access_token');
     let headers = new Headers();
     headers.set('x-access-token', jwtToken);
