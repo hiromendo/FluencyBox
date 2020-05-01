@@ -447,11 +447,13 @@ class StartStoryPage extends Component {
 
   displayDesktopLayout() {
     const { listeningText, sceneKeyWords, requestNextSceneOrder, isDiplayNextSceneButton, audioIdx, showPrompt } = this.state;
+    const { scene } = this.props.storyContent;
     const isKeyWordsAvailable = sceneKeyWords.length > 0;
     const promptShowClassName = showPrompt ? 'show-prompt' : 'hide-prompt';
     const nextSceneButtonClass = requestNextSceneOrder ? 'btn-green' : 'btn-orange';
-    const isFinalScene = !this.props.storyContent.scene.story_scene_speakers[audioIdx].prompt;
+    const isFinalScene = scene.type === 'end';
     const nextBtnText = isFinalScene ? 'Finish' : 'Next Scene';
+    const isTherePrompt = !!this.props.storyContent.scene.story_scene_speakers[audioIdx].prompt;
     return (
       <div className="page media-content">
         <div className="column first-column">
@@ -479,7 +481,7 @@ class StartStoryPage extends Component {
             </div>
           </div> */}
           <div className={showPrompt ? 'instruction' : 'hide-prompt'}>
-            Hit record and read the following message:
+            {isTherePrompt ? 'Hit record and read the following message:' : null }
           </div>
           <div className={showPrompt ? 'container-prompt' : 'hide-prompt'}>
             <div className={`btn btn-record-container ${isKeyWordsAvailable ? '' : 'hide' }`}>
@@ -487,10 +489,13 @@ class StartStoryPage extends Component {
                 {listeningText ? <FontAwesomeIcon className="mic-record-icon" icon={faStop} color="red" /> : <FontAwesomeIcon className="mic-record-icon" icon={faMicrophone} color="white" />}
               </button>
             </div>
+            
+            {isTherePrompt ?
+              <div className={promptShowClassName}>
+                {this.props.storyContent.scene.story_scene_speakers[audioIdx].prompt}
+              </div>
+             : null}
 
-            <div className={promptShowClassName}>
-              {this.props.storyContent.scene.story_scene_speakers[audioIdx].prompt || 'Click Next Scene'}
-            </div>
           </div>
 
           {this.displayUserResponse()}
