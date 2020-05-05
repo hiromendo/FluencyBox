@@ -1636,13 +1636,14 @@ def get_user_subscriptions(uid):
             return jsonify(resp_dict),404
         
         my_subscription = Subscriptions.query.filter_by(user_id = user.id).first()
-
+        
         subscription_contracts_list = Subscription_Contracts.query.filter(Subscription_Contracts.subscription_id == my_subscription.id).order_by(Subscription_Contracts.period_start.desc()).paginate(page = page, per_page = per_page)
 
         paginated_list = get_paginated_list(subscription_contracts_list, 'subscription_contracts')
 
         if paginated_list['status'] == 'success':
             resp_dict['status'] = 'success'
+            resp_dict['stripe_subscription_id'] = my_subscription.stripe_subscription_id
             resp_dict['subscription_contracts'] = paginated_list['paginated_list']
             resp_dict['pagination'] = paginated_list['pagination']
             return jsonify(resp_dict), 200
