@@ -8,12 +8,18 @@ from PIL import Image, ImageDraw, ImageFont
 import requests
 import time
 import uuid
-
+print("Im HERE AT THE generate report images")
 s3 = boto3.client('s3')
-
+print("S3")
+print(s3)
 def send_callback(context, payload):
+    print("inside send_callback")
     start = time.time()
+    print("time")
+    print(start)
     requests.post(context['callback_url'], json=payload)
+    elapsed = time.time() - start
+    print("DONE")
     print('Elapsed time for sending callback: {:.3f} report_uid:{} user_story_uid:{} request_id:{}'.format(elapsed, context['report_uid'], context['user_story_uid'], context['request_id']))
     
 def map_to_pixels(length, pixel_length, words_length, offset):
@@ -172,9 +178,17 @@ def upload_image(context, buf, user_audio_filename, suffix):
     return key
 
 def download_audio(context, audio_filename):
+    print("start download_audio")
     start = time.time()
+    print("here in download_audio")
     system_filename = '/report_images/' + os.path.basename(audio_filename)
+    print("system_filename")
+    print(system_filename)
+    print("context['s3_bucket']")
+    print(context['s3_bucket'])
     s3.download_file(context['s3_bucket'], audio_filename, system_filename)
+    print(audio_filename)
+    print("got past download")
     elapsed = time.time() - start
     print('Elapsed time for downloading audio: {:.3f} key:{} report_uid:{} user_story_uid:{} request_id:{}'.format(elapsed, audio_filename, context['report_uid'], context['user_story_uid'], context['request_id']))
     return system_filename
@@ -198,10 +212,12 @@ def write_transcript_to_file(transcript, audio_filename):
 def generate_report_images(context, data):
 
     start = time.time()
-    
+    print("data")
+    print(data)
+    print("step 0")
     report_scores = []
     report_images = []
-
+    print("step 1")
     context = {
         'request_id': context['request_id'],
         's3_bucket': data['s3_bucket'],
@@ -209,54 +225,58 @@ def generate_report_images(context, data):
         'callback_url': data['callback_url'],
         'user_story_uid': data['user_story_uid']
     }
-
+    print("step 2")
     font = ImageFont.truetype('/report_images/OpenSans-Bold.ttf', 30)
 
     for story_scene_response in data['story_scene_responses']:
-
+        print("step 3")
         master_audio_filename = story_scene_response['master']['audio_filename']
         transcript = story_scene_response['master']['audio_text']
         user_audio_filename = story_scene_response['user']['audio_filename']
         story_scene_user_response_id = story_scene_response['user']['story_scene_user_response_id']
-
+        print("step 4")
         # write transcript to file to use with forced aligner
         transcript_filename = write_transcript_to_file(transcript, master_audio_filename)
-
+        print("step 5")
         textSize = get_text_size(transcript, font)
-
+        print("step 6")
         audio_system_filename = download_audio(context, master_audio_filename)
+        print("step 6.5")
         master_start_end_times = parse_audio(context, master_audio_filename, audio_system_filename, transcript, transcript_filename)
-
+        print("step 7")
         # master audio lines
         normalized_start = (master_start_end_times[0][0], master_start_end_times[0][0])
         master_audio_line, master_audio_heights = generate_audio_line(master_start_end_times, normalized_start, textSize)
-
+        print("step 8")
         audio_system_filename = download_audio(context, user_audio_filename)
         user_start_end_times = parse_audio(context, user_audio_filename, audio_system_filename, transcript, transcript_filename)
-
+        print("step 9")
         ## user audio lines
         normalized_start = (user_start_end_times[0][0], user_start_end_times[0][0])
         user_audio_line, user_audio_heights = generate_audio_line(user_start_end_times, normalized_start, textSize)
-
+        print("step 10")
         b, score = generate_stress_image(context, master_audio_heights, user_audio_heights, transcript, textSize, font, user_audio_filename)
         image_key = upload_image(context, b, user_audio_filename, '_stress')
         report_image = {
              'story_scene_user_response_id': story_scene_user_response_id,
              'image_filename': image_key,
              'image_type': 'stress'
+             #'story_scene_user_response_score' = score
         }
-
+        print("step 11")
         report_images.append(report_image)
         report_scores.append(score)
-
+        print("step 12")
         b = generate_rhythm_image(context, master_audio_line, user_audio_line, transcript, textSize, font, user_audio_filename)
         image_key = upload_image(context, b, user_audio_filename, '_rhythm')
         report_image = {
              'story_scene_user_response_id': story_scene_user_response_id,
              'image_filename': image_key,
-             'image_type': 'rhythm'
+             'image_type': 'rhythm',
+             #'story_scene_user_response_score' = score
         }
-
+        print("images")
+        print(report_image)
         report_images.append(report_image)
 
     if context['callback_url']:
@@ -266,9 +286,10 @@ def generate_report_images(context, data):
             'score': sum(report_scores)/len(report_scores),
             'report_images': report_images
         }
-
+        print("payload")
+        print(payload)
         send_callback(context, payload)
-
+    print("start tracking time")
     elapsed = time.time() - start
     print('Elapsed time for generating report images function: {:.3f} report_uid:{} user_story_uid:{} request_id:{}'.format(elapsed, context['report_uid'], context['user_story_uid'], context['request_id']))
 
@@ -276,7 +297,7 @@ if __name__ == "__main__":
     try:
         resp = requests.get(sys.argv[1])
         data = resp.json()
-
+        print("made it to report code")
         app_context = { 'request_id': str(uuid.uuid4()) }
         generate_report_images(app_context, data)
     except Exception as e:

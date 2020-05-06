@@ -4,9 +4,10 @@ import os, io
 import boto3
 from fluencybox import app
 from botocore.exceptions import NoCredentialsError
-from fluencybox.config import S3_BUCKET, S3_KEY, S3_SECRET, SQS_QUEUE_URL, S3_REGION
+from fluencybox.config import S3_BUCKET, S3_KEY, S3_SECRET, S3_REGION
 import mimetypes
 import json
+
 def get_resource():
     if S3_KEY and S3_SECRET:
         return boto3.resource(
@@ -174,6 +175,7 @@ def generate_public_url(object_type, object_name):
     public_url = app.config.get('S3_URL') + object_dir + '/' + object_name
     return public_url
 
+
 def get_ecs_client():
     return boto3.client('ecs', aws_access_key_id=S3_KEY, aws_secret_access_key=S3_SECRET, region_name=S3_REGION)
 
@@ -208,6 +210,7 @@ def run_task(report_url):
                 }
             }
         )
+
         if len(response['failures']) > 0:
             return false
         return True
