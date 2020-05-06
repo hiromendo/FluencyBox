@@ -986,13 +986,10 @@ def complete_story():
 
         # Trigger task
         report_url = 'http://back-end-withreport-dev.us-west-1.elasticbeanstalk.com' + url_for('taskPayload', uid=report_uid)
-        print(report_url)
+
         run_task(report_url)
 
         resp_dict['status'] = 'success'
-        print('stage 5.5')
-        print(resp_dict)
-        print(resp_dict['status'])
         return jsonify(resp_dict), 200
     except Exception as e:
         resp_dict['status'] = 'fail'
@@ -1001,7 +998,7 @@ def complete_story():
 
 @app.route('/reports/<uid>/task_payload', methods=['GET'])
 def taskPayload(uid):
-    print("stage 6")
+
     try:
         report = Report.query.filter_by(uid=uid).first()
         if not report:
@@ -1024,6 +1021,7 @@ def taskPayload(uid):
         #Get 'specific_response' scenes for this story
         story_scene = Story_Scene.query.filter(Story_Scene.story_id == user_story.story_id, Story_Scene.type == 'specific_response').all()
 
+        
         story_scene_responses = []
         for scene in story_scene:
             for speaker in scene.story_scene_speakers:
@@ -1043,12 +1041,10 @@ def taskPayload(uid):
                         'story_scene_user_response_id' : user_response.id
                     }
                     data_dict['user'] = user
-
                     story_scene_responses.append(data_dict)
 
         task_payload['story_scene_responses'] = story_scene_responses
-        print("stage 7")
-        print(task_payload)
+
         return jsonify(task_payload), 200
     except Exception as e:
         resp_dict['status'] = 'fail'
@@ -1072,7 +1068,7 @@ def reports(uid):
 
             for image_data in report_data['report_images']:
                 _, filename = image_data['image_filename'].strip().split('/',1)
-                new_report_images = Report_Images(report_id = my_report.id, filename = filename, scene_user_response_id = image_data['story_scene_user_response_id'], image_type = image_data['image_type'].strip())
+                new_report_images = Report_Images(report_id = my_report.id, filename = filename, scene_user_response_id = image_data['story_scene_user_response_id'], image_type = image_data['image_type'].strip(), scene_user_response_score = image_data['story_scene_user_response_score'])
                 db.session.add(new_report_images)
             db.session.commit()
             
@@ -1146,13 +1142,30 @@ def get_single_report(uid):
         
         report_details['uid'] = report.uid
         report_details['name'] = report.user_story.story.name + " speech report"
+        report_details['score'] = report.score
 
         for report_image in report.report_images:
-            image_url = generate_public_url('report_image', report_image.filename)
+            master_response = Story_Scene_Master_Response.query.filter(Story_Scene_Master_Response.story_scene_speaker_id == report_image.story_scene_user_response.story_scene_speaker_id).first()
+            report_image_url = generate_public_url('report_image', report_image.filename)
+            master_audio_url = generate_public_url('master_audio', master_response.audio_filename)
+            user_response_audio_url = generate_public_url('user_audio', report_image.story_scene_user_response.audio_filename)
+            speaker_audio_url = generate_public_url('speaker_audio', master_response.story_scene_speaker.audio_filename)
+            
             report_images.append({
-                'user_audio_text' : report_image.story_scene_user_response.audio_text,
-                'image_url' : image_url, 
-                'image_type' : report_image.image_type
+                'master_audio_url' : master_audio_url,
+                'user_response_audio_url' : user_response_audio_url,
+                'speaker_audio_url' : speaker_audio_url,
+                
+                'speaker_audio_text' : master_response.story_scene_speaker.audio_text,
+                'user_response_audio_text' : report_image.story_scene_user_response.audio_text,
+                
+                'report_image_url' : report_image_url, 
+                'report_image_type' : report_image.image_type,
+
+                #New keys added
+                'master_response_text' : master_response.audio_text,
+                'scene_number' : master_response.story_scene_speaker.story_scene.order,
+                'scene_user_response_score' : report_image.scene_user_response_score
                 })
 
         report_details['report_images'] = report_images
