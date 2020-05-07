@@ -25,7 +25,7 @@ from fluencybox.mailer import send_reset_email, send_report_complete_email
 from fluencybox.helper import insert_story, insert_story_scene, insert_scene_keyword, insert_story_scene_speaker, \
 insert_story_scene_master_responses, validate_user_name, validate_email_address, get_paginated_list, upload_story_zip, \
 upload_story_json, get_scene, generate_tokens, generate_public_url, get_paginated_story
-from fluencybox.stripe_manager import create_customer, create_payment_token, create_card, create_subscription, get_invoice, \
+from fluencybox.stripe_manager import create_customer, create_card, create_subscription, get_invoice, \
 delete_card, delete_subscription, webhook_event_handler
 from io import BytesIO
 from zipfile import ZipFile
@@ -1395,17 +1395,17 @@ def subscription():
             resp_dict['message'] = 'No user uid in request'
             return jsonify(resp_dict),400
             
-        # Uncomment when F.E sends token
-        # if not 'payment_token' in sub_data:
-        #     resp_dict['status'] = 'fail'
-        #     resp_dict['message'] = 'No payment token in request'
-        #     return jsonify(resp_dict),400
-        # Uncomment when F.E sends token
+        
+        if not 'payment_token' in sub_data:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No payment token in request'
+            return jsonify(resp_dict),400
+       
 
         user_uid = sub_data['user_uid'].strip() 
         
-        # Uncomment when F.E sends token
-        # payment_token = sub_data['payment_token']
+        
+        payment_token = sub_data['payment_token']
     
         user = User.query.filter_by(uid = user_uid).first()
         if not user:
@@ -1420,16 +1420,8 @@ def subscription():
             return jsonify(resp_dict), 500
         customer = create_customer_response['message']
     
-        #Temp use - real payment token will be received from F.E - comment this out
-        create_payment_token_response = create_payment_token()
-        if create_payment_token_response['status'] != 'success':
-            resp_dict['status'] = 'fail'
-            resp_dict['message'] = create_payment_token_response['message']
-            return jsonify(resp_dict), 500
-        payment_token = create_payment_token_response['message']
-        #Temp use - real payment token will be received from F.E - comment this out
-
-        create_card_response = create_card(customer.id, payment_token.id)
+       
+        create_card_response = create_card(customer.id, payment_token)
         if create_card_response['status'] != 'success':
             resp_dict['status'] = 'fail'
             resp_dict['message'] = create_card_response['message']
@@ -1537,15 +1529,13 @@ def add_credit_card():
             return jsonify(resp_dict),400
         user_uid = data['user_uid'].strip() 
 
-        # Uncomment when F.E sends token
-        # if not 'payment_token' in sub_data:
-        #     resp_dict['status'] = 'fail'
-        #     resp_dict['message'] = 'No payment token in request'
-        #     return jsonify(resp_dict),400
-        # Uncomment when F.E sends token
+        if not 'payment_token' in data:
+            resp_dict['status'] = 'fail'
+            resp_dict['message'] = 'No payment token in request'
+            return jsonify(resp_dict),400
 
-        # Uncomment when F.E sends token
-        # payment_token = sub_data['payment_token']
+        
+        payment_token = data['payment_token']
 
         user = User.query.filter_by(uid = user_uid).first()
         if not user:
@@ -1553,18 +1543,10 @@ def add_credit_card():
             resp_dict['message'] = 'No user found'
             return jsonify(resp_dict),404
 
-        #Temp use - real payment token will be received from F.E - comment this out
-        create_payment_token_response = create_payment_token()
-        if create_payment_token_response['status'] != 'success':
-            resp_dict['status'] = 'fail'
-            resp_dict['message'] = create_payment_token_response['message']
-            return jsonify(resp_dict), 500
-        payment_token = create_payment_token_response['message']
-        #Temp use - real payment token will be received from F.E - comment this out
-
+      
         subscription = Subscriptions.query.filter_by(user_id = user.id).first()
 
-        create_card_response = create_card(subscription.stripe_customer_id, payment_token.id)
+        create_card_response = create_card(subscription.stripe_customer_id, payment_token)
         if create_card_response['status'] != 'success':
             resp_dict['status'] = 'fail'
             resp_dict['message'] = create_card_response['message']

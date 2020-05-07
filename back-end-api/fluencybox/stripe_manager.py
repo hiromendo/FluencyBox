@@ -29,20 +29,6 @@ def create_customer(user):
         resp_dict['message'] = str(e)
         return resp_dict
 
-def create_payment_token():
-    try:
-        resp_dict = {}
-        stripe = get_stripe()
-
-        payment_token = stripe.Token.create(card={"number": "5555555555554444", "exp_month": 12, "exp_year": 2020, "cvc": "314"})
-
-        resp_dict['status'] = 'success'
-        resp_dict['message'] = payment_token
-        return resp_dict
-    except Exception as e:
-        resp_dict['status'] = 'fail'
-        resp_dict['message'] = str(e)
-        return resp_dict
 
 def create_card(customer, payment_token):
     try:
@@ -157,7 +143,7 @@ def webhook_event_handler(payload):
             db.session.add(new_subscription_contract)
             db.session.commit()
 
-            print('invoice.created')
+            
             resp_dict['status'] = 'success'
         elif event.type == 'invoice.payment_failed':
             payment_failed_invoice = event.data.object
@@ -189,7 +175,7 @@ def webhook_event_handler(payload):
             my_subscription.status = 'inactive'
             db.session.commit()
 
-            print('invoice.payment_failed')
+            
             resp_dict['status'] = 'success'
         elif event.type == 'invoice.payment_succeeded':
             payment_succeeded = event.data.object 
@@ -219,7 +205,7 @@ def webhook_event_handler(payload):
             my_current_subscription_contract.stripe_charge_id = payment_succeeded.charge
             my_subscription.status = 'active'
             db.session.commit()
-            print('invoice.payment_succeeded')
+            
             
             resp_dict['status'] = 'success'
         else:
